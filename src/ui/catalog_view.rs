@@ -131,7 +131,7 @@ impl SoftDownloaderApp {
     fn search_and_filters(&mut self, ui: &mut egui::Ui) {
         egui::Frame::new()
             .fill(theme::SURFACE)
-            .stroke(Stroke::new(1.0, theme::BORDER))
+            .stroke(Stroke::new(1.0_f32, theme::BORDER))
             .corner_radius(9)
             .inner_margin(Margin::symmetric(14, 7))
             .show(ui, |ui| {
@@ -238,7 +238,7 @@ impl SoftDownloaderApp {
             theme::BORDER
         };
         theme::card_frame()
-            .stroke(Stroke::new(1.0, stroke))
+            .stroke(Stroke::new(1.0_f32, stroke))
             .show(ui, |ui| {
                 ui.set_width((width - 34.0).max(180.0));
                 ui.set_min_height(188.0);

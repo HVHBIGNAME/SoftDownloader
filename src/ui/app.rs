@@ -496,7 +496,7 @@ impl SoftDownloaderApp {
                 egui::Frame::new()
                     .fill(theme::SIDEBAR)
                     .inner_margin(Margin::symmetric(28, 16))
-                    .stroke(Stroke::new(1.0, theme::BORDER)),
+                    .stroke(Stroke::new(1.0_f32, theme::BORDER)),
             )
             .show(ctx, |ui| {
                 ui.horizontal_centered(|ui| {
@@ -604,7 +604,7 @@ impl SoftDownloaderApp {
         if let Some(message) = self.error.clone() {
             egui::Frame::new()
                 .fill(theme::RED.gamma_multiply(0.08))
-                .stroke(Stroke::new(1.0, theme::RED.gamma_multiply(0.25)))
+                .stroke(Stroke::new(1.0_f32, theme::RED.gamma_multiply(0.25)))
                 .corner_radius(9)
                 .inner_margin(12)
                 .show(ui, |ui| {

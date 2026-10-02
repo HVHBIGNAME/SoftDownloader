@@ -23,17 +23,17 @@ pub fn apply(ctx: &egui::Context) {
     style.visuals.window_fill = SURFACE;
     style.visuals.extreme_bg_color = BG;
     style.visuals.faint_bg_color = SURFACE;
-    style.visuals.window_stroke = Stroke::new(1.0, BORDER);
+    style.visuals.window_stroke = Stroke::new(1.0_f32, BORDER);
     style.visuals.selection.bg_fill = ACCENT.gamma_multiply(0.25);
-    style.visuals.selection.stroke = Stroke::new(1.0, ACCENT);
+    style.visuals.selection.stroke = Stroke::new(1.0_f32, ACCENT);
     style.visuals.hyperlink_color = ACCENT;
-    style.visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0, BORDER);
+    style.visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0_f32, BORDER);
     style.visuals.widgets.inactive.bg_fill = SURFACE;
     style.visuals.widgets.inactive.weak_bg_fill = SURFACE;
-    style.visuals.widgets.inactive.bg_stroke = Stroke::new(1.0, BORDER);
+    style.visuals.widgets.inactive.bg_stroke = Stroke::new(1.0_f32, BORDER);
     style.visuals.widgets.hovered.bg_fill = RAISED;
     style.visuals.widgets.hovered.weak_bg_fill = RAISED;
-    style.visuals.widgets.hovered.bg_stroke = Stroke::new(1.0, MUTED.gamma_multiply(0.5));
+    style.visuals.widgets.hovered.bg_stroke = Stroke::new(1.0_f32, MUTED.gamma_multiply(0.5));
     style.visuals.widgets.active.bg_fill = ACCENT.gamma_multiply(0.25);
     for widgets in [
         &mut style.visuals.widgets.inactive,
@@ -64,7 +64,7 @@ pub fn apply(ctx: &egui::Context) {
 pub fn card_frame() -> egui::Frame {
     egui::Frame::new()
         .fill(SURFACE)
-        .stroke(Stroke::new(1.0, BORDER))
+        .stroke(Stroke::new(1.0_f32, BORDER))
         .corner_radius(12)
         .inner_margin(16)
 }
@@ -167,7 +167,7 @@ fn draw_icon(ui: &egui::Ui, rect: Rect, icon: Icon, color: Color32) {
     let line = |points: &[(f32, f32)]| {
         ui.painter().add(egui::Shape::line(
             points.iter().map(|&(x, y)| point(x, y)).collect(),
-            Stroke::new(1.6, color),
+            Stroke::new(1.6_f32, color),
         ))
     };
     match icon {
@@ -176,7 +176,7 @@ fn draw_icon(ui: &egui::Ui, rect: Rect, icon: Icon, color: Color32) {
                 ui.painter().rect_stroke(
                     Rect::from_min_max(point(x, y), point(x + 0.30, y + 0.30)),
                     2,
-                    Stroke::new(1.5, color),
+                    Stroke::new(1.5_f32, color),
                     egui::StrokeKind::Inside,
                 );
             }
@@ -198,23 +198,32 @@ fn draw_icon(ui: &egui::Ui, rect: Rect, icon: Icon, color: Color32) {
             line(&[(0.08, 0.72), (0.5, 0.96), (0.92, 0.72)]);
         }
         Icon::Check => {
-            ui.painter()
-                .circle_stroke(rect.center(), rect.width() * 0.43, Stroke::new(1.5, color));
+            ui.painter().circle_stroke(
+                rect.center(),
+                rect.width() * 0.43,
+                Stroke::new(1.5_f32, color),
+            );
             line(&[(0.27, 0.5), (0.44, 0.67), (0.74, 0.33)]);
         }
         Icon::Search => {
             ui.painter().circle_stroke(
                 point(0.42, 0.42),
                 rect.width() * 0.29,
-                Stroke::new(1.5, color),
+                Stroke::new(1.5_f32, color),
             );
             line(&[(0.64, 0.64), (0.92, 0.92)]);
         }
         Icon::Settings => {
-            ui.painter()
-                .circle_stroke(rect.center(), rect.width() * 0.35, Stroke::new(1.5, color));
-            ui.painter()
-                .circle_stroke(rect.center(), rect.width() * 0.13, Stroke::new(1.5, color));
+            ui.painter().circle_stroke(
+                rect.center(),
+                rect.width() * 0.35,
+                Stroke::new(1.5_f32, color),
+            );
+            ui.painter().circle_stroke(
+                rect.center(),
+                rect.width() * 0.13,
+                Stroke::new(1.5_f32, color),
+            );
             for (a, b) in [
                 ((0.5, 0.0), (0.5, 0.15)),
                 ((0.5, 0.85), (0.5, 1.0)),
