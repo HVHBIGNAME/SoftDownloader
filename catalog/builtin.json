@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "title": "Моя коллекция",
+  "categories": [
+    { "id": "vpn", "name": "VPN и прокси" },
+    { "id": "development", "name": "Разработка" },
+    { "id": "network-tools", "name": "HTTP и сеть", "parent": "development" },
+    { "id": "utilities", "name": "Утилиты" },
+    { "id": "creative", "name": "Творчество" },
+    { "id": "3d", "name": "3D и моделирование", "parent": "creative" },
+    { "id": "design", "name": "Дизайн", "parent": "creative" },
+    { "id": "media", "name": "Медиа" }
+  ],
+  "packages": [
+    {
+      "id": "amnezia-vpn",
+      "name": "AmneziaVPN",
+      "version": "Последняя",
+      "publisher": "Amnezia",
+      "description": "VPN-клиент для собственных серверов и конфигураций. Актуальная Windows x64-сборка из официального GitHub проекта.",
+      "category": "vpn",
+      "tags": ["VPN", "Amnezia", "WireGuard", "сеть"],
+      "homepage": "https://amnezia.org/",
+      "source": { "type": "github", "repository": "amnezia-vpn/amnezia-client", "asset_pattern": "(?i)^AmneziaVPN_.*_windows_x64\\.exe$" },
+      "install": { "type": "exe", "silent_args": ["install", "--accept-licenses", "--default-answer", "--confirm-command"], "requires_admin": true }
+    },
+    {
+      "id": "flclash",
+      "name": "FlClash",
+      "version": "Последняя",
+      "publisher": "chen08209",
+      "description": "Минималистичный клиент на основе Mihomo. Профили, правила маршрутизации и управление прокси-подключениями.",
+      "category": "vpn",
+      "tags": ["VPN", "прокси", "Clash", "Mihomo"],
+      "homepage": "https://github.com/chen08209/FlClash",
+      "source": { "type": "github", "repository": "chen08209/FlClash", "asset_pattern": "(?i)^FlClash-.*-windows-amd64-setup\\.exe$" },
+      "install": { "type": "exe", "silent_args": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"], "requires_admin": true }
+    },
+    {
+      "id": "happ",
+      "name": "Happ",
+      "version": "Последняя",
+      "publisher": "Happ",
+      "description": "Клиент для прокси-профилей на базе Xray. Официальный установщик Windows x64; конфигурация подключения добавляется в самом Happ.",
+      "category": "vpn",
+      "tags": ["VPN", "прокси", "Xray", "VLESS"],
+      "homepage": "https://github.com/Happ-proxy/happ-desktop",
+      "source": { "type": "github", "repository": "Happ-proxy/happ-desktop", "asset_pattern": "^setup-Happ\\.x64\\.exe$" },
+      "install": { "type": "exe", "silent_args": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"], "requires_admin": true }
+    },
+    {
+      "id": "httpdebugger",
+      "name": "HTTP Debugger Pro",
+      "version": "Последняя",
+      "publisher": "MadeForNet",
+      "description": "Анализ HTTP/HTTPS-трафика приложений. Версия и MSI-ссылка читаются с сайта разработчика. Дополнительные утилиты можно привязать к этому пакету из своего каталога.",
+      "category": "network-tools",
+      "tags": ["HTTP", "HTTPS", "debug", "отладка", "сеть"],
+      "homepage": "https://www.httpdebugger.com/",
+      "source": { "type": "website", "page_url": "https://www.httpdebugger.com/download", "link_selector": "a.download-card__redownload", "version_selector": "[itemprop=softwareVersion]", "download_hosts": ["www.httpdebugger.com"] },
+      "install": { "type": "msi", "arguments": [], "requires_admin": true }
+    }
+  ]
+}

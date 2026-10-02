@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "title": "Моя коллекция",
+  "updated_at": null,
+  "categories": [
+    { "id": "creative", "name": "Творчество" },
+    { "id": "3d", "name": "3D и моделирование", "parent": "creative" },
+    { "id": "design", "name": "Дизайн и иллюстрация", "parent": "creative" },
+    { "id": "development", "name": "Разработка" },
+    { "id": "media", "name": "Медиа" },
+    { "id": "utilities", "name": "Утилиты" }
+  ],
+  "packages": [
+    {
+      "id": "blender",
+      "name": "Blender",
+      "version": "Демо",
+      "publisher": "Blender Foundation",
+      "description": "Всё для 3D в одном месте: моделирование, скульптинг, анимация и рендеринг. Добавьте установщик своей версии в каталог.",
+      "category": "3d",
+      "tags": ["3D", "моделирование", "рендер"],
+      "homepage": "https://www.blender.org/",
+      "enabled": false
+    },
+    {
+      "id": "krita",
+      "name": "Krita",
+      "version": "Демо",
+      "publisher": "Krita Foundation",
+      "description": "Цифровой холст для иллюстраций, концепт-арта и рисования. Кисти, слои и инструменты, которые не отвлекают от работы.",
+      "category": "design",
+      "tags": ["рисование", "иллюстрации", "2D"],
+      "homepage": "https://krita.org/",
+      "enabled": false
+    },
+    {
+      "id": "vscode",
+      "name": "Visual Studio Code",
+      "version": "Демо",
+      "publisher": "Microsoft",
+      "description": "Редактор кода с терминалом, отладчиком и расширениями. Выберите нужную сборку и разместите её на своём Диске.",
+      "category": "development",
+      "tags": ["код", "IDE", "редактор"],
+      "homepage": "https://code.visualstudio.com/",
+      "enabled": false
+    },
+    {
+      "id": "obs",
+      "name": "OBS Studio",
+      "version": "Демо",
+      "publisher": "OBS Project",
+      "description": "Запись экрана, сцены и прямые трансляции. Соберите рабочее окружение для видео за одну установку.",
+      "category": "media",
+      "tags": ["стриминг", "запись", "видео"],
+      "homepage": "https://obsproject.com/",
+      "enabled": false
+    },
+    {
+      "id": "7zip",
+      "name": "7-Zip",
+      "version": "Демо",
+      "publisher": "Igor Pavlov",
+      "description": "Компактный архиватор для повседневной работы с файлами. Поддерживает 7z, ZIP и множество других форматов.",
+      "category": "utilities",
+      "tags": ["архивы", "файлы"],
+      "homepage": "https://www.7-zip.org/",
+      "enabled": false
+    },
+    {
+      "id": "blender-addon",
+      "name": "Blender · мой аддон",
+      "version": "Демо",
+      "publisher": "Ваша коллекция",
+      "description": "Пример аддона с зависимостью от Blender. Замените его своим EXE/MSI или ZIP-пакетом; Blender будет установлен первым. Активация расширения внутри Blender может потребоваться отдельно.",
+      "category": "3d",
+      "kind": "addon",
+      "depends_on": ["blender"],
+      "tags": ["аддон", "Blender", "3D"],
+      "enabled": false
+    },
+    {
+      "id": "vlc",
+      "name": "VLC media player",
+      "version": "Демо",
+      "publisher": "VideoLAN",
+      "description": "Простой медиаплеер для видео, аудио и сетевых потоков. Нужные кодеки уже внутри.",
+      "category": "media",
+      "tags": ["плеер", "видео", "аудио"],
+      "homepage": "https://www.videolan.org/",
+      "enabled": false
+    },
+    {
+      "id": "git",
+      "name": "Git",
+      "version": "Демо",
+      "publisher": "Git for Windows",
+      "description": "Контроль версий и инструменты для работы с репозиториями. База для вашего окружения разработчика.",
+      "category": "development",
+      "tags": ["git", "терминал", "разработка"],
+      "homepage": "https://git-scm.com/",
+      "enabled": false
+    },
+    {
+      "id": "gimp",
+      "name": "GIMP",
+      "version": "Демо",
+      "publisher": "GIMP Team",
+      "description": "Обработка фотографий, ретушь и работа с графикой. Расширяйте возможности собственными плагинами.",
+      "category": "design",
+      "tags": ["фото", "графика", "редактор"],
+      "homepage": "https://www.gimp.org/",
+      "enabled": false
+    },
+    {
+      "id": "notepad-plus-plus",
+      "name": "Notepad++",
+      "version": "Демо",
+      "publisher": "Don Ho",
+      "description": "Быстрый редактор текстов и исходного кода. Поиск по файлам, подсветка синтаксиса и работа с большими документами.",
+      "category": "utilities",
+      "tags": ["текст", "редактор"],
+      "homepage": "https://notepad-plus-plus.org/",
+      "enabled": false
+    },
+    {
+      "id": "obs-addon",
+      "name": "OBS · мой плагин",
+      "version": "Демо",
+      "publisher": "Ваша коллекция",
+      "description": "Пример дополнения к OBS Studio. Укажите собственный установщик, а программа автоматически добавит OBS в очередь, если он ещё не установлен через SoftDownloader.",
+      "category": "media",
+      "kind": "addon",
+      "depends_on": ["obs"],
+      "tags": ["аддон", "OBS", "плагин"],
+      "enabled": false
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "version": "Демо",
+      "publisher": "Python Software Foundation",
+      "description": "Язык и среда для автоматизации, скриптов и разработки. Параметры установки и добавление в PATH задаются в каталоге.",
+      "category": "development",
+      "tags": ["python", "скрипты", "разработка"],
+      "homepage": "https://www.python.org/",
+      "enabled": false
+    }
+  ]
+}

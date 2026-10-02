@@ -1,0 +1,14 @@
+/target/
+/dist/
+/.aislop/
+/.claude/
+/.env
+/.env.*
+*.log
+*.part
+__pycache__/
+*.py[cod]
+/drive/
+/catalog.local.json
+/credentials*.json
+/token*.json

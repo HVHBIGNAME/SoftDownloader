@@ -1,0 +1,42 @@
+[package]
+name = "softdownloader"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "A native Windows software catalog and installer powered by Google Drive"
+license = "MIT"
+repository = "https://github.com/HVHBIGNAME/SoftDownloader"
+default-run = "softdownloader"
+
+[dependencies]
+anyhow = "1.0"
+directories = "6.0"
+eframe = { version = "0.33.3", default-features = false, features = ["default_fonts", "glow", "x11", "wayland"] }
+futures-util = "0.3"
+hex = "0.4"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "cookies"] }
+rfd = "0.17.2"
+regex = "1.11"
+scraper = "0.24"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+tempfile = "3.20"
+tokio = { version = "1.45", features = ["rt-multi-thread", "fs", "io-util", "time", "macros", "sync"] }
+tokio-util = { version = "0.7", features = ["io", "rt"] }
+url = "2.5"
+zip = { version = "4.6", default-features = false, features = ["deflate"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security_WinTrust", "Win32_Security_Cryptography", "Win32_System_Environment", "Win32_System_Registry", "Win32_System_Threading", "Win32_System_SystemInformation", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
+winreg = "0.55"
+
+[profile.release]
+opt-level = "s"
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[lints.clippy]
+dbg_macro = "warn"
+todo = "warn"
