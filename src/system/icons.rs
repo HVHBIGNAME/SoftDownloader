@@ -18,12 +18,12 @@ impl IconImage {
             return None;
         }
         let mut rgba = bgra;
-        for pixel in rgba.chunks_exact_mut(4) {
-            // 32-bit DIB sections carry an unreliable alpha channel; GDI icons
-            // are opaque unless the application ships an alpha mask.
-            pixel.swap(0, 2);
-            if pixel[3] == 0 {
-                pixel[3] = 255;
+        // 32-bit DIB sections carry an unreliable alpha channel; GDI icons are
+        // opaque unless the application ships an alpha mask of its own.
+        for offset in (0..rgba.len()).step_by(4) {
+            rgba.swap(offset, offset + 2);
+            if rgba[offset + 3] == 0 {
+                rgba[offset + 3] = 255;
             }
         }
         Some(Self { size, rgba })
@@ -283,12 +283,9 @@ mod tests {
             .expect("Windows binaries expose their icon");
         assert_eq!(image.size, 32);
         assert_eq!(image.rgba.len(), 32 * 32 * 4);
-        assert!(
-            image
-                .rgba
-                .chunks_exact(4)
-                .any(|p| p[3] == 255 && p[0] > p[1]),
-            "the extracted icon must contain visible pixels"
-        );
+        let visible = (0..image.rgba.len())
+            .step_by(4)
+            .any(|at| image.rgba[at + 3] == 255 && image.rgba[at] > image.rgba[at + 1]);
+        assert!(visible, "the extracted icon must contain visible pixels");
     }
 }
