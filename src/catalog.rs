@@ -8,6 +8,7 @@ use crate::paths::{safe_relative_path, validate_id};
 
 pub const DEMO_CATALOG: &str = include_str!("../catalog/demo.json");
 pub const BUILTIN_CATALOG: &str = include_str!("../catalog/builtin.json");
+pub const EXTENDED_CATALOG: &str = include_str!("../catalog/extended.json");
 pub const MAX_ARTIFACT_BYTES: u64 = 1024 * 1024 * 1024 * 1024;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -63,6 +64,8 @@ pub struct Package {
     pub install: Option<InstallSpec>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<crate::discovery::Source>,
+    #[serde(default)]
+    pub detect: crate::inventory::Detection,
 }
 
 fn enabled_by_default() -> bool {
@@ -104,6 +107,17 @@ pub enum InstallSpec {
         #[serde(default)]
         strip_components: u8,
     },
+    Portable {
+        destination: ArchiveDestination,
+    },
+    Interactive {
+        #[serde(default)]
+        requires_admin: bool,
+    },
+    Winget,
+    VscodeExtension {
+        extension_id: String,
+    },
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -140,8 +154,11 @@ impl CatalogDocument {
     }
 
     pub fn builtin() -> Result<Self> {
+        let mut catalog = Catalog::parse(BUILTIN_CATALOG.as_bytes())?;
+        let extended: Catalog = serde_json::from_str(EXTENDED_CATALOG)?;
+        catalog.merge(extended)?;
         Ok(Self {
-            catalog: Catalog::parse(BUILTIN_CATALOG.as_bytes())?,
+            catalog,
             local_root: None,
             is_demo: false,
             diagnostics: BTreeMap::new(),
@@ -233,6 +250,10 @@ impl Catalog {
     }
 
     pub fn merge(&mut self, additional: Self) -> Result<()> {
+        ensure!(
+            additional.schema_version == 1,
+            "Версия дополнительного каталога не поддерживается"
+        );
         let mut unique = HashSet::new();
         for category in &additional.categories {
             ensure!(unique.insert(&category.id), "Повтор группы {}", category.id);
@@ -289,6 +310,23 @@ impl Catalog {
         parts.join(" / ")
     }
 
+    pub fn category_tree(&self) -> Vec<(&Category, usize)> {
+        fn append<'a>(
+            categories: &'a [Category],
+            parent: Option<&str>,
+            depth: usize,
+            result: &mut Vec<(&'a Category, usize)>,
+        ) {
+            for category in categories.iter().filter(|c| c.parent.as_deref() == parent) {
+                result.push((category, depth));
+                append(categories, Some(&category.id), depth + 1, result);
+            }
+        }
+        let mut result = Vec::with_capacity(self.categories.len());
+        append(&self.categories, None, 0, &mut result);
+        result
+    }
+
     pub fn dependency_order(&self, selected: &BTreeSet<String>) -> Result<Vec<&Package>> {
         let index: HashMap<&str, &Package> =
             self.packages.iter().map(|p| (p.id.as_str(), p)).collect();
@@ -336,12 +374,31 @@ impl Package {
         if let Some(homepage) = &self.homepage {
             validate_https_url(homepage)?;
         }
-        if self.enabled {
+        if self.enabled && !self.is_manual() {
             ensure!(
-                (self.artifact.is_some() || self.source.is_some()) && self.install.is_some(),
+                (self.artifact.is_some() || self.source.is_some() || self.is_managed())
+                    && self.install.is_some(),
                 "Активному пакету нужны artifact/source и install"
             );
         }
+        self.detect.validate()?;
+        ensure!(
+            matches!(self.install, Some(InstallSpec::Winget)) == self.winget_id().is_some(),
+            "source.winget и install.winget должны использоваться вместе"
+        );
+        ensure!(
+            !matches!(self.install, Some(InstallSpec::VscodeExtension { .. }))
+                || self.source.is_none(),
+            "Расширение VS Code использует Marketplace без дополнительного source"
+        );
+        ensure!(
+            !self.is_managed() || self.artifact.is_none(),
+            "Управляемому пакету не нужен artifact"
+        );
+        ensure!(
+            !self.is_manual() || (self.install.is_none() && self.artifact.is_none()),
+            "Для ручного источника укажите только ссылку и инструкцию"
+        );
         if let Some(artifact) = &self.artifact {
             artifact.validate(self.requires_signature())?;
         }
@@ -389,11 +446,37 @@ impl Package {
     }
 
     pub fn ready(&self) -> bool {
-        self.enabled && self.artifact.is_some() && self.install.is_some()
+        self.enabled
+            && !self.is_manual()
+            && self.install.is_some()
+            && (self.artifact.is_some() || self.is_managed())
+    }
+
+    pub fn is_managed(&self) -> bool {
+        matches!(
+            self.install,
+            Some(InstallSpec::Winget | InstallSpec::VscodeExtension { .. })
+        )
+    }
+    pub fn is_manual(&self) -> bool {
+        matches!(self.source, Some(crate::discovery::Source::Manual { .. }))
+    }
+    pub fn winget_id(&self) -> Option<&str> {
+        match &self.source {
+            Some(crate::discovery::Source::Winget { package_id, .. }) => Some(package_id),
+            _ => None,
+        }
     }
 
     pub fn requires_signature(&self) -> bool {
         matches!(self.source, Some(crate::discovery::Source::Website { .. }))
+    }
+
+    pub fn winget_repository(&self) -> crate::discovery::WingetRepository {
+        match &self.source {
+            Some(crate::discovery::Source::Winget { repository, .. }) => *repository,
+            _ => crate::discovery::WingetRepository::default(),
+        }
     }
 }
 
@@ -441,16 +524,19 @@ impl Artifact {
 impl InstallSpec {
     pub fn extension(&self) -> &'static str {
         match self {
-            Self::Exe { .. } => ".exe",
+            Self::Exe { .. } | Self::Interactive { .. } | Self::Portable { .. } => ".exe",
             Self::Msi { .. } => ".msi",
             Self::Zip { .. } => ".zip",
+            Self::Winget | Self::VscodeExtension { .. } => "",
         }
     }
 
     pub fn requires_admin(&self) -> bool {
         match self {
-            Self::Exe { requires_admin, .. } | Self::Msi { requires_admin, .. } => *requires_admin,
-            Self::Zip { .. } => false,
+            Self::Exe { requires_admin, .. }
+            | Self::Msi { requires_admin, .. }
+            | Self::Interactive { requires_admin } => *requires_admin,
+            _ => false,
         }
     }
 
@@ -464,6 +550,16 @@ impl InstallSpec {
                 validate_arguments(silent_args)?;
             }
             Self::Msi { arguments, .. } => validate_arguments(arguments)?,
+            Self::Portable { destination } => {
+                safe_relative_path(&destination.path)?;
+            }
+            Self::Interactive { .. } | Self::Winget => {}
+            Self::VscodeExtension { extension_id } => {
+                ensure!(
+                    crate::system::vscode::valid_extension_id(extension_id),
+                    "Некорректный ID расширения VS Code"
+                );
+            }
             Self::Zip {
                 destination,
                 strip_components,

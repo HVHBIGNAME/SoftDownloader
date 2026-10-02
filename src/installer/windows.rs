@@ -28,6 +28,7 @@ pub fn install(path: &Path, id: &str, spec: &InstallSpec, logs: &Path) -> Result
     let log_path = logs.join(format!("{id}-{timestamp}.log"));
     let (executable, arguments) = match spec {
         InstallSpec::Exe { silent_args, .. } => (path.to_owned(), silent_args.clone()),
+        InstallSpec::Interactive { .. } => (path.to_owned(), Vec::new()),
         InstallSpec::Msi { arguments, .. } => {
             let mut args = vec![
                 "/i".into(),
@@ -40,7 +41,7 @@ pub fn install(path: &Path, id: &str, spec: &InstallSpec, logs: &Path) -> Result
             args.extend(arguments.iter().cloned());
             (system_directory()?.join("msiexec.exe"), args)
         }
-        InstallSpec::Zip { .. } => bail!("ZIP-пакет не является нативным установщиком"),
+        _ => bail!("Этот пакет использует отдельный способ установки"),
     };
     launch(&executable, &arguments, spec.requires_admin(), &log_path)
 }

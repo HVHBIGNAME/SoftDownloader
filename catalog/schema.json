@@ -15,6 +15,19 @@
     "id": { "type": "string", "pattern": "^[a-z0-9_-]{1,64}$" },
     "https": { "type": "string", "format": "uri", "pattern": "^https://" },
     "arguments": { "type": "array", "items": { "type": "string", "pattern": "^[^\u0000]*$" } },
+    "tool_id": { "type": "string", "maxLength": 180, "pattern": "^[A-Za-z0-9][A-Za-z0-9._+\\-]*$" },
+    "extension_id": { "type": "string", "pattern": "^[A-Za-z0-9_\\-]+\\.[A-Za-z0-9_\\-]+$" },
+    "detection": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "names": { "type": "array", "maxItems": 64, "items": { "type": "string", "minLength": 1, "maxLength": 256 } },
+        "name_pattern": { "type": ["string", "null"], "maxLength": 256, "pattern": "^\\^.*\\$$" },
+        "winget_ids": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/tool_id" } },
+        "paths": { "type": "array", "maxItems": 64, "items": { "type": "string", "minLength": 1 } },
+        "commands": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/tool_id" } },
+        "appx_names": { "type": "array", "maxItems": 64, "items": { "type": "string", "minLength": 1, "maxLength": 256 } }
+      }
+    },
     "category": {
       "type": "object", "additionalProperties": false, "required": ["id", "name"],
       "properties": {
@@ -36,23 +49,44 @@
         "enabled": { "type": "boolean", "default": true },
         "artifact": { "anyOf": [{ "$ref": "#/$defs/artifact" }, { "type": "null" }] },
         "source": { "anyOf": [{ "$ref": "#/$defs/source" }, { "type": "null" }] },
-        "install": { "anyOf": [{ "$ref": "#/$defs/install" }, { "type": "null" }] }
+        "install": { "anyOf": [{ "$ref": "#/$defs/install" }, { "type": "null" }] },
+        "detect": { "$ref": "#/$defs/detection" }
       },
       "allOf": [
         {
-          "if": { "not": { "required": ["enabled"], "properties": { "enabled": { "const": false } } } },
+          "if": { "not": { "anyOf": [
+            { "required": ["enabled"], "properties": { "enabled": { "const": false } } },
+            { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "const": "manual" } } } } }
+          ] } },
           "then": {
             "required": ["install"], "properties": { "install": { "$ref": "#/$defs/install" } },
             "anyOf": [
               { "required": ["artifact"], "properties": { "artifact": { "$ref": "#/$defs/artifact" } } },
-              { "required": ["source"], "properties": { "source": { "$ref": "#/$defs/source" } } }
+              { "required": ["source"], "properties": { "source": { "$ref": "#/$defs/source" } } },
+              { "properties": { "install": { "properties": { "type": { "const": "vscode_extension" } } } } }
             ]
           }
         },
         {
           "if": { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "const": "website" } } } } },
-          "then": { "properties": { "install": { "type": "object", "properties": { "type": { "enum": ["exe", "msi"] } } } } },
+          "then": { "properties": { "install": { "type": "object", "properties": { "type": { "enum": ["exe", "msi", "interactive", "portable"] } } } } },
           "else": { "properties": { "artifact": { "properties": { "sha256": { "minLength": 64 }, "size": { "minimum": 1 } } } } }
+        },
+        {
+          "if": { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "const": "manual" } } } } },
+          "then": { "properties": { "install": { "type": "null" }, "artifact": { "type": "null" } } }
+        },
+        {
+          "if": { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "const": "winget" } } } } },
+          "then": { "required": ["install"], "properties": { "install": { "type": "object", "properties": { "type": { "const": "winget" } } } } }
+        },
+        {
+          "if": { "required": ["install"], "properties": { "install": { "type": "object", "required": ["type"], "properties": { "type": { "const": "winget" } } } } },
+          "then": { "required": ["source"], "properties": { "source": { "type": "object", "properties": { "type": { "const": "winget" } } }, "artifact": { "type": "null" } } }
+        },
+        {
+          "if": { "required": ["install"], "properties": { "install": { "type": "object", "required": ["type"], "properties": { "type": { "const": "vscode_extension" } } } } },
+          "then": { "properties": { "source": { "type": "null" }, "artifact": { "type": "null" } } }
         }
       ]
     },
@@ -89,8 +123,18 @@
           "properties": {
             "type": { "const": "website" }, "page_url": { "$ref": "#/$defs/https" },
             "link_selector": { "type": "string", "minLength": 1 }, "version_selector": { "type": "string", "minLength": 1 },
+            "version_attribute": { "type": ["string", "null"], "pattern": "^[A-Za-z0-9_\\-]+$" },
+            "version_pattern": { "type": ["string", "null"], "maxLength": 256 },
             "download_hosts": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "type": "string", "minLength": 1 } }
           }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["type", "package_id"],
+          "properties": { "type": { "const": "winget" }, "package_id": { "$ref": "#/$defs/tool_id" }, "repository": { "enum": ["winget", "msstore"], "default": "winget" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["type", "url", "instructions"],
+          "properties": { "type": { "const": "manual" }, "url": { "$ref": "#/$defs/https" }, "instructions": { "type": "string", "minLength": 1 } }
         }
       ]
     },
@@ -123,6 +167,22 @@
             "type": { "const": "zip" }, "destination": { "$ref": "#/$defs/destination" },
             "strip_components": { "type": "integer", "minimum": 0, "maximum": 8, "default": 0 }
           }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["type", "destination"],
+          "properties": { "type": { "const": "portable" }, "destination": { "$ref": "#/$defs/destination" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["type"],
+          "properties": { "type": { "const": "interactive" }, "requires_admin": { "type": "boolean", "default": false } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["type"],
+          "properties": { "type": { "const": "winget" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["type", "extension_id"],
+          "properties": { "type": { "const": "vscode_extension" }, "extension_id": { "$ref": "#/$defs/extension_id" } }
         }
       ]
     }

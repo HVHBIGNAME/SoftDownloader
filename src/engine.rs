@@ -68,7 +68,10 @@ pub enum WorkerEvent {
         progress: Progress,
     },
     Installed(InstalledPackage),
-    Programs(Result<Vec<InstalledProgram>, String>),
+    Programs {
+        generation: u64,
+        result: Result<crate::inventory::Inventory, String>,
+    },
     Removed {
         id: String,
         managed_ids: Vec<String>,
@@ -85,6 +88,9 @@ pub struct Engine {
     queue_task: Option<JoinHandle<()>>,
     generation: u64,
     cancel: CancellationToken,
+    shutdown: CancellationToken,
+    inventory_generation: u64,
+    inventory_cancel: CancellationToken,
 }
 
 impl Engine {
@@ -101,6 +107,9 @@ impl Engine {
             queue_task: None,
             generation: 0,
             cancel: CancellationToken::new(),
+            shutdown: CancellationToken::new(),
+            inventory_generation: 0,
+            inventory_cancel: CancellationToken::new(),
         };
         Ok((engine, receiver))
     }
@@ -154,15 +163,23 @@ impl Engine {
         self.cancel.cancel();
     }
 
-    pub fn scan_programs(&self, library: Library) {
+    pub fn scan_programs(&mut self, library: Library, catalog: crate::catalog::Catalog) -> u64 {
+        self.inventory_cancel.cancel();
+        self.inventory_cancel = self.shutdown.child_token();
+        self.inventory_generation += 1;
+        let generation = self.inventory_generation;
         let sender = self.sender.clone();
+        let cancel = self.inventory_cancel.clone();
         self.runtime.spawn(async move {
-            let result = tokio::task::spawn_blocking(move || uninstall::scan(&library))
-                .await
-                .map_err(|e| e.to_string())
-                .and_then(|result| result.map_err(|e| format!("{e:#}")));
-            let _ = sender.send(WorkerEvent::Programs(result));
+            let result = tokio::task::spawn_blocking(move || {
+                crate::inventory::scan(&catalog, &library, &cancel)
+            })
+            .await
+            .map_err(|e| e.to_string())
+            .and_then(|result| result.map_err(|e| format!("{e:#}")));
+            let _ = sender.send(WorkerEvent::Programs { generation, result });
         });
+        generation
     }
 
     pub fn remove(
@@ -198,6 +215,7 @@ impl Engine {
 
 impl Drop for Engine {
     fn drop(&mut self) {
+        self.shutdown.cancel();
         self.cancel.cancel();
         if let Some(task) = &self.catalog_task {
             task.abort();
@@ -259,6 +277,27 @@ impl QueueRunner {
     }
 
     async fn run_package(&self, package: &Package) -> Result<(installer::InstallOutcome, String)> {
+        if package.is_managed() {
+            self.status(&package.id, JobStatus::Installing);
+            let spec = package.install.clone();
+            let id = package.winget_id().map(str::to_owned);
+            let repository = package.winget_repository();
+            let log = self.store.logs.join(format!("install-{}.log", package.id));
+            let outcome = tokio::task::spawn_blocking(move || match spec {
+                Some(crate::catalog::InstallSpec::Winget) => crate::system::winget::install(
+                    id.as_deref()
+                        .ok_or_else(|| anyhow::anyhow!("Нет ID WinGet"))?,
+                    repository,
+                    &log,
+                ),
+                Some(crate::catalog::InstallSpec::VscodeExtension { extension_id }) => {
+                    crate::system::vscode::install(&extension_id, &log)
+                }
+                _ => anyhow::bail!("Неизвестный менеджер установки"),
+            })
+            .await??;
+            return Ok((outcome, String::new()));
+        }
         self.status(&package.id, JobStatus::Downloading);
         let acquired = transfer::acquire(
             &self.client,

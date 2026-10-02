@@ -1,0 +1,674 @@
+{
+  "schema_version": 1,
+  "title": "Моя коллекция",
+  "categories": [
+    { "id": "browsers", "name": "Браузеры" },
+    { "id": "communication", "name": "Общение и почта" },
+    { "id": "ai", "name": "ИИ и ассистенты" },
+    { "id": "editors", "name": "Редакторы и IDE", "parent": "development" },
+    { "id": "runtimes", "name": "Языки и среды", "parent": "development" },
+    { "id": "java", "name": "Java · JDK", "parent": "runtimes" },
+    { "id": "archives", "name": "Архиваторы", "parent": "utilities" },
+    { "id": "system-tools", "name": "Система и диски", "parent": "utilities" },
+    { "id": "devices", "name": "Устройства", "parent": "utilities" },
+    { "id": "security", "name": "Защита и пароли" },
+    { "id": "gaming", "name": "Игры" },
+    { "id": "minecraft", "name": "Minecraft", "parent": "gaming" },
+    { "id": "video-tools", "name": "Запись и монтаж", "parent": "media" },
+    { "id": "productivity", "name": "Документы и заметки" }
+  ],
+  "packages": [
+    {
+      "id": "discord", "name": "Discord", "version": "Последняя", "publisher": "Discord",
+      "description": "Голосовые и текстовые каналы, сообщества и демонстрация экрана.", "category": "communication",
+      "tags": ["чат", "голос", "discord"], "homepage": "https://discord.com/",
+      "source": { "type": "winget", "package_id": "Discord.Discord" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Discord/Update.exe"] }
+    },
+    {
+      "id": "telegram", "name": "Telegram Desktop", "version": "Последняя", "publisher": "Telegram",
+      "description": "Официальный Telegram для Windows: сообщения, каналы, звонки и передача файлов.", "category": "communication",
+      "tags": ["telegram", "телеграм", "чат"], "homepage": "https://desktop.telegram.org/",
+      "source": { "type": "winget", "package_id": "Telegram.TelegramDesktop" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Telegram Desktop(?: (?:version |версия )?[0-9.]+)?)$", "paths": ["%APPDATA%/Telegram Desktop/Telegram.exe"], "appx_names": ["TelegramMessengerLLP.TelegramDesktop"] }
+    },
+    {
+      "id": "ayugram", "name": "AyuGram Desktop", "version": "Последняя", "publisher": "Radolyn Labs",
+      "description": "Альтернативный клиент Telegram с дополнительными настройками интерфейса и приватности.", "category": "communication",
+      "tags": ["ayugram", "telegram", "телеграм"], "homepage": "https://github.com/AyuGram/AyuGramDesktop",
+      "source": { "type": "winget", "package_id": "RadolynLabs.AyuGramDesktop" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:AyuGram Desktop(?: (?:version |версия )?[0-9.]+)?)$", "paths": ["%APPDATA%/AyuGram Desktop/AyuGram.exe"] }
+    },
+    {
+      "id": "brave", "name": "Brave", "version": "Последняя", "publisher": "Brave Software",
+      "description": "Браузер на Chromium со встроенной блокировкой рекламы и трекеров.", "category": "browsers",
+      "tags": ["браузер", "chromium", "brave"], "homepage": "https://brave.com/",
+      "source": { "type": "winget", "package_id": "Brave.Brave" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/BraveSoftware/Brave-Browser/Application/brave.exe", "%LOCALAPPDATA%/BraveSoftware/Brave-Browser/Application/brave.exe"] }
+    },
+    {
+      "id": "chrome", "name": "Google Chrome", "version": "Последняя", "publisher": "Google",
+      "description": "Браузер Google с синхронизацией профиля и поддержкой расширений Chrome Web Store.", "category": "browsers",
+      "tags": ["браузер", "chrome", "хром"], "homepage": "https://www.google.com/chrome/",
+      "source": { "type": "winget", "package_id": "Google.Chrome" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Google/Chrome/Application/chrome.exe", "%ProgramFiles(x86)%/Google/Chrome/Application/chrome.exe", "%LOCALAPPDATA%/Google/Chrome/Application/chrome.exe"] }
+    },
+    {
+      "id": "firefox", "name": "Mozilla Firefox", "version": "Последняя", "publisher": "Mozilla",
+      "description": "Браузер на Gecko с расширениями и гибкими настройками приватности.", "category": "browsers",
+      "tags": ["браузер", "firefox", "лиса"], "homepage": "https://www.mozilla.org/firefox/",
+      "source": { "type": "winget", "package_id": "Mozilla.Firefox" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Mozilla Firefox(?: [0-9.]+)?(?: \\((?:x64 |x86 )?[a-z]{2}(?:-[a-z]{2})?\\))?)$", "paths": ["%ProgramFiles%/Mozilla Firefox/firefox.exe", "%ProgramFiles(x86)%/Mozilla Firefox/firefox.exe"] }
+    },
+    {
+      "id": "cursor", "name": "Cursor", "version": "Последняя", "publisher": "Anysphere",
+      "description": "Редактор кода с ИИ-ассистентом, поиском по проекту и агентным режимом.", "category": "ai",
+      "tags": ["cursor", "ide", "редактор", "AI"], "homepage": "https://cursor.com/",
+      "source": { "type": "winget", "package_id": "Anysphere.Cursor" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Cursor(?: \\(User\\))?)$", "paths": ["%LOCALAPPDATA%/Programs/cursor/Cursor.exe"], "commands": ["cursor.cmd"] }
+    },
+    {
+      "id": "trae", "name": "Trae", "version": "Последняя", "publisher": "ByteDance",
+      "description": "Среда разработки с ИИ-чатом и агентом для работы над проектами.", "category": "ai",
+      "tags": ["trae", "ide", "редактор", "AI"], "homepage": "https://www.trae.ai/",
+      "source": { "type": "winget", "package_id": "ByteDance.Trae" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Trae(?: \\(User\\))?)$", "paths": ["%LOCALAPPDATA%/Programs/Trae/Trae.exe"], "commands": ["trae.cmd"] }
+    },
+    {
+      "id": "antigravity", "name": "Google Antigravity", "version": "Последняя", "publisher": "Google",
+      "description": "Агентная среда разработки Google для работы с кодом, терминалом и браузером.", "category": "ai",
+      "tags": ["antigravity", "google", "ide", "AI"], "homepage": "https://antigravity.google/",
+      "source": { "type": "winget", "package_id": "Google.Antigravity" }, "install": { "type": "winget" },
+      "detect": { "names": ["Antigravity", "Antigravity (User)"], "paths": ["%LOCALAPPDATA%/Programs/Antigravity/Antigravity.exe"], "commands": ["antigravity.cmd"] }
+    },
+    {
+      "id": "claude", "name": "Claude Desktop", "version": "Последняя", "publisher": "Anthropic",
+      "description": "Настольный клиент Claude. Вход в аккаунт и подключение интеграций выполняются в приложении.", "category": "ai",
+      "tags": ["claude", "anthropic", "чат", "AI"], "homepage": "https://claude.ai/download",
+      "source": { "type": "winget", "package_id": "Anthropic.Claude" }, "install": { "type": "winget" },
+      "detect": { "names": ["Claude"], "paths": ["%LOCALAPPDATA%/AnthropicClaude/claude.exe"], "appx_names": ["Claude", "Anthropic.Claude"] }
+    },
+    {
+      "id": "claude-code", "name": "Claude Code · CLI", "version": "Последняя", "publisher": "Anthropic",
+      "description": "Claude Code для терминала. Claude CLI — этот же пакет; после установки запустите claude и войдите в аккаунт.", "category": "ai",
+      "tags": ["claude code", "claude cli", "агент", "терминал", "AI"], "homepage": "https://code.claude.com/docs/",
+      "source": { "type": "winget", "package_id": "Anthropic.ClaudeCode" }, "install": { "type": "winget" },
+      "detect": { "names": ["Claude Code"], "paths": ["%USERPROFILE%/.local/bin/claude.exe", "%APPDATA%/npm/claude.cmd"], "commands": ["claude.exe", "claude.cmd"] }
+    },
+    {
+      "id": "hermes", "name": "Hermes Agent", "version": "Последняя", "publisher": "Nous Research",
+      "description": "ИИ-агент Nous Research с терминальным и настольным интерфейсом. Поддерживает нативную Windows.", "category": "ai",
+      "tags": ["hermes", "nous", "агент", "AI"], "homepage": "https://hermes-agent.nousresearch.com/",
+      "source": { "type": "manual", "url": "https://hermes-agent.nousresearch.com/docs/getting-started/installation", "instructions": "На сайте Hermes выберите Windows и откройте .appinstaller через «Установщик приложений». Для CLI используйте раздел Windows (native) в инструкции. После установки выберите провайдера и настройте доступ к модели в Hermes." },
+      "detect": { "names": ["Hermes", "Hermes Desktop"], "paths": ["%LOCALAPPDATA%/hermes/bin/hermes.cmd", "%LOCALAPPDATA%/hermes/bin/hermes.exe"], "commands": ["hermes.exe", "hermes.cmd"] }
+    },
+    {
+      "id": "cline", "name": "Cline · VS Code", "version": "Последняя", "publisher": "Cline",
+      "description": "ИИ-агент Cline как расширение VS Code. Доступ к моделям настраивается в расширении.", "category": "ai", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["cline", "claude dev", "расширение", "AI"], "homepage": "https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev",
+      "install": { "type": "vscode_extension", "extension_id": "saoudrizwan.claude-dev" }
+    },
+    {
+      "id": "vscode", "name": "Visual Studio Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Редактор кода с терминалом, отладчиком и каталогом расширений.", "category": "editors",
+      "tags": ["vscode", "vs code", "редактор", "microsoft visual"], "homepage": "https://code.visualstudio.com/",
+      "source": { "type": "winget", "package_id": "Microsoft.VisualStudioCode" }, "install": { "type": "winget" },
+      "detect": { "names": ["Microsoft Visual Studio Code", "Microsoft Visual Studio Code (User)"], "paths": ["%LOCALAPPDATA%/Programs/Microsoft VS Code/Code.exe", "%ProgramFiles%/Microsoft VS Code/Code.exe"], "commands": ["code.cmd"] }
+    },
+    {
+      "id": "visual-studio", "name": "Visual Studio Community 2026", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Полная IDE Microsoft. Нужные рабочие нагрузки, например C++ или .NET, выберите в Visual Studio Installer.", "category": "editors",
+      "tags": ["microsoft visual", "visual studio", "C++", ".NET", "ide"], "homepage": "https://visualstudio.microsoft.com/vs/community/",
+      "source": { "type": "winget", "package_id": "Microsoft.VisualStudio.Community" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "sublime-text", "name": "Sublime Text", "version": "Последняя", "publisher": "Sublime HQ",
+      "description": "Быстрый редактор текста и кода с множественными курсорами и командной палитрой.", "category": "editors",
+      "tags": ["sublime", "редактор", "текст"], "homepage": "https://www.sublimetext.com/",
+      "source": { "type": "winget", "package_id": "SublimeHQ.SublimeText.4" }, "install": { "type": "winget" },
+      "detect": { "names": ["Sublime Text 4"], "paths": ["%ProgramFiles%/Sublime Text/sublime_text.exe"], "commands": ["subl.exe"] }
+    },
+    {
+      "id": "notepad-plus-plus", "name": "Notepad++", "version": "Последняя", "publisher": "Don Ho",
+      "description": "Лёгкий текстовый редактор с подсветкой синтаксиса, поиском и плагинами.", "category": "editors",
+      "tags": ["notepad++", "блокнот", "редактор"], "homepage": "https://notepad-plus-plus.org/",
+      "source": { "type": "winget", "package_id": "Notepad++.Notepad++" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Notepad\\+\\+(?: \\((?:64|32)-bit x(?:64|86)\\))?)$", "paths": ["%ProgramFiles%/Notepad++/notepad++.exe", "%ProgramFiles(x86)%/Notepad++/notepad++.exe"], "commands": ["notepad++.exe"] }
+    },
+    {
+      "id": "db-browser", "name": "DB Browser for SQLite", "version": "Последняя", "publisher": "DB Browser for SQLite",
+      "description": "Просмотр и редактирование SQLite: таблицы, запросы, импорт и экспорт данных.", "category": "development",
+      "tags": ["db browser", "sqlite", "sql", "базы данных"], "homepage": "https://sqlitebrowser.org/",
+      "source": { "type": "winget", "package_id": "DBBrowserForSQLite.DBBrowserForSQLite" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/DB Browser for SQLite/DB Browser for SQLite.exe"] }
+    },
+    {
+      "id": "git", "name": "Git for Windows", "version": "Последняя", "publisher": "Git",
+      "description": "Система контроля версий Git, командная строка Git Bash и инструменты работы с репозиториями.", "category": "development",
+      "tags": ["git", "bash", "репозитории"], "homepage": "https://gitforwindows.org/",
+      "source": { "type": "winget", "package_id": "Git.Git" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Git(?: version [0-9.]+)?)$", "paths": ["%ProgramFiles%/Git/cmd/git.exe"], "commands": ["git.exe"] }
+    },
+    {
+      "id": "docker-desktop", "name": "Docker Desktop", "version": "Последняя", "publisher": "Docker",
+      "description": "Контейнеры и Docker Compose. Для работы нужен настроенный WSL 2 или Hyper-V; завершите настройку при первом запуске.", "category": "development",
+      "tags": ["docker", "контейнеры", "wsl", "compose"], "homepage": "https://www.docker.com/products/docker-desktop/",
+      "source": { "type": "winget", "package_id": "Docker.DockerDesktop" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Docker/Docker/Docker Desktop.exe", "%LOCALAPPDATA%/Programs/DockerDesktop/Docker Desktop.exe"] }
+    },
+    {
+      "id": "python", "name": "Python 3.14", "version": "Последняя", "publisher": "Python Software Foundation",
+      "description": "CPython ветки 3.14 для Windows x64. Другие ветки Python обнаруживаются отдельно.", "category": "runtimes",
+      "tags": ["python", "питон", "pip", "3.14"], "homepage": "https://www.python.org/",
+      "source": { "type": "winget", "package_id": "Python.Python.3.14" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Python 3\\.14(?:\\.\\d+)*(?: \\(64-bit\\))?)$", "paths": ["%LOCALAPPDATA%/Programs/Python/Python314/python.exe", "%ProgramFiles%/Python314/python.exe"] }
+    },
+    {
+      "id": "python-313", "name": "Python 3.13", "version": "Последняя", "publisher": "Python Software Foundation",
+      "description": "Ветка CPython 3.13 для проектов, которым ещё нужна эта версия интерпретатора.", "category": "runtimes",
+      "tags": ["python", "питон", "pip", "3.13"], "homepage": "https://www.python.org/",
+      "source": { "type": "winget", "package_id": "Python.Python.3.13" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Python 3\\.13(?:\\.\\d+)*(?: \\(64-bit\\))?)$", "paths": ["%LOCALAPPDATA%/Programs/Python/Python313/python.exe", "%ProgramFiles%/Python313/python.exe"] }
+    },
+    {
+      "id": "nodejs", "name": "Node.js LTS", "version": "Последняя", "publisher": "OpenJS Foundation",
+      "description": "LTS-ветка Node.js и npm для JavaScript-инструментов, серверных приложений и сборки фронтенда.", "category": "runtimes",
+      "tags": ["node", "nodejs", "npm", "javascript"], "homepage": "https://nodejs.org/",
+      "source": { "type": "winget", "package_id": "OpenJS.NodeJS.LTS" }, "install": { "type": "winget" },
+      "detect": { "names": ["Node.js"], "winget_ids": ["OpenJS.NodeJS"], "paths": ["%ProgramFiles%/nodejs/node.exe"], "commands": ["node.exe"] }
+    },
+    {
+      "id": "go", "name": "Go", "version": "Последняя", "publisher": "Google",
+      "description": "Компилятор и стандартные инструменты языка Go для Windows x64.", "category": "runtimes",
+      "tags": ["go", "golang", "компилятор"], "homepage": "https://go.dev/",
+      "source": { "type": "winget", "package_id": "GoLang.Go" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Go(?: Programming Language)?(?: version)?(?: go)?(?: ?[0-9.]+)?(?: windows/amd64)?)$", "paths": ["%ProgramFiles%/Go/bin/go.exe"], "commands": ["go.exe"] }
+    },
+    {
+      "id": "rust", "name": "Rust · rustup", "version": "Последняя", "publisher": "Rust Project",
+      "description": "Rustup устанавливает Rust и Cargo. Для сборки MSVC-проектов дополнительно нужны C++ Build Tools.", "category": "runtimes",
+      "tags": ["rust", "rustup", "cargo", "компилятор"], "homepage": "https://rustup.rs/",
+      "source": { "type": "winget", "package_id": "Rustlang.Rustup" }, "install": { "type": "winget" },
+      "detect": { "names": ["Rustup: the Rust toolchain installer"], "paths": ["%USERPROFILE%/.cargo/bin/rustup.exe", "%CARGO_HOME%/bin/rustup.exe"], "commands": ["rustup.exe"] }
+    },
+    {
+      "id": "vcredist-x64", "name": "Microsoft Visual C++ Runtime · x64", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Распространяемые библиотеки Visual C++ v14 / 2015+ для 64-битных программ.", "category": "runtimes",
+      "tags": ["microsoft visual", "vcredist", "runtime", "C++", "x64"], "homepage": "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist",
+      "source": { "type": "winget", "package_id": "Microsoft.VCRedist.2015+.x64" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Microsoft Visual C\\+\\+ (?:2015(?:-20\\d{2})?|v14) Redistributable \\(x64\\)(?: - [0-9.]+)?)$" }
+    },
+    {
+      "id": "vcredist-x86", "name": "Microsoft Visual C++ Runtime · x86", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Visual C++ v14 / 2015+ для 32-битных программ, в том числе на 64-битной Windows.", "category": "runtimes",
+      "tags": ["microsoft visual", "vcredist", "runtime", "C++", "x86"], "homepage": "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist",
+      "source": { "type": "winget", "package_id": "Microsoft.VCRedist.2015+.x86" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Microsoft Visual C\\+\\+ (?:2015(?:-20\\d{2})?|v14) Redistributable \\(x86\\)(?: - [0-9.]+)?)$" }
+    },
+    {
+      "id": "java-8", "name": "Java 8 · Temurin JDK", "version": "Последняя", "publisher": "Eclipse Adoptium",
+      "description": "OpenJDK 8 (HotSpot) для старых Java-приложений и сборок Minecraft.", "category": "java",
+      "tags": ["java", "jdk", "temurin", "8", "minecraft"], "homepage": "https://adoptium.net/temurin/releases/?version=8",
+      "source": { "type": "winget", "package_id": "EclipseAdoptium.Temurin.8.JDK" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Eclipse Temurin JDK with Hotspot 8(?:[u. ].*)?)$" }
+    },
+    {
+      "id": "java-11", "name": "Java 11 · Temurin JDK", "version": "Последняя", "publisher": "Eclipse Adoptium",
+      "description": "OpenJDK 11 (HotSpot) для приложений и проектов, использующих Java 11.", "category": "java",
+      "tags": ["java", "jdk", "temurin", "11", "lts"], "homepage": "https://adoptium.net/temurin/releases/?version=11",
+      "source": { "type": "winget", "package_id": "EclipseAdoptium.Temurin.11.JDK" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Eclipse Temurin JDK with Hotspot 11(?:[. ].*)?)$" }
+    },
+    {
+      "id": "java-17", "name": "Java 17 · Temurin JDK", "version": "Последняя", "publisher": "Eclipse Adoptium",
+      "description": "OpenJDK 17 (HotSpot) для совместимых серверов, модов и инструментов разработки.", "category": "java",
+      "tags": ["java", "jdk", "temurin", "17", "lts", "minecraft"], "homepage": "https://adoptium.net/temurin/releases/?version=17",
+      "source": { "type": "winget", "package_id": "EclipseAdoptium.Temurin.17.JDK" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Eclipse Temurin JDK with Hotspot 17(?:[. ].*)?)$" }
+    },
+    {
+      "id": "java-21", "name": "Java 21 · Temurin JDK", "version": "Последняя", "publisher": "Eclipse Adoptium",
+      "description": "OpenJDK 21 (HotSpot), LTS-среда для разработки и современных Java-приложений.", "category": "java",
+      "tags": ["java", "jdk", "temurin", "21", "lts", "minecraft"], "homepage": "https://adoptium.net/temurin/releases/?version=21",
+      "source": { "type": "winget", "package_id": "EclipseAdoptium.Temurin.21.JDK" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Eclipse Temurin JDK with Hotspot 21(?:[. ].*)?)$" }
+    },
+    {
+      "id": "java-25", "name": "Java 25 · Temurin JDK", "version": "Последняя", "publisher": "Eclipse Adoptium",
+      "description": "OpenJDK 25 (HotSpot), новая LTS-ветка. Выбирайте версию JDK под свой проект.", "category": "java",
+      "tags": ["java", "jdk", "temurin", "25", "lts"], "homepage": "https://adoptium.net/temurin/releases/?version=25",
+      "source": { "type": "winget", "package_id": "EclipseAdoptium.Temurin.25.JDK" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Eclipse Temurin JDK with Hotspot 25(?:[. ].*)?)$" }
+    },
+    {
+      "id": "blender", "name": "Blender", "version": "Последняя", "publisher": "Blender Foundation",
+      "description": "3D-моделирование, скульптинг, анимация и рендеринг в одном приложении.", "category": "3d",
+      "tags": ["blender", "3d", "анимация", "рендер"], "homepage": "https://www.blender.org/",
+      "source": { "type": "winget", "package_id": "BlenderFoundation.Blender" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Blender(?: [0-9.]+)?)$", "commands": ["blender.exe"], "appx_names": ["BlenderFoundation.Blender"] }
+    },
+    {
+      "id": "gimp", "name": "GIMP", "version": "Последняя", "publisher": "GIMP Team",
+      "description": "Редактор растровой графики: ретушь, слои, маски и обработка изображений.", "category": "design",
+      "tags": ["gimp", "графика", "фото"], "homepage": "https://www.gimp.org/",
+      "source": { "type": "winget", "package_id": "GIMP.GIMP.3" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:GIMP 3(?:\\.[0-9]+)*(?: \\(revision [0-9]+\\))?)$", "paths": ["%ProgramFiles%/GIMP 3/bin/gimp-3.0.exe"] }
+    },
+    {
+      "id": "inkscape", "name": "Inkscape", "version": "Последняя", "publisher": "Inkscape Project",
+      "description": "Векторный редактор SVG для иллюстраций, иконок и схем.", "category": "design",
+      "tags": ["inkscape", "svg", "вектор", "дизайн"], "homepage": "https://inkscape.org/",
+      "source": { "type": "winget", "package_id": "Inkscape.Inkscape" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Inkscape/bin/inkscape.exe"] }
+    },
+    {
+      "id": "capcut", "name": "CapCut", "version": "Последняя", "publisher": "ByteDance",
+      "description": "Видеоредактор с таймлайном, эффектами и субтитрами. Некоторые функции требуют аккаунта или подписки.", "category": "video-tools",
+      "tags": ["capcut", "видео", "монтаж"], "homepage": "https://www.capcut.com/",
+      "source": { "type": "winget", "package_id": "ByteDance.CapCut" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/CapCut/Apps/CapCut.exe"] }
+    },
+    {
+      "id": "spotify", "name": "Spotify", "version": "Последняя", "publisher": "Spotify",
+      "description": "Музыкальный клиент Spotify. Доступ к сервису зависит от аккаунта и региона.", "category": "media",
+      "tags": ["spotify", "музыка", "подкасты"], "homepage": "https://www.spotify.com/download/windows/",
+      "source": { "type": "winget", "package_id": "Spotify.Spotify" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%APPDATA%/Spotify/Spotify.exe"], "appx_names": ["SpotifyAB.SpotifyMusic"] }
+    },
+    {
+      "id": "vlc", "name": "VLC media player", "version": "Последняя", "publisher": "VideoLAN",
+      "description": "Проигрыватель видео и аудио с поддержкой множества форматов и сетевых потоков.", "category": "media",
+      "tags": ["vlc", "плеер", "видео", "аудио"], "homepage": "https://www.videolan.org/vlc/",
+      "source": { "type": "winget", "package_id": "VideoLAN.VLC" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/VideoLAN/VLC/vlc.exe", "%ProgramFiles(x86)%/VideoLAN/VLC/vlc.exe"] }
+    },
+    {
+      "id": "obs", "name": "OBS Studio", "version": "Последняя", "publisher": "OBS Project",
+      "description": "Запись экрана и трансляции: сцены, источники, микшер звука и плагины.", "category": "video-tools",
+      "tags": ["obs", "запись", "стрим", "видео"], "homepage": "https://obsproject.com/",
+      "source": { "type": "winget", "package_id": "OBSProject.OBSStudio" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/obs-studio/bin/64bit/obs64.exe"] }
+    },
+    {
+      "id": "audacity", "name": "Audacity", "version": "Последняя", "publisher": "Audacity Team",
+      "description": "Запись и редактирование аудио, работа с дорожками, эффектами и шумоподавлением.", "category": "media",
+      "tags": ["audacity", "звук", "аудио", "редактор"], "homepage": "https://www.audacityteam.org/",
+      "source": { "type": "winget", "package_id": "Audacity.Audacity" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Audacity(?: [0-9.]+)?(?: \\((?:64|32)-bit\\))?)$", "paths": ["%ProgramFiles%/Audacity/Audacity.exe"] }
+    },
+    {
+      "id": "droidcam", "name": "DroidCam Client", "version": "Последняя", "publisher": "Dev47Apps",
+      "description": "Использование телефона как веб-камеры. Потребуется мобильное приложение DroidCam.", "category": "video-tools",
+      "tags": ["droidcam", "камера", "телефон"], "homepage": "https://www.dev47apps.com/",
+      "source": { "type": "winget", "package_id": "dev47apps.DroidCamOBSClient" }, "install": { "type": "winget" },
+      "detect": { "names": ["DroidCam Client (New)"], "winget_ids": ["dev47apps.DroidCam"], "paths": ["%ProgramFiles%/DroidCam/DroidCamApp.exe", "%ProgramFiles(x86)%/DroidCam/DroidCamApp.exe"] }
+    },
+    {
+      "id": "droidcam-obs", "name": "DroidCam · плагин OBS", "version": "Последняя", "publisher": "Dev47Apps",
+      "description": "Источник DroidCam для OBS Studio. Плагин устанавливается после OBS.", "category": "video-tools", "kind": "addon", "depends_on": ["obs"],
+      "tags": ["droidcam", "obs", "плагин", "камера"], "homepage": "https://www.dev47apps.com/obs/",
+      "source": { "type": "winget", "package_id": "dev47apps.DroidCamOBSPlugin" }, "install": { "type": "winget" },
+      "detect": { "names": ["DroidCam OBS Plugin"] }
+    },
+    {
+      "id": "thunderbird", "name": "Mozilla Thunderbird", "version": "Последняя", "publisher": "Mozilla",
+      "description": "Почтовый клиент с календарём, адресной книгой и поддержкой нескольких аккаунтов.", "category": "communication",
+      "tags": ["thunderbird", "почта", "email"], "homepage": "https://www.thunderbird.net/",
+      "source": { "type": "winget", "package_id": "Mozilla.Thunderbird" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Mozilla Thunderbird(?: [0-9.]+)?(?: \\((?:x64 |x86 )?[a-z]{2}(?:-[a-z]{2})?\\))?)$", "paths": ["%ProgramFiles%/Mozilla Thunderbird/thunderbird.exe"] }
+    },
+    {
+      "id": "steam", "name": "Steam", "version": "Последняя", "publisher": "Valve",
+      "description": "Игровая библиотека, магазин и обновления игр Steam.", "category": "gaming",
+      "tags": ["steam", "игры", "valve"], "homepage": "https://store.steampowered.com/about/",
+      "source": { "type": "winget", "package_id": "Valve.Steam" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles(x86)%/Steam/steam.exe", "%ProgramFiles%/Steam/steam.exe"] }
+    },
+    {
+      "id": "wemod", "name": "WeMod", "version": "Последняя", "publisher": "WeMod",
+      "description": "Менеджер модификаций и трейнеров для поддерживаемых одиночных игр.", "category": "gaming",
+      "tags": ["wemod", "игры", "трейнер"], "homepage": "https://www.wemod.com/",
+      "source": { "type": "winget", "package_id": "WeMod.WeMod" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/WeMod/WeMod.exe"] }
+    },
+    {
+      "id": "laby-launcher", "name": "LabyMod Launcher", "version": "Последняя", "publisher": "LabyMedia",
+      "description": "LabyLauncher для Minecraft и LabyMod с управлением игровыми профилями.", "category": "minecraft",
+      "tags": ["labylauncher", "laby", "labymod", "minecraft"], "homepage": "https://www.labymod.net/",
+      "source": { "type": "winget", "package_id": "LabyMediaGmbH.LabyModLauncher" }, "install": { "type": "winget" },
+      "detect": { "names": ["LabyModLauncher", "LabyLauncher"] }
+    },
+    {
+      "id": "modrinth", "name": "Modrinth App", "version": "Последняя", "publisher": "Modrinth",
+      "description": "Лаунчер Modrinth с модпаками, модами и раздельными экземплярами Minecraft.", "category": "minecraft",
+      "tags": ["modrinth", "launcher", "майнкрафт", "модпаки"], "homepage": "https://modrinth.com/app",
+      "source": { "type": "winget", "package_id": "Modrinth.ModrinthApp" }, "install": { "type": "winget" },
+      "detect": { "names": ["Modrinth", "Modrinth Launcher"] }
+    },
+    {
+      "id": "prism-launcher", "name": "Prism Launcher", "version": "Последняя", "publisher": "Prism Launcher",
+      "description": "Официальный Prism Launcher: управление экземплярами Minecraft, Java и модами.", "category": "minecraft",
+      "tags": ["prism", "launcher", "minecraft", "моды"], "homepage": "https://prismlauncher.org/",
+      "source": { "type": "winget", "package_id": "PrismLauncher.PrismLauncher" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "prism-cracked", "name": "Prism Launcher Cracked", "version": "Последняя", "publisher": "Diegiwg",
+      "description": "ZIP-сборка PrismLauncher-Cracked из репозитория Diegiwg. Программа хранится в отдельной папке SoftDownloader; запуск — через «Папка» в списке установленного.", "category": "minecraft", "depends_on": ["vcredist-x64"],
+      "tags": ["prism cracked launcher", "minecraft", "лаунчер"], "homepage": "https://github.com/Diegiwg/PrismLauncher-Cracked",
+      "source": { "type": "github", "repository": "Diegiwg/PrismLauncher-Cracked", "asset_pattern": "^PrismLauncher-Windows-MSVC-[0-9.]+\\.zip$" },
+      "install": { "type": "zip", "destination": { "root": "local_app_data", "path": "SoftDownloader/apps/prism-cracked" } },
+      "detect": { "names": ["PrismLauncher-Cracked"], "paths": ["%LOCALAPPDATA%/SoftDownloader/apps/prism-cracked/prismlauncher.exe"] }
+    },
+    {
+      "id": "liquid-launcher", "name": "LiquidLauncher", "version": "Последняя", "publisher": "CCBlueX",
+      "description": "Лаунчер LiquidBounce из официального репозитория CCBlueX; Windows x64 MSI.", "category": "minecraft",
+      "tags": ["liquid launcher", "liquidbounce", "minecraft"], "homepage": "https://github.com/CCBlueX/LiquidLauncher",
+      "source": { "type": "github", "repository": "CCBlueX/LiquidLauncher", "asset_pattern": "^LiquidLauncher_[0-9.]+_x64_en-US\\.msi$" },
+      "install": { "type": "msi", "requires_admin": true },
+      "detect": { "names": ["Liquid Launcher"] }
+    },
+    {
+      "id": "minecraft-launcher", "name": "Minecraft Launcher", "version": "Последняя", "publisher": "Mojang / Microsoft",
+      "description": "Официальный Minecraft Launcher. Игры и вход в Microsoft-аккаунт настраиваются после установки.", "category": "minecraft",
+      "tags": ["minecraft launcher", "mojang", "майнкрафт"], "homepage": "https://www.minecraft.net/download",
+      "source": { "type": "winget", "package_id": "Mojang.MinecraftLauncher" }, "install": { "type": "winget" },
+      "detect": { "appx_names": ["Microsoft.4297127D64EC6"] }
+    },
+    {
+      "id": "meta-horizon-link", "name": "Meta Horizon Link", "version": "Последняя", "publisher": "Meta",
+      "description": "Клиент для подключения Meta Quest к ПК; в WinGet опубликован как Oculus.", "category": "devices",
+      "tags": ["meta horizon link", "oculus", "quest", "vr"], "homepage": "https://www.meta.com/quest/setup/",
+      "source": { "type": "winget", "package_id": "Meta.Oculus" }, "install": { "type": "winget" },
+      "detect": { "names": ["Oculus", "Oculus Software", "Meta Quest Link"], "paths": ["%ProgramFiles%/Oculus/Support/oculus-client/OculusClient.exe"] }
+    },
+    {
+      "id": "termius", "name": "Termius", "version": "Последняя", "publisher": "Termius",
+      "description": "SSH-клиент с профилями подключений, терминалом и SFTP.", "category": "network-tools",
+      "tags": ["termius", "ssh", "sftp", "терминал"], "homepage": "https://termius.com/",
+      "source": { "type": "winget", "package_id": "Termius.Termius" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/Termius/Termius.exe"] }
+    },
+    {
+      "id": "sideloadly", "name": "Sideloadly", "version": "Последняя", "publisher": "iOSGods",
+      "description": "Установка приложений на личные iOS-устройства. Подключение устройства и Apple ID выполняются в Sideloadly.", "category": "devices",
+      "tags": ["sideloadly", "ios", "iphone", "ipa"], "homepage": "https://sideloadly.io/",
+      "source": { "type": "winget", "package_id": "iOSGods.Sideloadly" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Sideloadly/sideloadly.exe", "%ProgramFiles%/Sideloadly/sideloadly.exe"] }
+    },
+    {
+      "id": "3utools", "name": "3uTools", "version": "Последняя", "publisher": "3uTools",
+      "description": "Управление iPhone и iPad, резервные копии и перенос файлов. Официальный x64-установщик запускает штатный мастер.", "category": "devices",
+      "tags": ["3utools", "iphone", "ipad", "ios"], "homepage": "https://www.3u.com/",
+      "source": { "type": "website", "page_url": "https://www.3u.com/", "link_selector": "a.i4-win-v64", "version_selector": "a.i4-win-v64", "version_attribute": "href", "version_pattern": "3uTools_v([0-9.]+)_Setup", "download_hosts": ["dl.3u.com"] },
+      "install": { "type": "interactive", "requires_admin": true },
+      "detect": { "name_pattern": "^(?i:3uTools(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/3uTools/3uTools.exe", "%ProgramFiles(x86)%/3uTools/3uTools.exe"] }
+    },
+    {
+      "id": "itunes", "name": "iTunes", "version": "Последняя", "publisher": "Apple",
+      "description": "Медиатека Apple и инструменты работы с совместимыми iOS-устройствами.", "category": "devices",
+      "tags": ["itunes", "apple", "iphone", "музыка"], "homepage": "https://www.apple.com/itunes/",
+      "source": { "type": "winget", "package_id": "Apple.iTunes" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/iTunes/iTunes.exe"], "appx_names": ["AppleInc.iTunes"] }
+    },
+    {
+      "id": "winrar", "name": "WinRAR", "version": "Последняя", "publisher": "RARLAB",
+      "description": "Архиватор RAR и ZIP. Пробная версия; лицензия приобретается у разработчика.", "category": "archives",
+      "tags": ["winrar", "rar", "zip", "архиватор"], "homepage": "https://www.rarlab.com/",
+      "source": { "type": "winget", "package_id": "RARLab.WinRAR" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:WinRAR(?: [0-9.]+)?(?: \\((?:64|32)-(?:bit|разрядная)\\))?(?: архиватор)?)$", "paths": ["%ProgramFiles%/WinRAR/WinRAR.exe", "%ProgramFiles(x86)%/WinRAR/WinRAR.exe"] }
+    },
+    {
+      "id": "bandizip", "name": "Bandizip", "version": "Последняя", "publisher": "Bandisoft",
+      "description": "Архиватор с поддержкой распространённых форматов и быстрым просмотром архивов.", "category": "archives",
+      "tags": ["bandizip", "zip", "архиватор"], "homepage": "https://www.bandisoft.com/bandizip/",
+      "source": { "type": "winget", "package_id": "Bandisoft.Bandizip" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Bandizip/Bandizip.exe"] }
+    },
+    {
+      "id": "7zip", "name": "7-Zip", "version": "Последняя", "publisher": "Igor Pavlov",
+      "description": "Свободный архиватор 7z и ZIP с высокой степенью сжатия.", "category": "archives",
+      "tags": ["7zip", "7-zip", "7z", "архиватор"], "homepage": "https://www.7-zip.org/",
+      "source": { "type": "winget", "package_id": "7zip.7zip" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:7-Zip(?: [0-9.]+)?(?: \\((?:x64|x86)(?: edition)?\\))?)$", "paths": ["%ProgramFiles%/7-Zip/7zFM.exe"] }
+    },
+    {
+      "id": "amd-software", "name": "AMD Software: Adrenalin Edition", "version": "Последняя", "publisher": "AMD",
+      "description": "Драйвер и панель AMD Radeon. Подберите пакет для своей видеокарты на сайте AMD.", "category": "devices",
+      "tags": ["amd software", "adrenalin", "radeon", "драйвер"], "homepage": "https://www.amd.com/en/support/download/drivers.html",
+      "source": { "type": "manual", "url": "https://www.amd.com/en/support/download/drivers.html", "instructions": "Выберите свою видеокарту и Windows либо официальный Auto-Detect. Запустите предложенный AMD установщик и выберите параметры драйвера." },
+      "detect": { "names": ["AMD Software", "AMD Software: Adrenalin Edition"], "paths": ["%ProgramFiles%/AMD/CNext/CNext/RadeonSoftware.exe"] }
+    },
+    {
+      "id": "nvidia-app", "name": "NVIDIA App", "version": "Последняя", "publisher": "NVIDIA",
+      "description": "Панель NVIDIA для обновления драйверов и настройки поддерживаемых видеокарт.", "category": "devices",
+      "tags": ["nvidia software", "nvidia app", "geforce", "драйвер"], "homepage": "https://www.nvidia.com/en-us/software/nvidia-app/",
+      "source": { "type": "manual", "url": "https://www.nvidia.com/en-us/software/nvidia-app/", "instructions": "Скачайте NVIDIA App с сайта NVIDIA и запустите мастер. Затем выберите Game Ready или Studio Driver для своей видеокарты в приложении." },
+      "detect": { "name_pattern": "^(?i:NVIDIA App(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/NVIDIA Corporation/NVIDIA app/CEF/NVIDIA app.exe"] }
+    },
+    {
+      "id": "ame-wizard", "name": "AME Wizard Beta", "version": "Beta", "publisher": "Ameliorated",
+      "description": "AME Wizard для применения playbook-файлов .apbx. Плейбук и изменения системы выбираются в мастере.", "category": "system-tools",
+      "tags": ["ame-beta", "ame wizard", "ameliorated", "apbx"], "homepage": "https://amelabs.net/",
+      "source": { "type": "manual", "url": "https://amelabs.net/", "instructions": "Скачайте AME Beta ZIP кнопкой на официальном сайте, распакуйте и откройте AME Wizard Beta.exe. Выберите свой .apbx и просмотрите изменения перед применением." },
+      "detect": { "names": ["AME Wizard", "AME Beta"], "commands": ["AME-Wizard.exe"] }
+    },
+    {
+      "id": "veracrypt", "name": "VeraCrypt", "version": "Последняя", "publisher": "IDRIX",
+      "description": "Создание зашифрованных контейнеров и управление зашифрованными томами.", "category": "security",
+      "tags": ["veracrypt", "шифрование", "контейнер"], "homepage": "https://www.veracrypt.fr/",
+      "source": { "type": "winget", "package_id": "IDRIX.VeraCrypt" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/VeraCrypt/VeraCrypt.exe"] }
+    },
+    {
+      "id": "eset-premium", "name": "ESET HOME Security Premium", "version": "Последняя", "publisher": "ESET",
+      "description": "ESET Premium / Smart Security Premium. Редакция и доступные функции определяются подпиской ESET.", "category": "security",
+      "tags": ["eset", "nod32 premium", "smart security premium", "антивирус"], "homepage": "https://www.eset.com/int/home/protection-plans/",
+      "source": { "type": "manual", "url": "https://www.eset.com/int/home/download/", "instructions": "Скачайте официальный Live Installer для Premium либо откройте свой eset_smart_security_premium_live_installer.exe. В мастере войдите в ESET HOME или укажите действующую лицензию. NOD32 Antivirus и Premium — разные редакции." },
+      "detect": { "names": ["ESET Security", "ESET Smart Security Premium", "ESET HOME Security Premium"], "paths": ["%ProgramFiles%/ESET/ESET Security/egui.exe"] }
+    },
+    {
+      "id": "2ip-startguard", "name": "2IP StartGuard", "version": "1.1", "publisher": "2IP",
+      "description": "Утилита контроля автозагрузки Windows; также ищется по названию 2ip Starguard.", "category": "security",
+      "tags": ["2ip", "starguard", "startguard", "автозагрузка"], "homepage": "https://2ip.ru/startguard/",
+      "source": { "type": "manual", "url": "https://2ip.ru/startguard/", "instructions": "Страница 2IP StartGuard временно отвечает HTTP 503. Когда она будет доступна, скачайте установщик оттуда; существующая установка определяется по реестру и файлу программы." },
+      "detect": { "name_pattern": "^(?i:2IP\\s?StartGuard(?: \\(v?[0-9.]+\\))?)$", "paths": ["%ProgramFiles(x86)%/2IPStartGuard/2IPStartGuard.exe", "%ProgramFiles%/2IPStartGuard/2IPStartGuard.exe"] }
+    },
+    {
+      "id": "crystal-disk-info", "name": "CrystalDiskInfo", "version": "Последняя", "publisher": "Crystal Dew World",
+      "description": "Просмотр состояния и SMART-показателей HDD и SSD.", "category": "system-tools",
+      "tags": ["crystaldiskinfo", "smart", "ssd", "hdd", "диски"], "homepage": "https://crystalmark.info/en/software/crystaldiskinfo/",
+      "source": { "type": "winget", "package_id": "CrystalDewWorld.CrystalDiskInfo" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:CrystalDiskInfo(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/CrystalDiskInfo/DiskInfo64.exe"], "commands": ["DiskInfo64.exe"] }
+    },
+    {
+      "id": "crystal-disk-mark", "name": "CrystalDiskMark", "version": "Последняя", "publisher": "Crystal Dew World",
+      "description": "Измерение скорости чтения и записи накопителей. Тест запускается вручную в программе.", "category": "system-tools",
+      "tags": ["crystaldiskmark", "benchmark", "ssd", "диски"], "homepage": "https://crystalmark.info/en/software/crystaldiskmark/",
+      "source": { "type": "winget", "package_id": "CrystalDewWorld.CrystalDiskMark" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:CrystalDiskMark(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/CrystalDiskMark/DiskMark64.exe"], "commands": ["DiskMark64.exe"] }
+    },
+    {
+      "id": "op-auto-clicker", "name": "OP Auto Clicker", "version": "Последняя", "publisher": "OP Auto Clicker",
+      "description": "Автоматизация повторяющихся кликов с интервалом, горячей клавишей и выбором кнопки мыши.", "category": "utilities",
+      "tags": ["op auto clicker", "autoclicker", "автокликер"], "homepage": "https://www.opautoclicker.com/",
+      "source": { "type": "winget", "package_id": "OPAutoClicker.OPAutoClicker" }, "install": { "type": "winget" },
+      "detect": { "commands": ["AutoClicker.exe"] }
+    },
+    {
+      "id": "system-informer", "name": "System Informer · Process Hacker", "version": "Последняя", "publisher": "System Informer Project",
+      "description": "Современное продолжение Process Hacker: процессы, службы, дескрипторы и системные ресурсы.", "category": "system-tools",
+      "tags": ["process hacker", "system informer", "процессы", "службы"], "homepage": "https://systeminformer.sourceforge.io/",
+      "source": { "type": "winget", "package_id": "WinsiderSS.SystemInformer" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:(?:System Informer|Process Hacker)(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/SystemInformer/SystemInformer.exe", "%ProgramFiles%/System Informer/SystemInformer.exe", "%ProgramFiles%/Process Hacker 2/ProcessHacker.exe"], "commands": ["SystemInformer.exe", "ProcessHacker.exe"] }
+    },
+    {
+      "id": "sharex", "name": "ShareX", "version": "Последняя", "publisher": "ShareX Team",
+      "description": "Скриншоты, запись экрана и настраиваемые действия после захвата.", "category": "video-tools",
+      "tags": ["sharex", "скриншоты", "запись экрана"], "homepage": "https://getsharex.com/",
+      "source": { "type": "winget", "package_id": "ShareX.ShareX" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/ShareX/ShareX.exe"], "appx_names": ["19568ShareX.ShareX"] }
+    },
+    {
+      "id": "shutdown-pc-timer", "name": "Shutdown PC Timer", "version": "Последняя", "publisher": "Risefall",
+      "description": "Таймер выключения и перезагрузки Windows от Risefall. Приложение Microsoft Store; расписание задаётся после запуска.", "category": "system-tools",
+      "tags": ["shutdown pc timer", "выключение", "таймер"], "homepage": "https://apps.microsoft.com/detail/9pb7gbmcr7n0",
+      "source": { "type": "winget", "package_id": "9PB7GBMCR7N0", "repository": "msstore" }, "install": { "type": "winget" },
+      "detect": { "appx_names": ["55525Risefall.ShutdownPCTimer"] }
+    },
+    {
+      "id": "shutdown-timer", "name": "Shutdown Timer Classic", "version": "Последняя", "publisher": "Lukas Langrock",
+      "description": "Таймер выключения, перезагрузки и сна. Действие и время задаются после запуска.", "category": "system-tools",
+      "tags": ["shutdown timer", "выключение", "таймер"], "homepage": "https://github.com/lukaslangrock/ShutdownTimerClassic",
+      "source": { "type": "winget", "package_id": "LukasLangrock.ShutdownTimerClassic" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "twinkle-tray", "name": "Twinkle Tray", "version": "Последняя", "publisher": "Xander Frangos",
+      "description": "Управление яркостью внешних мониторов из трея Windows через DDC/CI.", "category": "devices",
+      "tags": ["twinkle tray", "яркость", "монитор", "ddc"], "homepage": "https://twinkletray.com/",
+      "source": { "type": "winget", "package_id": "xanderfrangos.twinkletray" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/twinkle-tray/Twinkle Tray.exe"], "appx_names": ["38002AlexanderFrangos.TwinkleTray"] }
+    },
+    {
+      "id": "wireshark", "name": "Wireshark", "version": "Последняя", "publisher": "Wireshark Foundation",
+      "description": "Анализ сетевого трафика и протоколов. Для захвата пакетов нужен драйвер Npcap.", "category": "network-tools",
+      "tags": ["wireshark", "pcap", "сеть", "пакеты"], "homepage": "https://www.wireshark.org/",
+      "source": { "type": "winget", "package_id": "WiresharkFoundation.Wireshark" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Wireshark(?: [0-9.]+)?(?: \\(64-bit\\))?)$", "paths": ["%ProgramFiles%/Wireshark/Wireshark.exe"] }
+    },
+    {
+      "id": "tgwsproxy", "name": "TgWsProxy", "version": "Последняя", "publisher": "Flowseal",
+      "description": "Локальный WebSocket-прокси для Telegram. Portable-файл сохраняется в AppData/SoftDownloader/apps/tgwsproxy; подключение настраивается после запуска.", "category": "vpn",
+      "tags": ["tgwsproxy", "tg-ws-proxy", "telegram", "прокси"], "homepage": "https://github.com/Flowseal/tg-ws-proxy",
+      "source": { "type": "github", "repository": "Flowseal/tg-ws-proxy", "asset_pattern": "^TgWsProxy_windows\\.exe$" },
+      "install": { "type": "portable", "destination": { "root": "local_app_data", "path": "SoftDownloader/apps/tgwsproxy" } },
+      "detect": { "paths": ["%LOCALAPPDATA%/SoftDownloader/apps/tgwsproxy/TgWsProxy_windows.exe"], "commands": ["TgWsProxy_windows.exe"] }
+    },
+    {
+      "id": "zapret", "name": "zapret · Discord & YouTube", "version": "Последняя", "publisher": "Flowseal",
+      "description": "Официальный ZIP Flowseal распаковывается в AppData/SoftDownloader/apps/zapret. Откройте папку и service.bat, чтобы выбрать стратегию и настроить службу.", "category": "vpn",
+      "tags": ["zapret", "запрет", "discord", "youtube", "dpi"], "homepage": "https://github.com/Flowseal/zapret-discord-youtube",
+      "source": { "type": "github", "repository": "Flowseal/zapret-discord-youtube", "asset_pattern": "^zapret-discord-youtube-[0-9.]+\\.zip$" },
+      "install": { "type": "zip", "destination": { "root": "local_app_data", "path": "SoftDownloader/apps/zapret" }, "strip_components": 1 },
+      "detect": { "paths": ["%LOCALAPPDATA%/SoftDownloader/apps/zapret/service.bat", "C:/zapret/service.bat"] }
+    },
+    {
+      "id": "proxifier", "name": "Proxifier", "version": "Последняя", "publisher": "VentoByte",
+      "description": "Маршрутизация подключений приложений через SOCKS/HTTPS-прокси по правилам.", "category": "vpn",
+      "tags": ["proxifier", "прокси", "socks", "правила"], "homepage": "https://www.proxifier.com/",
+      "source": { "type": "winget", "package_id": "VentoByte.Proxifier" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles(x86)%/Proxifier/Proxifier.exe", "%ProgramFiles%/Proxifier/Proxifier.exe"] }
+    },
+    {
+      "id": "tailscale", "name": "Tailscale", "version": "Последняя", "publisher": "Tailscale",
+      "description": "Приватная сеть между вашими устройствами на базе WireGuard. Подключите аккаунт после установки.", "category": "vpn",
+      "tags": ["tailscale", "mesh", "vpn", "wireguard"], "homepage": "https://tailscale.com/",
+      "source": { "type": "winget", "package_id": "Tailscale.Tailscale" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Tailscale/tailscale-ipn.exe"], "commands": ["tailscale.exe"] }
+    },
+    {
+      "id": "proton-vpn", "name": "Proton VPN", "version": "Последняя", "publisher": "Proton",
+      "description": "VPN-клиент Proton. Подключение и доступные серверы зависят от выбранного плана.", "category": "vpn",
+      "tags": ["proton", "vpn", "сеть"], "homepage": "https://protonvpn.com/",
+      "source": { "type": "winget", "package_id": "Proton.ProtonVPN" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Proton\\s?VPN(?: v?[0-9.]+)?)$" }
+    },
+    {
+      "id": "mullvad", "name": "Mullvad VPN", "version": "Последняя", "publisher": "Mullvad",
+      "description": "VPN-клиент Mullvad с подключением по номеру аккаунта.", "category": "vpn",
+      "tags": ["mullvad", "vpn", "wireguard"], "homepage": "https://mullvad.net/",
+      "source": { "type": "winget", "package_id": "MullvadVPN.MullvadVPN" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Mullvad VPN/Mullvad VPN.exe"] }
+    },
+    {
+      "id": "windscribe", "name": "Windscribe", "version": "Последняя", "publisher": "Windscribe",
+      "description": "VPN-клиент Windscribe. Вход и выбор сервера выполняются в программе.", "category": "vpn",
+      "tags": ["windscribe", "vpn", "сеть"], "homepage": "https://windscribe.com/",
+      "source": { "type": "winget", "package_id": "Windscribe.Windscribe" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Windscribe/Windscribe.exe"] }
+    },
+    {
+      "id": "wireguard", "name": "WireGuard", "version": "Последняя", "publisher": "WireGuard",
+      "description": "Официальный клиент WireGuard для импорта конфигураций и управления VPN-туннелями.", "category": "vpn",
+      "tags": ["wireguard", "vpn", "туннель"], "homepage": "https://www.wireguard.com/",
+      "source": { "type": "winget", "package_id": "WireGuard.WireGuard" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/WireGuard/wireguard.exe"] }
+    },
+    {
+      "id": "ivpn", "name": "IVPN", "version": "Последняя", "publisher": "IVPN",
+      "description": "VPN-клиент IVPN с поддержкой WireGuard и OpenVPN.", "category": "vpn",
+      "tags": ["ivpn", "vpn", "wireguard", "openvpn"], "homepage": "https://www.ivpn.net/",
+      "source": { "type": "winget", "package_id": "IVPN.IVPN" }, "install": { "type": "winget" },
+      "detect": { "names": ["IVPN Client"] }
+    },
+    {
+      "id": "cloudflare-warp", "name": "Cloudflare WARP", "version": "Последняя", "publisher": "Cloudflare",
+      "description": "Клиент Cloudflare WARP / One. Личный или организационный режим выбирается в приложении.", "category": "vpn",
+      "tags": ["cloudflare", "warp", "1.1.1.1", "vpn"], "homepage": "https://one.one.one.one/",
+      "source": { "type": "winget", "package_id": "Cloudflare.Warp" }, "install": { "type": "winget" },
+      "detect": { "names": ["Cloudflare One Client", "Cloudflare WARP"] }
+    },
+    {
+      "id": "hiddify", "name": "Hiddify", "version": "Последняя", "publisher": "Hiddify",
+      "description": "Клиент прокси-профилей с поддержкой популярных протоколов и подписок.", "category": "vpn",
+      "tags": ["hiddify", "vpn", "прокси", "vless"], "homepage": "https://github.com/hiddify/hiddify-app",
+      "source": { "type": "winget", "package_id": "Hiddify.Next" }, "install": { "type": "winget" },
+      "detect": { "names": ["Hiddify Next"], "name_pattern": "^(?i:Hiddify(?: Next)?(?: (?:version |версия )?[0-9.]+)?)$" }
+    },
+    {
+      "id": "everything", "name": "Everything", "version": "Последняя", "publisher": "voidtools",
+      "description": "Быстрый поиск файлов и папок по имени на локальных дисках.", "category": "utilities",
+      "tags": ["everything", "поиск", "файлы"], "homepage": "https://www.voidtools.com/",
+      "source": { "type": "winget", "package_id": "voidtools.Everything" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Everything/Everything.exe"], "commands": ["Everything.exe"] }
+    },
+    {
+      "id": "powertoys", "name": "Microsoft PowerToys", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Набор утилит Windows: зоны окон, переименование, палитра цветов и дополнительные инструменты.", "category": "utilities",
+      "tags": ["powertoys", "windows", "утилиты"], "homepage": "https://learn.microsoft.com/windows/powertoys/",
+      "source": { "type": "winget", "package_id": "Microsoft.PowerToys" }, "install": { "type": "winget" },
+      "detect": { "names": ["PowerToys", "PowerToys (Preview)", "PowerToys (Preview) x64"], "paths": ["%ProgramFiles%/PowerToys/PowerToys.exe", "%LOCALAPPDATA%/PowerToys/PowerToys.exe"] }
+    },
+    {
+      "id": "windows-terminal", "name": "Windows Terminal", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Терминал Windows с вкладками и профилями PowerShell, CMD и WSL.", "category": "development",
+      "tags": ["terminal", "терминал", "powershell", "wsl"], "homepage": "https://github.com/microsoft/terminal",
+      "source": { "type": "winget", "package_id": "Microsoft.WindowsTerminal" }, "install": { "type": "winget" },
+      "detect": { "appx_names": ["Microsoft.WindowsTerminal"] }
+    },
+    {
+      "id": "keepassxc", "name": "KeePassXC", "version": "Последняя", "publisher": "KeePassXC Team",
+      "description": "Локальный менеджер паролей с зашифрованной базой KDBX.", "category": "security",
+      "tags": ["keepassxc", "пароли", "kdbx"], "homepage": "https://keepassxc.org/",
+      "source": { "type": "winget", "package_id": "KeePassXCTeam.KeePassXC" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/KeePassXC/KeePassXC.exe"] }
+    },
+    {
+      "id": "bitwarden", "name": "Bitwarden", "version": "Последняя", "publisher": "Bitwarden",
+      "description": "Менеджер паролей с синхронизацией и зашифрованным хранилищем.", "category": "security",
+      "tags": ["bitwarden", "пароли", "менеджер"], "homepage": "https://bitwarden.com/",
+      "source": { "type": "winget", "package_id": "Bitwarden.Bitwarden" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/Bitwarden/Bitwarden.exe", "%ProgramFiles%/Bitwarden/Bitwarden.exe"], "appx_names": ["8bitSolutionsLLC.bitwardendesktop"] }
+    },
+    {
+      "id": "sumatra-pdf", "name": "SumatraPDF", "version": "Последняя", "publisher": "SumatraPDF",
+      "description": "Компактный просмотрщик PDF, электронных книг и комиксов.", "category": "productivity",
+      "tags": ["sumatra", "pdf", "epub", "документы"], "homepage": "https://www.sumatrapdfreader.org/",
+      "source": { "type": "winget", "package_id": "SumatraPDF.SumatraPDF" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/SumatraPDF/SumatraPDF.exe", "%ProgramFiles%/SumatraPDF/SumatraPDF.exe"], "commands": ["SumatraPDF.exe"] }
+    },
+    {
+      "id": "rufus", "name": "Rufus", "version": "Последняя", "publisher": "Akeo",
+      "description": "Создание загрузочных USB-накопителей. Образ и целевой накопитель выбираются в Rufus.", "category": "system-tools",
+      "tags": ["rufus", "usb", "iso", "флешка"], "homepage": "https://rufus.ie/",
+      "source": { "type": "winget", "package_id": "Rufus.Rufus" }, "install": { "type": "winget" },
+      "detect": { "commands": ["rufus.exe"] }
+    },
+    {
+      "id": "obsidian", "name": "Obsidian", "version": "Последняя", "publisher": "Obsidian",
+      "description": "Локальные заметки Markdown, ссылки между документами и плагины.", "category": "productivity",
+      "tags": ["obsidian", "markdown", "заметки"], "homepage": "https://obsidian.md/",
+      "source": { "type": "winget", "package_id": "Obsidian.Obsidian" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Obsidian/Obsidian.exe", "%LOCALAPPDATA%/Programs/Obsidian/Obsidian.exe"] }
+    }
+  ]
+}

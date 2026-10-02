@@ -1,120 +1,262 @@
+use std::path::PathBuf;
+use std::time::Instant;
+
 use anyhow::{Context, Result, ensure};
 use softdownloader::{
-    catalog::{Catalog, CatalogDocument},
-    installer, network, transfer,
+    catalog::{Catalog, CatalogDocument, InstallSpec, Package},
+    installer, inventory, network,
+    storage::Store,
+    system::winget,
+    transfer,
 };
-use std::path::PathBuf;
 use tokio_util::sync::CancellationToken;
+
+const USAGE: &str = "catalog-check [catalog.json] [--public] [--resolve] [--check-winget] [--inventory [--data-dir DIR]] [--download-only ID --cache DIR]";
+
+#[derive(Default)]
+struct Options {
+    public: bool,
+    resolve: bool,
+    check_winget: bool,
+    inventory: bool,
+    source: Option<String>,
+    download: Option<String>,
+    cache: Option<PathBuf>,
+    data_dir: Option<PathBuf>,
+}
+
+impl Options {
+    fn parse() -> Result<Option<Self>> {
+        let mut options = Self::default();
+        let mut args = std::env::args().skip(1);
+        while let Some(argument) = args.next() {
+            match argument.as_str() {
+                "--help" | "-h" => {
+                    println!("{USAGE}");
+                    return Ok(None);
+                }
+                "--public" => options.public = true,
+                "--resolve" => options.resolve = true,
+                "--check-winget" => options.check_winget = true,
+                "--inventory" => options.inventory = true,
+                "--download-only" => {
+                    options.download = Some(args.next().context("Missing package ID")?)
+                }
+                "--cache" => {
+                    options.cache = Some(PathBuf::from(
+                        args.next().context("Missing cache directory")?,
+                    ))
+                }
+                "--data-dir" => {
+                    options.data_dir = Some(PathBuf::from(
+                        args.next().context("Missing data directory")?,
+                    ))
+                }
+                _ => {
+                    ensure!(
+                        !argument.starts_with('-') && options.source.is_none(),
+                        "{USAGE}"
+                    );
+                    options.source = Some(argument);
+                }
+            }
+        }
+        ensure!(
+            options.download.is_none() || (options.resolve && options.cache.is_some()),
+            "Use --resolve and --cache with --download-only"
+        );
+        Ok(Some(options))
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut public = false;
-    let mut resolve = false;
-    let mut file = None;
-    let mut download = None;
-    let mut cache = None;
-    let mut args = std::env::args().skip(1);
-    while let Some(argument) = args.next() {
-        match argument.as_str() {
-            "--public" => public = true,
-            "--resolve" => resolve = true,
-            "--download-only" => download = Some(args.next().context("Missing package ID")?),
-            "--cache" => {
-                cache = Some(PathBuf::from(
-                    args.next().context("Missing cache directory")?,
-                ))
-            }
-            _ => {
-                ensure!(
-                    file.is_none(),
-                    "Usage: catalog-check [--public] [--resolve] [catalog.json] [--download-only ID --cache DIR]"
-                );
-                file = Some(argument);
-            }
-        }
-    }
-    let client = network::client()?;
-    let document = if resolve {
-        network::load_catalog(&client, file.as_deref().unwrap_or_default()).await?
-    } else {
-        let path = file.context("Supply catalog.json or --resolve")?;
-        let bytes = std::fs::read(&path).with_context(|| format!("Cannot read {path}"))?;
-        ensure!(
-            bytes.len() <= network::MAX_CATALOG_BYTES,
-            "Catalog is larger than 8 MiB"
-        );
-        CatalogDocument {
-            catalog: Catalog::parse_with_builtin(&bytes)?,
-            local_root: None,
-            is_demo: false,
-            diagnostics: Default::default(),
-        }
+    let Some(options) = Options::parse()? else {
+        return Ok(());
     };
-    if public {
-        for package in document.catalog.packages.iter().filter(|p| p.enabled) {
-            if let Some(artifact) = &package.artifact {
-                ensure!(
-                    artifact.drive_file_id.is_some() || artifact.url.is_some(),
-                    "{} has no public download source",
-                    package.id
-                );
-                ensure!(
-                    artifact.local_path.is_none(),
-                    "{} exposes a local path in a public catalog",
-                    package.id
-                );
-            }
-        }
+    let client = network::client()?;
+    let document = load_document(&client, &options).await?;
+    if options.public {
+        check_public(&document)?;
     }
     for (id, error) in &document.diagnostics {
         eprintln!("{id}: {error}");
     }
-    ensure!(
-        document.diagnostics.is_empty(),
-        "Some official sources could not be resolved"
-    );
+    if options.download.is_none() {
+        ensure!(
+            document.diagnostics.is_empty(),
+            "Some official sources could not be resolved"
+        );
+    }
     println!(
         "OK: {} — {} packages, {} categories",
         document.catalog.title,
         document.catalog.packages.len(),
         document.catalog.categories.len()
     );
-    if resolve {
+    if options.resolve {
         for package in &document.catalog.packages {
             println!(
                 "{}: {} ({})",
                 package.id,
                 package.version,
-                if package.requires_signature() {
-                    "Authenticode required"
-                } else {
-                    "published SHA-256"
-                }
+                verification_method(package)
             );
         }
     }
-    if let Some(id) = download {
-        ensure!(resolve, "Use --resolve with --download-only");
-        let cache = cache.context("Supply --cache for download-only verification")?;
-        std::fs::create_dir_all(&cache)?;
-        let package = document.catalog.package(&id).context("Package not found")?;
-        let acquired = transfer::acquire(
+    if options.check_winget {
+        check_winget(&document)?;
+    }
+    if options.inventory {
+        inspect_inventory(&document, &options)?;
+    }
+    if let Some(id) = &options.download {
+        download_only(
             &client,
-            package,
-            document.local_root.as_deref(),
-            &cache,
-            &CancellationToken::new(),
-            |_| {},
+            &document,
+            id,
+            options.cache.as_ref().context("Missing cache directory")?,
         )
         .await?;
-        if package.requires_signature() {
-            installer::verify_signature(&acquired.path)?;
-        }
-        println!(
-            "Downloaded (not executed): {}\nSHA-256: {}",
-            acquired.path.display(),
-            acquired.sha256
-        );
     }
+    Ok(())
+}
+
+async fn load_document(client: &reqwest::Client, options: &Options) -> Result<CatalogDocument> {
+    if options.resolve {
+        return network::load_catalog(client, options.source.as_deref().unwrap_or_default()).await;
+    }
+    let Some(path) = &options.source else {
+        return CatalogDocument::builtin();
+    };
+    ensure!(
+        std::fs::metadata(path)?.len() <= network::MAX_CATALOG_BYTES as u64,
+        "Catalog is larger than 8 MiB"
+    );
+    let bytes = std::fs::read(path).with_context(|| format!("Cannot read {path}"))?;
+    Ok(CatalogDocument {
+        catalog: Catalog::parse_with_builtin(&bytes)?,
+        local_root: None,
+        is_demo: false,
+        diagnostics: Default::default(),
+    })
+}
+
+fn check_public(document: &CatalogDocument) -> Result<()> {
+    for package in document.catalog.packages.iter().filter(|p| p.enabled) {
+        if let Some(artifact) = &package.artifact {
+            ensure!(
+                artifact.drive_file_id.is_some() || artifact.url.is_some(),
+                "{} has no public download source",
+                package.id
+            );
+            ensure!(
+                artifact.local_path.is_none(),
+                "{} exposes a local path in a public catalog",
+                package.id
+            );
+        }
+    }
+    Ok(())
+}
+
+fn verification_method(package: &Package) -> &'static str {
+    if package.is_manual() {
+        return "manual source";
+    }
+    match package.install {
+        Some(InstallSpec::Winget) => "WinGet manifest and installer verification",
+        Some(InstallSpec::VscodeExtension { .. }) => "VS Code Marketplace",
+        _ if package.requires_signature() => "Authenticode required",
+        _ => "published SHA-256",
+    }
+}
+
+fn check_winget(document: &CatalogDocument) -> Result<()> {
+    let cancel = CancellationToken::new();
+    let mut count = 0;
+    let mut failures = Vec::new();
+    for (id, repository) in document.catalog.packages.iter().filter_map(|package| {
+        package
+            .winget_id()
+            .map(|id| (id, package.winget_repository()))
+    }) {
+        match winget::verify(id, repository, &cancel) {
+            Ok(()) => {
+                println!("WinGet OK: {id}");
+                count += 1;
+            }
+            Err(error) => {
+                eprintln!("WinGet FAILED: {id}: {error:#}");
+                failures.push(id);
+            }
+        }
+    }
+    ensure!(
+        failures.is_empty(),
+        "Unverified WinGet packages: {}",
+        failures.join(", ")
+    );
+    println!("Verified {count} exact WinGet IDs; no installers executed.");
+    Ok(())
+}
+
+fn inspect_inventory(document: &CatalogDocument, options: &Options) -> Result<()> {
+    let store = match &options.data_dir {
+        Some(path) => Store::at(path.clone())?,
+        None => Store::open()?,
+    };
+    let library = store.load_library()?;
+    let started = Instant::now();
+    let result = inventory::scan(&document.catalog, &library, &CancellationToken::new())?;
+    let state = inventory::installation_state(&document.catalog, &library, &result.programs);
+    println!(
+        "Inventory: {} programs, {} catalog matches, {} warnings ({:.1}s)",
+        result.programs.len(),
+        state.len(),
+        result.warnings.len(),
+        started.elapsed().as_secs_f32()
+    );
+    for (id, entry) in &state {
+        println!("Installed: {id}: {}", entry.version);
+    }
+    for warning in &result.warnings {
+        eprintln!("Inventory warning: {warning}");
+    }
+    Ok(())
+}
+
+async fn download_only(
+    client: &reqwest::Client,
+    document: &CatalogDocument,
+    id: &str,
+    cache: &std::path::Path,
+) -> Result<()> {
+    let package = document.catalog.package(id).context("Package not found")?;
+    ensure!(
+        !package.is_managed() && !package.is_manual(),
+        "This package is installed by a manager or through its website; no direct artifact"
+    );
+    if let Some(error) = document.diagnostics.get(id) {
+        anyhow::bail!("{id}: {error}");
+    }
+    std::fs::create_dir_all(cache)?;
+    let acquired = transfer::acquire(
+        client,
+        package,
+        document.local_root.as_deref(),
+        cache,
+        &CancellationToken::new(),
+        |_| {},
+    )
+    .await?;
+    if package.requires_signature() {
+        installer::verify_signature(&acquired.path)?;
+    }
+    println!(
+        "Downloaded (not executed): {}\nSHA-256: {}",
+        acquired.path.display(),
+        acquired.sha256
+    );
     Ok(())
 }

@@ -107,6 +107,7 @@ fn read_program(
         quiet: quiet.is_some() || is_msi,
         target,
         managed_ids: Vec::new(),
+        package_ids: Vec::new(),
     })
 }
 

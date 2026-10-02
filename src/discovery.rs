@@ -12,6 +12,23 @@ use url::Url;
 use crate::catalog::{Artifact, CatalogDocument, validate_https_url};
 use crate::network::read_limited;
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WingetRepository {
+    #[default]
+    Winget,
+    Msstore,
+}
+
+impl WingetRepository {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Winget => "winget",
+            Self::Msstore => "msstore",
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Source {
@@ -23,13 +40,37 @@ pub enum Source {
         page_url: String,
         link_selector: String,
         version_selector: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        version_attribute: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        version_pattern: Option<String>,
         download_hosts: Vec<String>,
+    },
+    Winget {
+        package_id: String,
+        #[serde(default)]
+        repository: WingetRepository,
+    },
+    Manual {
+        url: String,
+        instructions: String,
     },
 }
 
 impl Source {
     pub fn validate(&self) -> Result<()> {
         match self {
+            Self::Winget { package_id, .. } => ensure!(
+                crate::system::valid_tool_id(package_id),
+                "Некорректный ID WinGet"
+            ),
+            Self::Manual { url, instructions } => {
+                validate_https_url(url)?;
+                ensure!(
+                    !instructions.trim().is_empty(),
+                    "Нужна инструкция для ручной установки"
+                );
+            }
             Self::Github {
                 repository,
                 asset_pattern,
@@ -54,11 +95,28 @@ impl Source {
                 page_url,
                 link_selector,
                 version_selector,
+                version_attribute,
+                version_pattern,
                 download_hosts,
             } => {
                 validate_https_url(page_url)?;
                 selector(link_selector)?;
                 selector(version_selector)?;
+                if let Some(attribute) = version_attribute {
+                    ensure!(
+                        !attribute.is_empty()
+                            && attribute
+                                .bytes()
+                                .all(|b| b.is_ascii_alphanumeric() || b"_-".contains(&b)),
+                        "Некорректный HTML-атрибут версии"
+                    );
+                }
+                if let Some(pattern) = version_pattern {
+                    ensure!(
+                        pattern.len() <= 256 && Regex::new(pattern)?.captures_len() == 2,
+                        "Шаблон версии должен содержать одну захватывающую группу"
+                    );
+                }
                 ensure!(
                     !download_hosts.is_empty() && download_hosts.len() <= 8,
                     "Укажите допустимые домены скачивания"
@@ -85,7 +143,13 @@ pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<C
         .iter()
         .enumerate()
         .filter(|(_, p)| p.enabled)
-        .filter_map(|(index, package)| package.source.clone().map(|source| (index, source)))
+        .filter_map(|(index, package)| {
+            package
+                .source
+                .clone()
+                .filter(|s| matches!(s, Source::Github { .. } | Source::Website { .. }))
+                .map(|source| (index, source))
+        })
         .collect();
     let results = stream::iter(jobs)
         .map(|(index, source)| async move {
@@ -115,11 +179,25 @@ pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<C
         }
     }
     document.catalog.validate()?;
+    if !crate::system::winget::available() {
+        for package in &mut document.catalog.packages {
+            if package.winget_id().is_some() {
+                package.enabled = false;
+                document.diagnostics.insert(
+                    package.id.clone(),
+                    "Нужен WinGet: установите «Установщик приложений» Microsoft из Store".into(),
+                );
+            }
+        }
+    }
     Ok(document)
 }
 
 async fn resolve_source(client: &Client, source: &Source) -> Result<(String, Artifact)> {
     match source {
+        Source::Winget { .. } | Source::Manual { .. } => {
+            anyhow::bail!("Этот источник не использует загрузку артефакта")
+        }
         Source::Github {
             repository,
             asset_pattern,
@@ -140,6 +218,8 @@ async fn resolve_source(client: &Client, source: &Source) -> Result<(String, Art
             page_url,
             link_selector,
             version_selector,
+            version_attribute,
+            version_pattern,
             download_hosts,
         } => {
             let response = client
@@ -154,6 +234,8 @@ async fn resolve_source(client: &Client, source: &Source) -> Result<(String, Art
                 &final_url,
                 link_selector,
                 version_selector,
+                version_attribute.as_deref(),
+                version_pattern.as_deref(),
                 download_hosts,
             )
         }
@@ -230,6 +312,8 @@ fn website_release(
     base: &Url,
     link_selector: &str,
     version_selector: &str,
+    version_attribute: Option<&str>,
+    version_pattern: Option<&str>,
     hosts: &[String],
 ) -> Result<(String, Artifact)> {
     let page = Html::parse_document(html);
@@ -255,13 +339,29 @@ fn website_release(
         .select(&version_selector)
         .next()
         .context("Версия на сайте не найдена")?;
-    let version = element
-        .value()
-        .attr("content")
-        .map(str::to_owned)
-        .unwrap_or_else(|| element.text().collect::<String>())
-        .trim()
-        .to_owned();
+    let raw_version = if let Some(attribute) = version_attribute {
+        element
+            .value()
+            .attr(attribute)
+            .context("Атрибут версии на сайте не найден")?
+            .to_owned()
+    } else {
+        element
+            .value()
+            .attr("content")
+            .map(str::to_owned)
+            .unwrap_or_else(|| element.text().collect::<String>())
+    };
+    let version = if let Some(pattern) = version_pattern {
+        Regex::new(pattern)?
+            .captures(&raw_version)
+            .and_then(|captures| captures.get(1))
+            .context("Версия на сайте не соответствует шаблону")?
+            .as_str()
+            .to_owned()
+    } else {
+        raw_version.trim().to_owned()
+    };
     ensure!(
         !version.is_empty() && version.len() <= 80,
         "Некорректная версия на сайте"
@@ -287,6 +387,36 @@ fn website_release(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn website_can_extract_version_from_download_filename() {
+        let html = r#"<a class="win64" href="https://vendor.example/3uTools_v9.10.006_Setup_x64.exe">Download</a>"#;
+        let base = Url::parse("https://vendor.example/").unwrap();
+        let (version, artifact) = website_release(
+            html,
+            &base,
+            "a.win64",
+            "a.win64",
+            Some("href"),
+            Some(r"3uTools_v([0-9.]+)_Setup"),
+            &["vendor.example".into()],
+        )
+        .unwrap();
+        assert_eq!(version, "9.10.006");
+        assert_eq!(artifact.file_name, "3uTools_v9.10.006_Setup_x64.exe");
+        assert!(
+            website_release(
+                html,
+                &base,
+                "a.win64",
+                "a.win64",
+                Some("missing"),
+                None,
+                &["vendor.example".into()]
+            )
+            .is_err()
+        );
+    }
 
     #[test]
     fn github_selects_one_asset_and_requires_a_published_hash() {
@@ -318,6 +448,8 @@ mod tests {
             &base,
             "a.download",
             "[itemprop=softwareVersion]",
+            None,
+            None,
             &["vendor.example".into()],
         )
         .unwrap();
@@ -333,6 +465,8 @@ mod tests {
                 &base,
                 "a.download",
                 "[itemprop=softwareVersion]",
+                None,
+                None,
                 &["vendor.example".into()]
             )
             .is_err()

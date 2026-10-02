@@ -33,6 +33,7 @@ jobs:
       - name: Validate bundled catalogs
         run: |
           cargo run --bin catalog-check --locked -- catalog/builtin.json
+          python tools/catalog.py validate --catalog catalog/extended.json --public
           python tools/catalog.py validate --catalog catalog/demo.json
       - name: Release build
         run: cargo build --release --bins --locked

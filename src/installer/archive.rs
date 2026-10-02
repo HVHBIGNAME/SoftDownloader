@@ -31,7 +31,7 @@ pub fn install(
     install_at(archive, package_id, &target, strip, cancel)
 }
 
-fn target_path(destination: &ArchiveDestination) -> Result<std::path::PathBuf> {
+pub(crate) fn target_path(destination: &ArchiveDestination) -> Result<std::path::PathBuf> {
     let base = BaseDirs::new().context("Не найдены пользовательские папки")?;
     let root = match destination.root {
         ArchiveRoot::RoamingAppData => base.data_dir().to_owned(),
@@ -96,6 +96,36 @@ fn install_at(
     strip: u8,
     cancel: &CancellationToken,
 ) -> Result<()> {
+    install_directory(package_id, target, cancel, |payload| {
+        extract(archive, payload, strip, cancel)
+    })
+}
+
+pub fn install_portable(
+    file: &Path,
+    file_name: &str,
+    package_id: &str,
+    destination: &ArchiveDestination,
+    cancel: &CancellationToken,
+) -> Result<()> {
+    let name = safe_relative_path(file_name)?;
+    ensure!(
+        name.components().count() == 1,
+        "Недопустимое имя portable-файла"
+    );
+    let target = target_path(destination)?;
+    install_directory(package_id, &target, cancel, |payload| {
+        std::fs::copy(file, payload.join(name))?;
+        Ok(())
+    })
+}
+
+fn install_directory(
+    package_id: &str,
+    target: &Path,
+    cancel: &CancellationToken,
+    prepare: impl FnOnce(&Path) -> Result<()>,
+) -> Result<()> {
     if target.exists() {
         let marker = std::fs::read(target.join(MARKER)).context("Папка аддона уже существует и не управляется SoftDownloader. Укажите отдельную папку пакета")?;
         let owner: Ownership = serde_json::from_slice(&marker)?;
@@ -111,7 +141,7 @@ fn install_at(
         .tempdir_in(parent)?;
     let payload = stage.path().join("payload");
     std::fs::create_dir(&payload)?;
-    extract(archive, &payload, strip, cancel)?;
+    prepare(&payload)?;
     write_json(
         &payload.join(MARKER),
         &Ownership {

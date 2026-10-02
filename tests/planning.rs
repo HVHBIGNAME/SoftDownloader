@@ -4,6 +4,66 @@ use softdownloader::storage::{InstalledPackage, Library};
 use softdownloader::uninstall::{InstalledProgram, UninstallTarget};
 
 #[test]
+fn marketplace_extension_adds_editor_and_manual_packages_are_not_install_jobs() {
+    let catalog = CatalogDocument::builtin().unwrap().catalog;
+    let plan = softdownloader::planner::create_plan(
+        &catalog,
+        &std::collections::BTreeSet::from(["cline".into()]),
+        &Library::new(),
+    )
+    .unwrap();
+    assert_eq!(
+        plan.iter().map(|p| p.id.as_str()).collect::<Vec<_>>(),
+        ["vscode", "cline"]
+    );
+    assert!(
+        softdownloader::planner::create_plan(
+            &catalog,
+            &std::collections::BTreeSet::from(["ame-wizard".into()]),
+            &Library::new()
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn category_tree_keeps_nested_groups_next_to_their_parent() {
+    let catalog = CatalogDocument::builtin().unwrap().catalog;
+    let tree = catalog.category_tree();
+    let parent = tree.iter().position(|(c, _)| c.id == "runtimes").unwrap();
+    let child = tree.iter().position(|(c, _)| c.id == "java").unwrap();
+    assert_eq!(child, parent + 1);
+    assert_eq!(tree[child].1, tree[parent].1 + 1);
+    assert_eq!(tree.len(), catalog.categories.len());
+}
+
+#[test]
+fn rejects_incompatible_managers_and_artifacts() {
+    let mut catalog = CatalogDocument::builtin().unwrap().catalog;
+    let package = catalog
+        .packages
+        .iter_mut()
+        .find(|p| p.id == "chrome")
+        .unwrap();
+    package.install = Some(softdownloader::catalog::InstallSpec::Exe {
+        silent_args: vec!["/S".into()],
+        requires_admin: false,
+    });
+    assert!(catalog.validate().is_err());
+    let mut catalog = CatalogDocument::builtin().unwrap().catalog;
+    let package = catalog
+        .packages
+        .iter_mut()
+        .find(|p| p.id == "cline")
+        .unwrap();
+    package.source = Some(softdownloader::discovery::Source::Github {
+        repository: "vendor/app".into(),
+        asset_pattern: "file.exe".into(),
+    });
+    assert!(catalog.validate().is_err());
+}
+
+#[test]
 fn removal_orders_addons_first_and_protects_unselected_dependents() {
     let catalog = CatalogDocument::demo().unwrap().catalog;
     let mut state = Library::new();
@@ -24,6 +84,7 @@ fn removal_orders_addons_first_and_protects_unselected_dependents() {
             quiet: true,
             target: target.clone(),
             managed_ids: vec![id.into()],
+            package_ids: vec![id.into()],
         });
         state.insert(
             id.into(),
@@ -53,7 +114,10 @@ fn additional_catalog_can_reference_builtin_packages_and_rejects_duplicates() {
         "id":"http-extra","name":"Extra","version":"1","publisher":"Test","description":"Test","category":"network-tools","kind":"addon","depends_on":["httpdebugger"],"enabled":false
     }]});
     let merged = Catalog::parse_with_builtin(&serde_json::to_vec(&additional).unwrap()).unwrap();
-    assert_eq!(merged.packages.len(), 5);
+    assert_eq!(
+        merged.packages.len(),
+        CatalogDocument::builtin().unwrap().catalog.packages.len() + 1
+    );
     assert_eq!(
         merged.package("http-extra").unwrap().depends_on,
         ["httpdebugger"]

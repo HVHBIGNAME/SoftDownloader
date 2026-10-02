@@ -40,12 +40,20 @@ fn queue_skips_failed_dependencies_and_installs_then_removes_an_independent_addo
     let json = serde_json::json!({"schema_version":1,"title":"Test","categories":[{"id":"test","name":"Test"}],"packages":[
         package("host", vec![], false), package("dependent", vec!["host"], true), package("independent", vec![], true)
     ]});
+    let portable = b"Portable fixture: these bytes must be copied, never executed";
+    std::fs::write(fixture.path().join("portable.exe"), portable).unwrap();
+    let mut json = json;
+    json["packages"].as_array_mut().unwrap().push(serde_json::json!({
+        "id":"portable", "name":"Portable fixture", "version":"1.0", "publisher":"Test", "description":"Fixture", "category":"test",
+        "artifact":{"file_name":"portable.exe","size":portable.len(),"sha256":hex::encode(Sha256::digest(portable)),"local_path":"portable.exe"},
+        "install":{"type":"portable","destination":{"root":"local_app_data","path":format!("{relative}/portable")}}
+    }));
     let catalog = Catalog::parse(&serde_json::to_vec(&json).unwrap()).unwrap();
     let store = Store::at(fixture.path().join("state")).unwrap();
     let library = store.load_library().unwrap();
     let plan = create_plan(
         &catalog,
-        &BTreeSet::from(["dependent".into(), "independent".into()]),
+        &BTreeSet::from(["dependent".into(), "independent".into(), "portable".into()]),
         &library,
     )
     .unwrap();
@@ -72,18 +80,26 @@ fn queue_skips_failed_dependencies_and_installs_then_removes_an_independent_addo
     assert!(matches!(statuses["host"], JobStatus::Failed(_)));
     assert!(matches!(statuses["dependent"], JobStatus::Skipped(_)));
     assert!(matches!(statuses["independent"], JobStatus::Done { .. }));
+    assert!(matches!(statuses["portable"], JobStatus::Done { .. }));
+    assert_eq!(
+        std::fs::read(destination.path().join("portable/portable.exe")).unwrap(),
+        portable
+    );
     assert!(!destination.path().join("dependent").exists());
     assert_eq!(
         std::fs::read(destination.path().join("independent/plugin.txt")).unwrap(),
         b"isolated addon fixture"
     );
     let library = store.load_library().unwrap();
-    assert_eq!(library.len(), 1);
-    let id = library["independent"].uninstall.as_ref().unwrap().id();
+    assert_eq!(library.len(), 2);
+    let ids: BTreeSet<_> = library
+        .values()
+        .map(|entry| entry.uninstall.as_ref().unwrap().id())
+        .collect();
     let programs = uninstall::scan(&library)
         .unwrap()
         .into_iter()
-        .filter(|p| p.id == id)
+        .filter(|p| ids.contains(&p.id))
         .collect();
     std::thread::sleep(Duration::from_millis(20));
     engine
@@ -100,5 +116,6 @@ fn queue_skips_failed_dependencies_and_installs_then_removes_an_independent_addo
         }
     }
     assert!(!destination.path().join("independent").exists());
+    assert!(!destination.path().join("portable").exists());
     assert!(store.load_library().unwrap().is_empty());
 }

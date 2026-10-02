@@ -114,7 +114,7 @@ impl SoftDownloaderApp {
         theme::heading(
             ui,
             "Установлено на компьютере",
-            "Программы Windows и твои аддоны. Выбирай по одной или сразу несколько.",
+            "Программы, Microsoft Store и portable. Выбирай по одной или сразу несколько.",
         );
         ui.horizontal(|ui| {
             ui.add(
@@ -136,6 +136,13 @@ impl SoftDownloaderApp {
                 ui.spinner();
             }
         });
+        if !self.inventory_warnings.is_empty() {
+            ui.label(
+                RichText::new(self.inventory_warnings.join("\n"))
+                    .size(11.0)
+                    .color(theme::ORANGE),
+            );
+        }
         let query = self.installed_query.to_lowercase();
         let programs: Vec<_> = self
             .programs
@@ -144,6 +151,12 @@ impl SoftDownloaderApp {
                 format!("{} {}", program.name, program.publisher)
                     .to_lowercase()
                     .contains(&query)
+                    || program.package_ids.iter().any(|id| {
+                        self.document
+                            .catalog
+                            .package(id)
+                            .is_some_and(|p| p.matches_search(&query))
+                    })
             })
             .cloned()
             .collect();
@@ -155,13 +168,17 @@ impl SoftDownloaderApp {
             );
             if ui
                 .add_enabled(
-                    !self.queue_active,
+                    !self.queue_active && !self.programs_loading && !self.loading,
                     egui::Button::new("Выбрать все найденные").small(),
                 )
                 .clicked()
             {
-                self.selected_removals
-                    .extend(programs.iter().map(|p| p.id.clone()));
+                self.selected_removals.extend(
+                    programs
+                        .iter()
+                        .filter(|p| p.target.can_remove())
+                        .map(|p| p.id.clone()),
+                );
             }
             if !self.selected_removals.is_empty() && ui.small_button("Сбросить").clicked() {
                 self.selected_removals.clear();
@@ -186,7 +203,10 @@ impl SoftDownloaderApp {
                             let mut selected = self.selected_removals.contains(&program.id);
                             if ui
                                 .add_enabled(
-                                    !self.queue_active,
+                                    !self.queue_active
+                                        && !self.programs_loading
+                                        && !self.loading
+                                        && program.target.can_remove(),
                                     egui::Checkbox::without_text(&mut selected),
                                 )
                                 .changed()
@@ -197,7 +217,7 @@ impl SoftDownloaderApp {
                                     self.selected_removals.remove(&program.id);
                                 }
                             }
-                            let width = (ui.available_width() - 220.0).max(180.0);
+                            let width = (ui.available_width() - 280.0).max(180.0);
                             ui.allocate_ui_with_layout(
                                 Vec2::new(width, 42.0),
                                 Layout::top_down(Align::Min),
@@ -222,7 +242,10 @@ impl SoftDownloaderApp {
                             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                 if ui
                                     .add_enabled(
-                                        !self.queue_active,
+                                        !self.queue_active
+                                            && !self.programs_loading
+                                            && !self.loading
+                                            && program.target.can_remove(),
                                         egui::Button::new(
                                             RichText::new("Удалить").color(theme::RED),
                                         ),
@@ -231,9 +254,17 @@ impl SoftDownloaderApp {
                                 {
                                     self.remove_programs(&BTreeSet::from([program.id.clone()]));
                                 }
+                                if let Some(folder) = program.target.folder()
+                                    && ui.small_button("Папка").clicked()
+                                    && let Err(error) = crate::system::open_folder(&folder)
+                                {
+                                    self.error = Some(format!("{error:#}"));
+                                }
                                 theme::pill(
                                     ui,
-                                    if program.quiet {
+                                    if !program.target.can_remove() {
+                                        "ВРУЧНУЮ"
+                                    } else if program.quiet {
                                         "ТИХО"
                                     } else {
                                         "МАСТЕР"

@@ -17,7 +17,9 @@ Copy-Item -LiteralPath (Join-Path $root 'target\release\catalog-check.exe') -Des
 foreach ($file in @('README.md', 'LICENSE')) { Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage -Force }
 foreach ($directory in @('docs', 'catalog')) { Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $stage -Recurse -Force }
 [void](New-Item -ItemType Directory -Path (Join-Path $stage 'tools') -Force)
-Copy-Item -LiteralPath (Join-Path $root 'tools\catalog.py') -Destination (Join-Path $stage 'tools') -Force
+foreach ($file in @('catalog.py', 'catalog_model.py')) {
+    Copy-Item -LiteralPath (Join-Path $root "tools\$file") -Destination (Join-Path $stage 'tools') -Force
+}
 $zip = Join-Path $OutputDirectory "$name.zip"
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force
 $digest = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()

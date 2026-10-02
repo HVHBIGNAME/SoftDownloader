@@ -5,12 +5,16 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import sys
 import unittest
+from unittest.mock import patch
 
 
 SPEC = importlib.util.spec_from_file_location("catalog_tool", Path(__file__).parents[1] / "catalog.py")
-catalog = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(catalog)
+cli = importlib.util.module_from_spec(SPEC)
+with patch.object(sys, "path", [str(Path(__file__).parents[1]), *sys.path]):
+    SPEC.loader.exec_module(cli)
+catalog = cli.model
 
 
 class CatalogToolTests(unittest.TestCase):
@@ -24,7 +28,7 @@ class CatalogToolTests(unittest.TestCase):
 
     def invoke(self, *arguments, expected=0):
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-            result = catalog.main([str(arg) for arg in arguments])
+            result = cli.main([str(arg) for arg in arguments])
         self.assertEqual(result, expected)
 
     def add(self, *extra):
@@ -76,6 +80,37 @@ class CatalogToolTests(unittest.TestCase):
             "packages": [{"id": "helper", "name": "Helper", "version": "1", "publisher": "Test", "description": "Test", "category": "http-extras", "depends_on": ["httpdebugger"], "enabled": False}],
         }
         catalog.validate_catalog(fragment)
+
+    def test_bundled_sources_and_marketplace_dependencies_are_valid(self):
+        for path in (catalog.BUILTIN_PATH, catalog.EXTENDED_PATH):
+            catalog.validate_catalog(json.loads(path.read_text(encoding="utf-8")), public=True)
+        base = catalog.builtin_catalog()
+        cline = next(package for package in base["packages"] if package["id"] == "cline")
+        self.assertEqual(cline["depends_on"], ["vscode"])
+        self.assertEqual(cline["install"]["extension_id"], "saoudrizwan.claude-dev")
+
+    def test_portable_and_interactive_files_round_trip_and_publish(self):
+        self.invoke("add", "--root", self.root, "--file", self.source, "--id", "portable", "--name", "Portable", "--version", "1", "--category", "utilities", "--type", "portable", "--destination", "SoftDownloader/apps/fixture")
+        self.invoke("add", "--root", self.root, "--file", self.source, "--id", "wizard", "--name", "Wizard", "--version", "1", "--category", "utilities", "--type", "interactive", "--admin")
+        for identifier in ("portable", "wizard"):
+            self.invoke("link", "--root", self.root, "--id", identifier, "--drive-url", "1234567890abcdef")
+        self.invoke("publish", "--root", self.root)
+        public = catalog.read_catalog(self.root / "catalog.public.json")
+        self.assertEqual([package["install"]["type"] for package in public["packages"]], ["portable", "interactive"])
+        self.assertNotIn("arguments", public["packages"][1]["install"])
+
+    def test_manager_pairing_and_detection_validation_reject_unsafe_input(self):
+        document = {"schema_version": 1, "title": "Test", "categories": [], "packages": [{
+            "id": "tool", "name": "Tool", "version": "Последняя", "publisher": "Test", "description": "Test", "category": "utilities",
+            "source": {"type": "winget", "package_id": "Vendor.Tool"}, "install": {"type": "winget"},
+        }]}
+        catalog.validate_catalog(document)
+        document["packages"][0]["install"] = {"type": "exe", "silent_args": ["/S"]}
+        with self.assertRaises(ValueError):
+            catalog.validate_catalog(document)
+        for detection in ({"commands": ["app.exe --run"]}, {"paths": [r"\\server\share\app.exe"]}, {"name_pattern": "unbounded.*"}):
+            with self.assertRaises(ValueError):
+                catalog.validate_detection(detection)
 
     def test_rejects_unsafe_paths_cycles_and_drive_folders(self):
         for value in ("../bad.exe", "C:/bad.exe", "a/../bad", "NUL.exe", "a:stream", "a./bad"):

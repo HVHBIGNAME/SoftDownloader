@@ -85,7 +85,7 @@ pub fn create_plan(
             package.name
         );
         ensure!(
-            package.artifact.is_some() && package.install.is_some(),
+            package.ready(),
             "У пакета «{}» нет установщика",
             package.name
         );

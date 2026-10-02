@@ -21,6 +21,7 @@
       "category": "vpn",
       "tags": ["VPN", "Amnezia", "WireGuard", "сеть"],
       "homepage": "https://amnezia.org/",
+      "detect": { "names": ["Amnezia VPN"], "winget_ids": ["AmneziaVPN.AmneziaVPN"], "name_pattern": "^(?i:Amnezia\\s?VPN(?: [0-9.]+)?)$" },
       "source": { "type": "github", "repository": "amnezia-vpn/amnezia-client", "asset_pattern": "(?i)^AmneziaVPN_.*_windows_x64\\.exe$" },
       "install": { "type": "exe", "silent_args": ["install", "--accept-licenses", "--default-answer", "--confirm-command"], "requires_admin": true }
     },
@@ -33,6 +34,7 @@
       "category": "vpn",
       "tags": ["VPN", "прокси", "Clash", "Mihomo"],
       "homepage": "https://github.com/chen08209/FlClash",
+      "detect": { "winget_ids": ["chen08209.FlClash"], "name_pattern": "^(?i:FlClash(?: (?:version |версия )?[0-9.]+)?)$", "paths": ["%LOCALAPPDATA%/Programs/FlClash/FlClash.exe", "%ProgramFiles%/FlClash/FlClash.exe"] },
       "source": { "type": "github", "repository": "chen08209/FlClash", "asset_pattern": "(?i)^FlClash-.*-windows-amd64-setup\\.exe$" },
       "install": { "type": "exe", "silent_args": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"], "requires_admin": true }
     },
@@ -45,6 +47,7 @@
       "category": "vpn",
       "tags": ["VPN", "прокси", "Xray", "VLESS"],
       "homepage": "https://github.com/Happ-proxy/happ-desktop",
+      "detect": { "names": ["Happ - Proxy Utility"], "winget_ids": ["Happ.Happ"], "name_pattern": "^(?i:Happ(?: - Proxy Utility)?(?: (?:version |версия )?[0-9.]+(?: ?\\([0-9]+\\))?)?)$", "paths": ["%LOCALAPPDATA%/Programs/Happ/Happ.exe", "%ProgramFiles%/Happ/Happ.exe"] },
       "source": { "type": "github", "repository": "Happ-proxy/happ-desktop", "asset_pattern": "^setup-Happ\\.x64\\.exe$" },
       "install": { "type": "exe", "silent_args": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"], "requires_admin": true }
     },
@@ -57,6 +60,7 @@
       "category": "network-tools",
       "tags": ["HTTP", "HTTPS", "debug", "отладка", "сеть"],
       "homepage": "https://www.httpdebugger.com/",
+      "detect": { "names": ["HTTP Debugger", "HTTP Debugger Pro (64 bit)"] },
       "source": { "type": "website", "page_url": "https://www.httpdebugger.com/download", "link_selector": "a.download-card__redownload", "version_selector": "[itemprop=softwareVersion]", "download_hosts": ["www.httpdebugger.com"] },
       "install": { "type": "msi", "arguments": [], "requires_admin": true }
     }

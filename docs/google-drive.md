@@ -21,7 +21,7 @@ SoftDownloader/
   addons/               дополнительные пакеты
 ```
 
-Официальные программы уже встроены в приложение. В этой папке достаточно хранить свои дополнения. Встроенные ID: `amnezia-vpn`, `flclash`, `happ`, `httpdebugger`.
+Официальные программы уже встроены в приложение. В этой папке достаточно хранить свои дополнения. Встроенные ID перечислены в [`builtin.json`](../catalog/builtin.json) и [`extended.json`](../catalog/extended.json).
 
 ## 2. Добавить установщик
 
@@ -75,6 +75,19 @@ python tools/catalog.py add --root "$root" `
 
 Корни назначения: `roaming_app_data`, `local_app_data`, `documents`. Назначение должно быть **отдельной папкой конкретного аддона**. Приложение записывает маркер владения и допускает замену/удаление только собственного пакета. Не указывайте общую папку `addons`, если в ней находятся другие плагины.
 
+### Portable или установщик с мастером
+
+Для копирования самостоятельного EXE без запуска:
+
+```powershell
+python tools/catalog.py add --root "$root" `
+  --file "C:\Installers\PortableTool.exe" --id portable-tool --name "Portable Tool" `
+  --version "1.0" --category utilities --type portable `
+  --destination-root local_app_data --destination "SoftDownloader/apps/portable-tool"
+```
+
+Чтобы запускать штатный мастер, используйте `--type interactive --admin`. Например, так можно добавить свой официальный ESET Premium Live Installer в локальный каталог под ID `eset-premium`: запись переопределит встроенную ручную карточку. После добавления при необходимости перенесите в JSON поле `detect` из встроенной карточки, чтобы сохранить её алиасы обнаружения.
+
 ## 3. Поделиться установщиком
 
 После `add` утилита выведет путь скопированного файла. Дождитесь окончания синхронизации Google Drive. В веб-интерфейсе Диска откройте доступ к **этому файлу**: «Все, у кого есть ссылка» → «Читатель».
@@ -108,7 +121,7 @@ python tools/catalog.py validate --catalog "$root\catalog.public.json" --public
 
 ## Группы
 
-Встроенные группы: `vpn`, `development`, `network-tools`, `utilities`, `creative`, `3d`, `design`, `media`. При добавлении новой группы:
+Встроенные группы включают `vpn`, `development`, `editors`, `runtimes`, `java`, `network-tools`, `utilities`, `creative`, `3d`, `design`, `media`, `gaming` и другие. `init` переносит весь актуальный список. При добавлении новой группы:
 
 ```powershell
 python tools/catalog.py add --root "$root" --file "C:\Installers\MyTool.exe" `
@@ -123,4 +136,4 @@ python tools/catalog.py add --root "$root" --file "C:\Installers\MyTool.exe" `
 - Лимит скачиваний: Google Drive ограничивает популярные файлы независимо от объёма хранилища; 5 ТБ места не означают неограниченный трафик. Повторите позже или смените источник конкретного файла.
 - Не совпадает SHA-256: файл изменился после создания записи. Повторно добавьте его и опубликуйте каталог.
 - Локальный файл недоступен: дождитесь синхронизации или включите «Доступен офлайн» в Google Drive for desktop.
-- Активные EXE-пакеты без параметров тихой установки отклоняются: добавьте корректные флаги.
+- Активные пакеты типа `exe` без параметров тихой установки отклоняются: добавьте корректные флаги или выберите `interactive` для обычного мастера.

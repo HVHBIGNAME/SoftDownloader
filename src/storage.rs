@@ -32,8 +32,15 @@ pub type Library = BTreeMap<String, InstalledPackage>;
 
 pub fn is_installed(package: &Package, library: &Library) -> bool {
     library.get(&package.id).is_some_and(|entry| {
-        entry.version == package.version
-            && package.artifact.as_ref().is_some_and(|a| {
+        if package.is_managed() || package.is_manual() {
+            return true;
+        }
+        if package.source.is_some() && !crate::inventory::useful_version(&package.version) {
+            return true;
+        }
+        (crate::inventory::same_version(&entry.version, &package.version)
+            || (entry.externally_detected && !crate::inventory::useful_version(&entry.version)))
+            && package.artifact.as_ref().is_none_or(|a| {
                 entry.externally_detected || a.sha256.is_empty() || a.sha256 == entry.sha256
             })
     })

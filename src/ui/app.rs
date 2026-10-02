@@ -10,7 +10,7 @@ use crate::catalog::{CatalogDocument, Package, PackageKind};
 use crate::engine::{Engine, JobStatus, WorkerEvent};
 use crate::planner::create_plan;
 use crate::storage::{Library, Settings, Store};
-use crate::uninstall::{self, InstalledProgram};
+use crate::uninstall::InstalledProgram;
 
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Page {
@@ -37,6 +37,10 @@ pub struct SoftDownloaderApp {
     pub(super) engine: Engine,
     events: Receiver<WorkerEvent>,
     pub(super) library: Library,
+    pub(super) effective_state: Library,
+    pub(super) inventory_warnings: Vec<String>,
+    inventory_unverified: BTreeSet<String>,
+    inventory_generation: u64,
     pub(super) programs: Vec<InstalledProgram>,
     pub(super) programs_loading: bool,
     pub(super) installed_query: String,
@@ -87,8 +91,12 @@ impl SoftDownloaderApp {
             engine,
             events,
             library,
+            effective_state: Library::new(),
+            inventory_warnings: Vec::new(),
+            inventory_unverified: BTreeSet::new(),
+            inventory_generation: 0,
             programs: Vec::new(),
-            programs_loading: true,
+            programs_loading: false,
             installed_query: String::new(),
             selected_removals: BTreeSet::new(),
             settings,
@@ -111,7 +119,6 @@ impl SoftDownloaderApp {
             close_dialog: false,
             close_when_done: false,
         };
-        app.engine.scan_programs(app.library.clone());
         app.load_source(source);
         Ok(app)
     }
@@ -128,6 +135,16 @@ impl SoftDownloaderApp {
 
     fn poll_events(&mut self) {
         let events: Vec<_> = self.events.try_iter().collect();
+        let changed = events.iter().any(|event| {
+            matches!(
+                event,
+                WorkerEvent::Catalog { .. }
+                    | WorkerEvent::Programs { .. }
+                    | WorkerEvent::Installed(_)
+                    | WorkerEvent::Removed { .. }
+                    | WorkerEvent::QueueFinished
+            )
+        });
         for event in events {
             match event {
                 WorkerEvent::Catalog { generation, result }
@@ -151,6 +168,7 @@ impl SoftDownloaderApp {
                             self.pending_source = None;
                         }
                     }
+                    self.refresh_programs();
                 }
                 WorkerEvent::Catalog { .. } => {}
                 WorkerEvent::Status { id, status } => {
@@ -175,17 +193,25 @@ impl SoftDownloaderApp {
                 WorkerEvent::Installed(entry) => {
                     self.library.insert(entry.id.clone(), entry);
                 }
-                WorkerEvent::Programs(result) => {
+                WorkerEvent::Programs { generation, result }
+                    if generation == self.inventory_generation =>
+                {
                     self.programs_loading = false;
                     match result {
-                        Ok(programs) => {
-                            self.programs = programs;
+                        Ok(inventory) => {
+                            self.programs = inventory.programs;
+                            self.inventory_warnings = inventory.warnings;
+                            self.inventory_unverified = inventory.unverified;
                             self.selected_removals
                                 .retain(|id| self.programs.iter().any(|p| &p.id == id));
                         }
-                        Err(error) => self.error = Some(error),
+                        Err(error) => {
+                            self.inventory_unverified = self.library.keys().cloned().collect();
+                            self.error = Some(error);
+                        }
                     }
                 }
+                WorkerEvent::Programs { .. } => {}
                 WorkerEvent::Removed { id, managed_ids } => {
                     self.programs.retain(|program| program.id != id);
                     for id in managed_ids {
@@ -201,21 +227,29 @@ impl SoftDownloaderApp {
                 }
             }
         }
+        if changed {
+            self.effective_state = crate::inventory::installation_state(
+                &self.document.catalog,
+                &self.library,
+                &self.programs,
+            );
+            for (id, entry) in &self.library {
+                if self.programs_loading || self.inventory_unverified.contains(id) {
+                    self.effective_state
+                        .entry(id.clone())
+                        .or_insert_with(|| entry.clone());
+                }
+            }
+        }
     }
 
     pub(super) fn prepare_install(&mut self, selected: BTreeSet<String>) {
-        if self.queue_active || self.loading {
+        if self.queue_active || self.loading || self.programs_loading {
             return;
         }
-        match create_plan(
-            &self.document.catalog,
-            &selected,
-            &self.installation_state(),
-        ) {
+        match create_plan(&self.document.catalog, &selected, self.installation_state()) {
             Ok(plan) if !plan.is_empty() => self.confirm_plan = Some(plan),
-            Ok(_) => {
-                self.error = Some("Выбранные версии уже установлены через SoftDownloader".into())
-            }
+            Ok(_) => self.error = Some("Выбранные программы уже установлены".into()),
             Err(error) => self.error = Some(format!("{error:#}")),
         }
     }
@@ -255,26 +289,25 @@ impl SoftDownloaderApp {
         }
     }
 
-    pub(super) fn installation_state(&self) -> Library {
-        uninstall::installation_state(&self.document.catalog, &self.library, &self.programs)
+    pub(super) fn installation_state(&self) -> &Library {
+        &self.effective_state
     }
 
     pub(super) fn refresh_programs(&mut self) {
-        if self.programs_loading {
-            return;
-        }
         self.programs_loading = true;
-        self.engine.scan_programs(self.library.clone());
+        self.inventory_generation = self
+            .engine
+            .scan_programs(self.library.clone(), self.document.catalog.clone());
     }
 
     pub(super) fn remove_programs(&mut self, ids: &BTreeSet<String>) {
-        if self.queue_active {
+        if self.queue_active || self.programs_loading || self.loading {
             return;
         }
         let programs: Vec<_> = self
             .programs
             .iter()
-            .filter(|p| ids.contains(&p.id))
+            .filter(|p| ids.contains(&p.id) && p.target.can_remove())
             .cloned()
             .collect();
         if programs.is_empty() {
@@ -282,7 +315,7 @@ impl SoftDownloaderApp {
         }
         let programs = match crate::planner::removal_plan(
             &self.document.catalog,
-            &self.installation_state(),
+            self.installation_state(),
             programs,
         ) {
             Ok(programs) => programs,
@@ -452,13 +485,19 @@ impl SoftDownloaderApp {
     }
 
     fn category_navigation(&mut self, ui: &mut egui::Ui) {
-        let categories = self.document.catalog.categories.clone();
+        let categories: Vec<_> = self
+            .document
+            .catalog
+            .category_tree()
+            .into_iter()
+            .map(|(category, depth)| (category.clone(), depth))
+            .collect();
         egui::ScrollArea::vertical()
             .id_salt("sidebar-groups")
             .max_height((ui.available_height() - 160.0).max(60.0))
             .show(ui, |ui| {
                 ui.spacing_mut().item_spacing.y = 2.0;
-                for category in categories {
+                for (category, depth) in categories {
                     let active = self.page == Page::Catalog
                         && self.category.as_deref() == Some(&category.id);
                     let count = self
@@ -476,9 +515,7 @@ impl SoftDownloaderApp {
                         continue;
                     }
                     ui.horizontal(|ui| {
-                        if category.parent.is_some() {
-                            ui.add_space(14.0);
-                        }
+                        ui.add_space(14.0 * depth as f32);
                         if theme::nav(ui, &category.name, Icon::Folder, active, Some(count)) {
                             self.page = Page::Catalog;
                             self.category = Some(category.id.clone());
@@ -557,7 +594,7 @@ impl SoftDownloaderApp {
                         let plan = create_plan(
                             &self.document.catalog,
                             &self.selected,
-                            &self.installation_state(),
+                            self.installation_state(),
                         );
                         let total: u64 = plan
                             .as_ref()
@@ -568,15 +605,21 @@ impl SoftDownloaderApp {
                                     .sum()
                             })
                             .unwrap_or_default();
+                        let unknown_size = plan.as_ref().is_ok_and(|packages| {
+                            packages
+                                .iter()
+                                .any(|p| p.artifact.as_ref().is_none_or(|a| a.size == 0))
+                        });
                         ui.vertical(|ui| {
                             ui.label(
                                 RichText::new(format!("Выбрано: {}", self.selected.len())).strong(),
                             );
                             ui.label(
-                                RichText::new(format!(
-                                    "{} с учётом зависимостей",
-                                    theme::bytes(total)
-                                ))
+                                RichText::new(if unknown_size {
+                                    "Размер уточняется при установке".into()
+                                } else {
+                                    format!("{} с учётом зависимостей", theme::bytes(total))
+                                })
                                 .size(11.0)
                                 .color(theme::MUTED),
                             );
@@ -584,7 +627,7 @@ impl SoftDownloaderApp {
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             if ui
                                 .add_enabled(
-                                    !self.loading,
+                                    !self.loading && !self.programs_loading,
                                     theme::primary("Установить выбранное  >"),
                                 )
                                 .clicked()

@@ -29,6 +29,11 @@ pub async fn install(
         .clone()
         .context("Не указан способ установки")?;
     let id = package.id.clone();
+    let file_name = package
+        .artifact
+        .as_ref()
+        .map(|a| a.file_name.clone())
+        .unwrap_or_default();
     let logs = logs.to_owned();
     let cancel = cancel.clone();
     tokio::task::spawn_blocking(move || match spec {
@@ -37,6 +42,10 @@ pub async fn install(
             strip_components,
         } => {
             archive::install(&path, &id, &destination, strip_components, &cancel)?;
+            Ok(InstallOutcome::default())
+        }
+        InstallSpec::Portable { destination } => {
+            archive::install_portable(&path, &file_name, &id, &destination, &cancel)?;
             Ok(InstallOutcome::default())
         }
         spec => install_native(&path, &id, &spec, &logs),

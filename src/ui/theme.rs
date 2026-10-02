@@ -106,6 +106,17 @@ pub fn bytes(bytes: u64) -> String {
 }
 
 pub fn app_icon(ui: &mut egui::Ui, id: &str, size: f32) {
+    let fallback: String = if let Some(version) = id.strip_prefix("java-") {
+        format!("J{version}")
+    } else {
+        id.split('-')
+            .filter_map(|part| part.chars().next())
+            .take(2)
+            .flat_map(char::to_uppercase)
+            .collect()
+    };
+    let palette = [ACCENT, VIOLET, ORANGE, Color32::from_rgb(126, 195, 240)];
+    let index = id.bytes().fold(0_u8, u8::wrapping_add) as usize % palette.len();
     let (letters, color) = match id {
         "amnezia-vpn" => ("A", ORANGE),
         "flclash" => ("Fl", VIOLET),
@@ -121,7 +132,18 @@ pub fn app_icon(ui: &mut egui::Ui, id: &str, size: f32) {
         "gimp" => ("G", Color32::from_rgb(202, 186, 155)),
         "python" => ("Py", Color32::from_rgb(240, 211, 119)),
         "notepad-plus-plus" => ("n+", ACCENT),
-        _ => ("S", ACCENT),
+        "discord" => ("D", VIOLET),
+        "telegram" => ("TG", Color32::from_rgb(126, 195, 240)),
+        "ayugram" => ("Ay", VIOLET),
+        "brave" => ("Br", ORANGE),
+        "chrome" => ("Ch", Color32::from_rgb(126, 195, 240)),
+        "firefox" => ("Fx", ORANGE),
+        "spotify" => ("Sp", ACCENT),
+        "claude" | "claude-code" => ("Cl", ORANGE),
+        "cursor" => ("Cu", TEXT),
+        "trae" => ("Tr", ACCENT),
+        "prism-launcher" | "prism-cracked" => ("Pr", VIOLET),
+        _ => (fallback.as_str(), palette[index]),
     };
     let (rect, _) = ui.allocate_exact_size(Vec2::splat(size), Sense::hover());
     ui.painter()
