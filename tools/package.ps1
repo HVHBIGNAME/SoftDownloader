@@ -16,6 +16,7 @@ Copy-Item -LiteralPath (Join-Path $root 'target\release\softdownloader.exe') -De
 Copy-Item -LiteralPath (Join-Path $root 'target\release\catalog-check.exe') -Destination $stage -Force
 foreach ($file in @('README.md', 'LICENSE')) { Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage -Force }
 foreach ($directory in @('docs', 'catalog')) { Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $stage -Recurse -Force }
+Copy-Item -LiteralPath (Join-Path $root 'assets\SoftDownloader.ico') -Destination $stage -Force
 [void](New-Item -ItemType Directory -Path (Join-Path $stage 'tools') -Force)
 foreach ($file in @('catalog.py', 'catalog_model.py')) {
     Copy-Item -LiteralPath (Join-Path $root "tools\$file") -Destination (Join-Path $stage 'tools') -Force

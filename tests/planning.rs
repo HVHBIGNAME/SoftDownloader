@@ -85,6 +85,7 @@ fn removal_orders_addons_first_and_protects_unselected_dependents() {
             target: target.clone(),
             managed_ids: vec![id.into()],
             package_ids: vec![id.into()],
+            icon_path: None,
         });
         state.insert(
             id.into(),

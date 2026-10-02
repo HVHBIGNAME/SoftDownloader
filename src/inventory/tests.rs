@@ -18,6 +18,7 @@ fn registered(name: &str, version: &str, key: &str) -> InstalledProgram {
         target,
         managed_ids: Vec::new(),
         package_ids: Vec::new(),
+        icon_path: None,
     }
 }
 

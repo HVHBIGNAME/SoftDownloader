@@ -75,6 +75,8 @@ pub struct InstalledProgram {
     pub target: UninstallTarget,
     pub managed_ids: Vec<String>,
     pub package_ids: Vec<String>,
+    /// Executable that provides the real program icon in the interface.
+    pub icon_path: Option<PathBuf>,
 }
 
 pub fn scan(library: &Library) -> Result<Vec<InstalledProgram>> {
@@ -104,6 +106,9 @@ pub fn scan(library: &Library) -> Result<Vec<InstalledProgram>> {
                 target: target.clone(),
                 managed_ids: vec![entry.id.clone()],
                 package_ids: vec![entry.id.clone()],
+                icon_path: installer::archive::target_path(destination)
+                    .ok()
+                    .and_then(|folder| crate::system::icons::primary_file(&folder)),
             });
         }
     }

@@ -135,11 +135,12 @@ pub enum ArchiveRoot {
     Documents,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CatalogDocument {
     pub catalog: Catalog,
     pub local_root: Option<PathBuf>,
     pub is_demo: bool,
+    #[serde(default)]
     pub diagnostics: BTreeMap<String, String>,
 }
 

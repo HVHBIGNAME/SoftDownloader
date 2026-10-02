@@ -82,6 +82,7 @@ fn read_program(
     if name.trim().is_empty() {
         return None;
     }
+    let icon_path = icon_file(key);
     let quiet = string(key, "QuietUninstallString");
     let normal = string(key, "UninstallString");
     if quiet.is_none() && normal.is_none() {
@@ -108,7 +109,57 @@ fn read_program(
         target,
         managed_ids: Vec::new(),
         package_ids: Vec::new(),
+        icon_path,
     })
+}
+
+/// Resolves the executable behind `DisplayIcon` or `InstallLocation`.
+///
+/// Windows stores icon references as a quoted path with an optional resource
+/// index, so the value is normalized and only accepted when it is a real file.
+fn icon_file(key: &RegKey) -> Option<PathBuf> {
+    let candidates = [string(key, "DisplayIcon"), string(key, "InstallLocation")];
+    for candidate in candidates.into_iter().flatten() {
+        let reference = candidate.trim().trim_matches('"');
+        let path = match reference.rsplit_once(',') {
+            Some((head, index)) if index.trim().parse::<i32>().is_ok() => head.trim(),
+            _ => reference,
+        };
+        let path = expand_environment(path).ok()?;
+        let path = PathBuf::from(path);
+        if path.is_file() {
+            return Some(path);
+        }
+        if let Some(found) = first_executable(&path) {
+            return Some(found);
+        }
+    }
+    None
+}
+
+/// Looks for the most plausible launcher inside an installation folder.
+///
+/// Updaters and helpers are skipped so the main window icon is preferred.
+fn first_executable(folder: &Path) -> Option<PathBuf> {
+    let mut fallback = None;
+    for entry in std::fs::read_dir(folder).ok()?.flatten() {
+        let path = entry.path();
+        if path
+            .extension()
+            .is_none_or(|extension| !extension.eq_ignore_ascii_case("exe"))
+        {
+            continue;
+        }
+        let stem = path.file_stem()?.to_string_lossy().to_ascii_lowercase();
+        if stem.starts_with("unins") || stem.contains("updater") || stem.starts_with("crashpad") {
+            continue;
+        }
+        if !stem.contains("uninstall") && !stem.contains("setup") {
+            return Some(path);
+        }
+        fallback = fallback.or(Some(path));
+    }
+    fallback
 }
 
 fn open(hive: Hive, path: &str, is_64bit: bool) -> std::io::Result<RegKey> {

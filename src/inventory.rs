@@ -210,6 +210,9 @@ pub fn scan(catalog: &Catalog, library: &Library, cancel: &CancellationToken) ->
                     target,
                     managed_ids: Vec::new(),
                     package_ids: matching.iter().map(|p| p.id.clone()).collect(),
+                    icon_path: matching
+                        .first()
+                        .and_then(|package| package_icon_file(package)),
                 });
             }
         }
@@ -311,6 +314,7 @@ pub fn merge_winget(
                 target,
                 managed_ids: Vec::new(),
                 package_ids: vec![package.id.clone()],
+                icon_path: package_icon_file(package),
             });
         }
     }
@@ -343,6 +347,7 @@ fn merge_extensions(
                     target,
                     managed_ids: Vec::new(),
                     package_ids: vec![package.id.clone()],
+                    icon_path: package_icon_file(package),
                 });
             }
         }
@@ -354,21 +359,8 @@ fn add_portables(catalog: &Catalog, programs: &mut Vec<InstalledProgram>) {
         if programs.iter().any(|p| p.package_ids.contains(&package.id)) {
             continue;
         }
-        let path = package
-            .detect
-            .paths
-            .iter()
-            .filter_map(|path| expand_path(path))
-            .find(|path| real_file(path));
-        let path = path.or_else(|| {
-            package
-                .detect
-                .commands
-                .iter()
-                .find_map(|name| find_in_path(name))
-        });
-        if let Some(path) = path {
-            let target = UninstallTarget::Detected { path };
+        if let Some(path) = package_icon_file(package) {
+            let target = UninstallTarget::Detected { path: path.clone() };
             programs.push(InstalledProgram {
                 id: target.id(),
                 name: package.name.clone(),
@@ -378,6 +370,7 @@ fn add_portables(catalog: &Catalog, programs: &mut Vec<InstalledProgram>) {
                 target,
                 managed_ids: Vec::new(),
                 package_ids: vec![package.id.clone()],
+                icon_path: Some(path),
             });
         }
     }
@@ -385,6 +378,26 @@ fn add_portables(catalog: &Catalog, programs: &mut Vec<InstalledProgram>) {
 
 fn real_file(path: &std::path::Path) -> bool {
     std::fs::metadata(path).is_ok_and(|m| m.is_file() && m.len() > 0)
+}
+
+/// Finds the executable a catalog package can borrow an icon from.
+///
+/// Known install paths win over PATH lookups because they point at the real
+/// program rather than a launcher shim.
+pub fn package_icon_file(package: &Package) -> Option<PathBuf> {
+    package
+        .detect
+        .paths
+        .iter()
+        .filter_map(|path| expand_path(path))
+        .find(|path| real_file(path))
+        .or_else(|| {
+            package
+                .detect
+                .commands
+                .iter()
+                .find_map(|name| find_in_path(name))
+        })
 }
 
 pub fn expand_path(template: &str) -> Option<PathBuf> {

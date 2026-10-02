@@ -1,4 +1,5 @@
 pub mod appx;
+pub mod icons;
 pub mod vscode;
 pub mod winget;
 

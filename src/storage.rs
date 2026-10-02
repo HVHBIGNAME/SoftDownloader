@@ -82,6 +82,10 @@ impl Store {
     pub fn load_library(&self) -> Result<Library> {
         read_or_default(&self.root.join("installed.json"))
     }
+    /// Folder for cached network responses such as the resolved catalog.
+    pub fn cache_directory(&self) -> PathBuf {
+        self.root.join("catalog-cache")
+    }
     pub fn save_library(&self, library: &Library) -> Result<()> {
         write_json(&self.root.join("installed.json"), library)
     }

@@ -42,7 +42,7 @@ pub fn verify(id: &str, repository: WingetRepository, cancel: &CancellationToken
             "--accept-source-agreements",
             "--disable-interactivity",
         ]),
-        Duration::from_secs(45),
+        EXPORT_TIMEOUT,
         cancel,
     )?;
     ensure!(
@@ -129,6 +129,9 @@ struct ExportPackage {
     version: String,
 }
 
+/// Upper bound for a WinGet enumeration on a slow or busy machine.
+const EXPORT_TIMEOUT: Duration = Duration::from_secs(25);
+
 pub fn installed(cancel: &CancellationToken) -> Result<BTreeMap<String, String>> {
     let temporary = tempfile::tempdir()?;
     let file = temporary.path().join("packages.json");
@@ -143,7 +146,7 @@ pub fn installed(cancel: &CancellationToken) -> Result<BTreeMap<String, String>>
                 "--accept-source-agreements",
                 "--disable-interactivity",
             ]),
-        Duration::from_secs(45),
+        EXPORT_TIMEOUT,
         cancel,
     )?;
     ensure!(

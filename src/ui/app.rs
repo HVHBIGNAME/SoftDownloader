@@ -5,6 +5,7 @@ use std::time::Duration;
 use anyhow::Result;
 use eframe::egui::{self, Align, Color32, Layout, Margin, RichText, Stroke, Vec2};
 
+use super::icons::IconLoader;
 use super::theme::{self, Icon};
 use crate::catalog::{CatalogDocument, Package, PackageKind};
 use crate::engine::{Engine, JobStatus, WorkerEvent};
@@ -42,6 +43,7 @@ pub struct SoftDownloaderApp {
     inventory_unverified: BTreeSet<String>,
     inventory_generation: u64,
     pub(super) programs: Vec<InstalledProgram>,
+    pub(super) icons: IconLoader,
     pub(super) programs_loading: bool,
     pub(super) installed_query: String,
     pub(super) selected_removals: BTreeSet<String>,
@@ -96,6 +98,7 @@ impl SoftDownloaderApp {
             inventory_unverified: BTreeSet::new(),
             inventory_generation: 0,
             programs: Vec::new(),
+            icons: IconLoader::new(),
             programs_loading: false,
             installed_query: String::new(),
             selected_removals: BTreeSet::new(),

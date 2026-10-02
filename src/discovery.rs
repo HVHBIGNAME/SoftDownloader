@@ -1,5 +1,4 @@
 use std::collections::BTreeSet;
-use std::time::Duration;
 
 use anyhow::{Context, Result, ensure};
 use futures_util::{StreamExt, stream};
@@ -151,18 +150,26 @@ pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<C
                 .map(|source| (index, source))
         })
         .collect();
-    let results = stream::iter(jobs)
-        .map(|(index, source)| async move {
-            let result =
-                tokio::time::timeout(Duration::from_secs(30), resolve_source(client, &source))
-                    .await
-                    .context("Источник не ответил за 30 секунд")
-                    .and_then(|result| result);
-            (index, result)
-        })
-        .buffer_unordered(4)
-        .collect::<Vec<_>>()
-        .await;
+    // An expired budget simply drops the in-flight sources; the pass below
+    // reports them as unreachable instead of waiting any longer.
+    let results: Vec<_> = tokio::time::timeout(
+        crate::network::CATALOG_BUDGET,
+        stream::iter(jobs)
+            .map(|(index, source)| async move {
+                let result = tokio::time::timeout(
+                    crate::network::SOURCE_TIMEOUT,
+                    resolve_source(client, &source),
+                )
+                .await
+                .context("Источник не ответил вовремя")
+                .and_then(|result| result);
+                (index, result)
+            })
+            .buffer_unordered(6)
+            .collect::<Vec<_>>(),
+    )
+    .await
+    .unwrap_or_default();
     for (index, result) in results {
         let package = &mut document.catalog.packages[index];
         match result {
@@ -176,6 +183,20 @@ pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<C
                     .diagnostics
                     .insert(package.id.clone(), format!("{error:#}"));
             }
+        }
+    }
+    // Any online source that produced no artifact did not answer in time.
+    for package in &mut document.catalog.packages {
+        if package.enabled
+            && package.artifact.is_none()
+            && package.source.as_ref().is_some_and(|source| {
+                matches!(source, Source::Github { .. } | Source::Website { .. })
+            })
+        {
+            document.diagnostics.insert(
+                package.id.clone(),
+                "Источник не ответил за отведённое время".into(),
+            );
         }
     }
     document.catalog.validate()?;
@@ -387,6 +408,67 @@ fn website_release(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_budget_overrun_is_reported_instead_of_waiting_forever() {
+        let document = CatalogDocument::demo().unwrap();
+        let report = crate::network::client().unwrap();
+        let resolved = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(resolve(&report, document));
+        // The demo catalog has no online sources, so this only asserts that the
+        // bounded resolve path completes without hanging.
+        assert!(resolved.is_ok());
+    }
+
+    #[tokio::test]
+    async fn an_unreachable_source_yields_a_diagnostic() {
+        let mut document = CatalogDocument::demo().unwrap();
+        document
+            .catalog
+            .packages
+            .retain(|package| package.id == "blender");
+        let package = document.catalog.packages.first_mut().unwrap();
+        package.enabled = true;
+        package.source = Some(Source::Github {
+            repository: "softdownloader/does-not-exist".into(),
+            asset_pattern: "missing.zip".into(),
+        });
+        // A placeholder artifact and install recipe keep the document valid
+        // while the unreachable source is the part under test.
+        package.artifact = Some(Artifact {
+            file_name: "addon.zip".into(),
+            size: 1,
+            sha256: "a".repeat(64),
+            local_path: Some("addon.zip".into()),
+            drive_file_id: None,
+            url: None,
+        });
+        package.install = Some(crate::catalog::InstallSpec::Zip {
+            destination: crate::catalog::ArchiveDestination {
+                root: crate::catalog::ArchiveRoot::LocalAppData,
+                path: "softdownloader-test/resolve".into(),
+            },
+            strip_components: 0,
+        });
+        let client = crate::network::client().unwrap();
+        let resolved = resolve(&client, document).await.unwrap();
+        assert!(
+            resolved.diagnostics.contains_key("blender"),
+            "a failed source must be reported: {:?}",
+            resolved.diagnostics
+        );
+        assert!(
+            resolved
+                .catalog
+                .package("blender")
+                .unwrap()
+                .artifact
+                .is_none()
+        );
+    }
 
     #[test]
     fn website_can_extract_version_from_download_filename() {

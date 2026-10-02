@@ -11,11 +11,18 @@ use crate::catalog::{Catalog, CatalogDocument, validate_drive_id, validate_https
 pub const MAX_CATALOG_BYTES: usize = 8 * 1024 * 1024;
 const MAX_CONFIRMATION_BYTES: usize = 512 * 1024;
 
+/// Total time budget for resolving every online source of the catalog.
+///
+/// The catalog has a handful of GitHub and website sources; without a global
+/// budget a slow host would keep the window waiting on a long chain of retries.
+pub const CATALOG_BUDGET: Duration = Duration::from_secs(20);
+pub const SOURCE_TIMEOUT: Duration = Duration::from_secs(8);
+
 pub fn client() -> Result<Client> {
     Ok(Client::builder()
         .user_agent(concat!("SoftDownloader/", env!("CARGO_PKG_VERSION")))
-        .connect_timeout(Duration::from_secs(20))
-        .read_timeout(Duration::from_secs(90))
+        .connect_timeout(Duration::from_secs(5))
+        .read_timeout(Duration::from_secs(30))
         .cookie_store(true)
         .https_only(true)
         .redirect(redirect::Policy::custom(|attempt| {

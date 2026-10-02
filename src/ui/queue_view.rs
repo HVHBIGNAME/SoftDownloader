@@ -200,6 +200,9 @@ impl SoftDownloaderApp {
                     theme::card_frame().show(ui, |ui| {
                         ui.set_width((ui.available_width() - 2.0).max(150.0));
                         ui.horizontal(|ui| {
+                            if !self.icons.show(ui, program.icon_path.as_deref(), 34.0) {
+                                theme::app_icon(ui, &program.id, 34.0);
+                            }
                             let mut selected = self.selected_removals.contains(&program.id);
                             if ui
                                 .add_enabled(
@@ -217,7 +220,7 @@ impl SoftDownloaderApp {
                                     self.selected_removals.remove(&program.id);
                                 }
                             }
-                            let width = (ui.available_width() - 280.0).max(180.0);
+                            let width = (ui.available_width() - 330.0).max(180.0);
                             ui.allocate_ui_with_layout(
                                 Vec2::new(width, 42.0),
                                 Layout::top_down(Align::Min),

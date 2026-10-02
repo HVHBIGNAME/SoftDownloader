@@ -258,7 +258,9 @@ impl SoftDownloaderApp {
                 ui.set_min_height(188.0);
                 let top = ui.cursor().top();
                 ui.horizontal(|ui| {
-                    theme::app_icon(ui, &package.id, 44.0);
+                    if !self.package_icon(ui, package, 44.0) {
+                        theme::app_icon(ui, &package.id, 44.0);
+                    }
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         self.package_control(ui, package, installed, selected);
                     });
@@ -345,6 +347,20 @@ impl SoftDownloaderApp {
             });
     }
 
+    /// Draws the real program icon when the package is already on this PC.
+    ///
+    /// Returns `true` when an icon was painted so the letter tile is skipped.
+    pub(super) fn package_icon(&mut self, ui: &mut egui::Ui, package: &Package, size: f32) -> bool {
+        let installed = self.programs.iter().find(|program| {
+            program.package_ids.contains(&package.id) && program.icon_path.is_some()
+        });
+        let path = match installed {
+            Some(program) => program.icon_path.clone(),
+            None => crate::inventory::package_icon_file(package),
+        };
+        self.icons.show(ui, path.as_deref(), size)
+    }
+
     fn package_control(
         &mut self,
         ui: &mut egui::Ui,
@@ -411,7 +427,9 @@ impl SoftDownloaderApp {
             });
             ui.add_space(18.0);
             egui::ScrollArea::vertical().show(ui, |ui| {
-                theme::app_icon(ui, &package.id, 64.0);
+                if !self.package_icon(ui, &package, 64.0) {
+                    theme::app_icon(ui, &package.id, 64.0);
+                }
                 ui.add_space(10.0);
                 ui.label(RichText::new(&package.name).size(22.0).strong());
                 ui.label(RichText::new(&package.publisher).color(theme::MUTED));

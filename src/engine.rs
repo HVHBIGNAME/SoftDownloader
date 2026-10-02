@@ -123,9 +123,7 @@ impl Engine {
         let client = self.client.clone();
         let sender = self.sender.clone();
         self.catalog_task = Some(self.runtime.spawn(async move {
-            let result = network::load_catalog(&client, &source)
-                .await
-                .map_err(|e| format!("{e:#}"));
+            let result = resolve_catalog(&client, &source).await;
             // The receiver is gone only when the window has closed.
             let _ = sender.send(WorkerEvent::Catalog { generation, result });
         }));
@@ -220,6 +218,70 @@ impl Drop for Engine {
         if let Some(task) = &self.catalog_task {
             task.abort();
         }
+    }
+}
+
+/// Loads a catalog, reusing the last successful result while it is fresh.
+///
+/// This keeps the interface responsive and avoids re-querying every official
+/// source on each launch. When a refresh fails, the cached catalog is shown
+/// instead of an empty window.
+async fn resolve_catalog(
+    client: &reqwest::Client,
+    source: &str,
+) -> Result<CatalogDocument, String> {
+    let cached = cache::read(source);
+    if let Some((document, age)) = &cached
+        && *age <= cache::MAX_AGE
+    {
+        return Ok(document.clone());
+    }
+    match network::load_catalog(client, source).await {
+        Ok(document) => {
+            // A cache write failure only costs an extra refresh next time.
+            let _ = cache::write(source, &document);
+            Ok(document)
+        }
+        Err(error) => match cached {
+            Some((document, _)) => Ok(document),
+            None => Err(format!("{error:#}")),
+        },
+    }
+}
+
+/// On-disk cache of the last resolved catalog document.
+mod cache {
+    use std::path::PathBuf;
+    use std::time::{Duration, SystemTime};
+
+    use anyhow::Result;
+    use sha2::{Digest, Sha256};
+
+    use crate::catalog::CatalogDocument;
+
+    /// Catalog metadata changes slowly, so an hour-old cache is reused as is.
+    pub const MAX_AGE: Duration = Duration::from_secs(60 * 60);
+
+    fn location(source: &str) -> Result<PathBuf> {
+        let name = hex::encode(Sha256::digest(source.trim().as_bytes()));
+        let store = crate::storage::Store::open()?;
+        let folder = store.cache_directory();
+        std::fs::create_dir_all(&folder)?;
+        Ok(folder.join(format!("{name}.json")))
+    }
+
+    /// Returns the cached document together with its age.
+    pub fn read(source: &str) -> Option<(CatalogDocument, Duration)> {
+        let path = location(source).ok()?;
+        let document: CatalogDocument = serde_json::from_slice(&std::fs::read(&path).ok()?).ok()?;
+        // The file timestamp records when the document was stored.
+        let stored = std::fs::metadata(&path).ok()?.modified().ok()?;
+        let age = SystemTime::now().duration_since(stored).ok()?;
+        Some((document, age))
+    }
+
+    pub fn write(source: &str, document: &CatalogDocument) -> Result<()> {
+        crate::storage::write_json(&location(source)?, document)
     }
 }
 
