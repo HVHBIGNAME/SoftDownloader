@@ -28,7 +28,7 @@ impl WingetRepository {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Source {
     Github {
@@ -135,7 +135,26 @@ impl Source {
     }
 }
 
-pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<CatalogDocument> {
+pub async fn resolve(client: &Client, document: CatalogDocument) -> Result<CatalogDocument> {
+    resolve_with(
+        document,
+        crate::network::CATALOG_BUDGET,
+        crate::network::SOURCE_TIMEOUT,
+        |source| async move { resolve_source(client, &source).await },
+    )
+    .await
+}
+
+async fn resolve_with<F, Fut>(
+    mut document: CatalogDocument,
+    budget: std::time::Duration,
+    source_timeout: std::time::Duration,
+    resolver: F,
+) -> Result<CatalogDocument>
+where
+    F: Fn(Source) -> Fut,
+    Fut: std::future::Future<Output = Result<(String, Artifact)>>,
+{
     let jobs: Vec<_> = document
         .catalog
         .packages
@@ -150,27 +169,22 @@ pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<C
                 .map(|source| (index, source))
         })
         .collect();
-    // An expired budget simply drops the in-flight sources; the pass below
-    // reports them as unreachable instead of waiting any longer.
-    let results: Vec<_> = tokio::time::timeout(
-        crate::network::CATALOG_BUDGET,
-        stream::iter(jobs)
-            .map(|(index, source)| async move {
-                let result = tokio::time::timeout(
-                    crate::network::SOURCE_TIMEOUT,
-                    resolve_source(client, &source),
-                )
-                .await
-                .context("Источник не ответил вовремя")
-                .and_then(|result| result);
+    let mut pending: BTreeSet<_> = jobs.iter().map(|(index, _)| *index).collect();
+    let deadline = tokio::time::Instant::now() + budget;
+    let mut results = stream::iter(jobs)
+        .map(|(index, source)| {
+            let resolve = resolver(source);
+            async move {
+                let result = tokio::time::timeout(source_timeout, resolve)
+                    .await
+                    .context("Источник не ответил вовремя")
+                    .and_then(|result| result);
                 (index, result)
-            })
-            .buffer_unordered(6)
-            .collect::<Vec<_>>(),
-    )
-    .await
-    .unwrap_or_default();
-    for (index, result) in results {
+            }
+        })
+        .buffer_unordered(4);
+    while let Ok(Some((index, result))) = tokio::time::timeout_at(deadline, results.next()).await {
+        pending.remove(&index);
         let package = &mut document.catalog.packages[index];
         match result {
             Ok((version, artifact)) => {
@@ -185,21 +199,19 @@ pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<C
             }
         }
     }
-    // Any online source that produced no artifact did not answer in time.
-    for package in &mut document.catalog.packages {
-        if package.enabled
-            && package.artifact.is_none()
-            && package.source.as_ref().is_some_and(|source| {
-                matches!(source, Source::Github { .. } | Source::Website { .. })
-            })
-        {
-            document.diagnostics.insert(
-                package.id.clone(),
-                "Источник не ответил за отведённое время".into(),
-            );
-        }
+    for index in pending {
+        let package = &mut document.catalog.packages[index];
+        package.artifact = None;
+        document.diagnostics.insert(
+            package.id.clone(),
+            "Истёк общий срок обновления источников".into(),
+        );
     }
     document.catalog.validate()?;
+    Ok(document)
+}
+
+pub fn apply_manager_availability(document: &mut CatalogDocument) {
     if !crate::system::winget::available() {
         for package in &mut document.catalog.packages {
             if package.winget_id().is_some() {
@@ -211,7 +223,6 @@ pub async fn resolve(client: &Client, mut document: CatalogDocument) -> Result<C
             }
         }
     }
-    Ok(document)
 }
 
 async fn resolve_source(client: &Client, source: &Source) -> Result<(String, Artifact)> {
@@ -409,65 +420,75 @@ fn website_release(
 mod tests {
     use super::*;
 
-    #[test]
-    fn a_budget_overrun_is_reported_instead_of_waiting_forever() {
-        let document = CatalogDocument::demo().unwrap();
-        let report = crate::network::client().unwrap();
-        let resolved = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(resolve(&report, document));
-        // The demo catalog has no online sources, so this only asserts that the
-        // bounded resolve path completes without hanging.
-        assert!(resolved.is_ok());
+    #[tokio::test(start_paused = true)]
+    async fn budget_keeps_completed_results_and_original_errors() {
+        use std::time::Duration;
+        let mut document = CatalogDocument::builtin().unwrap();
+        let template = document.catalog.package("flclash").unwrap().clone();
+        document.catalog.packages = ["fast", "failed", "slow"]
+            .into_iter()
+            .map(|id| {
+                let mut package = template.clone();
+                package.id = id.into();
+                package.source = Some(Source::Github {
+                    repository: format!("fixture/{id}"),
+                    asset_pattern: "app.exe".into(),
+                });
+                package
+            })
+            .collect();
+        let resolved = resolve_with(
+            document,
+            Duration::from_millis(500),
+            Duration::from_secs(8),
+            |source| async move {
+                let Source::Github { repository, .. } = source else {
+                    unreachable!()
+                };
+                if repository.ends_with("slow") {
+                    return std::future::pending().await;
+                }
+                tokio::time::sleep(Duration::from_millis(100)).await;
+                if repository.ends_with("failed") {
+                    anyhow::bail!("HTTP 503 fixture");
+                }
+                Ok((
+                    "1.2.3".into(),
+                    Artifact {
+                        file_name: "app.exe".into(),
+                        size: 1,
+                        sha256: "a".repeat(64),
+                        local_path: Some("app.exe".into()),
+                        drive_file_id: None,
+                        url: None,
+                    },
+                ))
+            },
+        )
+        .await
+        .unwrap();
+        assert_eq!(resolved.catalog.package("fast").unwrap().version, "1.2.3");
+        assert!(resolved.catalog.package("fast").unwrap().artifact.is_some());
+        assert_eq!(resolved.diagnostics["failed"], "HTTP 503 fixture");
+        assert!(resolved.diagnostics["slow"].contains("общий срок"));
     }
 
-    #[tokio::test]
-    async fn an_unreachable_source_yields_a_diagnostic() {
-        let mut document = CatalogDocument::demo().unwrap();
-        document
-            .catalog
-            .packages
-            .retain(|package| package.id == "blender");
-        let package = document.catalog.packages.first_mut().unwrap();
-        package.enabled = true;
-        package.source = Some(Source::Github {
-            repository: "softdownloader/does-not-exist".into(),
-            asset_pattern: "missing.zip".into(),
-        });
-        // A placeholder artifact and install recipe keep the document valid
-        // while the unreachable source is the part under test.
-        package.artifact = Some(Artifact {
-            file_name: "addon.zip".into(),
-            size: 1,
-            sha256: "a".repeat(64),
-            local_path: Some("addon.zip".into()),
-            drive_file_id: None,
-            url: None,
-        });
-        package.install = Some(crate::catalog::InstallSpec::Zip {
-            destination: crate::catalog::ArchiveDestination {
-                root: crate::catalog::ArchiveRoot::LocalAppData,
-                path: "softdownloader-test/resolve".into(),
-            },
-            strip_components: 0,
-        });
-        let client = crate::network::client().unwrap();
-        let resolved = resolve(&client, document).await.unwrap();
-        assert!(
-            resolved.diagnostics.contains_key("blender"),
-            "a failed source must be reported: {:?}",
-            resolved.diagnostics
-        );
-        assert!(
-            resolved
-                .catalog
-                .package("blender")
-                .unwrap()
-                .artifact
-                .is_none()
-        );
+    #[tokio::test(start_paused = true)]
+    async fn individual_source_timeout_does_not_wait_for_the_total_budget() {
+        use std::time::Duration;
+        let mut document = CatalogDocument::builtin().unwrap();
+        document.catalog.packages.retain(|p| p.id == "flclash");
+        let started = tokio::time::Instant::now();
+        let resolved = resolve_with(
+            document,
+            Duration::from_secs(20),
+            Duration::from_secs(8),
+            |_| std::future::pending(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(started.elapsed(), Duration::from_secs(8));
+        assert!(resolved.diagnostics["flclash"].contains("Источник не ответил вовремя"));
     }
 
     #[test]

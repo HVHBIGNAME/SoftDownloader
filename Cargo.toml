@@ -1,9 +1,9 @@
 [package]
 name = "softdownloader"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 rust-version = "1.88"
-description = "A native Windows software catalog and installer powered by Google Drive"
+description = "A native Windows software manager with portable program lists"
 license = "MIT"
 repository = "https://github.com/HVHBIGNAME/SoftDownloader"
 default-run = "softdownloader"
@@ -33,6 +33,9 @@ zip = { version = "4.6", default-features = false, features = ["deflate"] }
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Security_WinTrust", "Win32_Security_Cryptography", "Win32_System_Environment", "Win32_System_Registry", "Win32_System_Threading", "Win32_System_SystemInformation", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
 winreg = "0.55"
+
+[dev-dependencies]
+tokio = { version = "1.45", features = ["test-util"] }
 
 [profile.release]
 opt-level = "s"

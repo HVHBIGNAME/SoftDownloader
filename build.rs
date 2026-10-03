@@ -1,13 +1,10 @@
 fn main() {
     println!("cargo:rerun-if-changed=assets/SoftDownloader.ico");
     println!("cargo:rerun-if-changed=assets/SoftDownloader.rc");
-    #[cfg(windows)]
-    if let embed_resource::CompilationResult::Failed(error) =
+    println!("cargo:rerun-if-env-changed=SOFTDOWNLOADER_CATALOG_URL");
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
         embed_resource::compile("assets/SoftDownloader.rc", embed_resource::NONE)
-    {
-        panic!("Failed to embed the application icon: {error}");
+            .manifest_required()
+            .expect("Failed to embed the application icon");
     }
 }
-
-#[cfg(not(windows))]
-const _: () = ();

@@ -13,6 +13,8 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      SOFTDOWNLOADER_CATALOG_URL: ${{ vars.SOFTDOWNLOADER_CATALOG_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -62,4 +64,10 @@ jobs:
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes --title "SoftDownloader $GITHUB_REF_NAME"
+        run: |
+          notes="docs/releases/${GITHUB_REF_NAME#v}.md"
+          if [ -f "$notes" ]; then
+            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --notes-file "$notes" --title "SoftDownloader ${GITHUB_REF_NAME#v}"
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes --title "SoftDownloader $GITHUB_REF_NAME"
+          fi

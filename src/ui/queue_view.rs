@@ -111,16 +111,43 @@ impl SoftDownloaderApp {
     }
 
     pub(super) fn installed_page(&mut self, ui: &mut egui::Ui) {
-        theme::heading(
-            ui,
-            "Установлено на компьютере",
-            "Программы, Microsoft Store и portable. Выбирай по одной или сразу несколько.",
+        ui.horizontal(|ui| {
+            ui.label(RichText::new("Установлено").size(27.0).strong());
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                if ui
+                    .add_enabled(
+                        self.list_actions_enabled() && !self.programs.is_empty(),
+                        egui::Button::new("Экспорт списка"),
+                    )
+                    .clicked()
+                {
+                    self.export_program_list();
+                }
+                if ui
+                    .add_enabled(
+                        self.list_actions_enabled(),
+                        egui::Button::new("Импорт списка"),
+                    )
+                    .clicked()
+                {
+                    self.request_program_list_import();
+                }
+                if self.list_busy {
+                    ui.spinner();
+                }
+            });
+        });
+        ui.label(
+            RichText::new("Сохраните список, чтобы восстановить программы на другом компьютере.")
+                .size(13.0)
+                .color(theme::MUTED),
         );
+        ui.add_space(16.0);
         ui.horizontal(|ui| {
             ui.add(
                 egui::TextEdit::singleline(&mut self.installed_query)
                     .hint_text("Поиск установленной программы…")
-                    .desired_width((ui.available_width() - 140.0).max(180.0))
+                    .desired_width((ui.available_width() - 170.0).max(180.0))
                     .margin(10.0),
             );
             if ui
@@ -137,17 +164,21 @@ impl SoftDownloaderApp {
             }
         });
         if !self.inventory_warnings.is_empty() {
-            ui.label(
-                RichText::new(self.inventory_warnings.join("\n"))
-                    .size(11.0)
-                    .color(theme::ORANGE),
-            );
+            egui::CollapsingHeader::new(
+                RichText::new("Не все источники ответили").color(theme::ORANGE),
+            )
+            .show(ui, |ui| {
+                for warning in &self.inventory_warnings {
+                    ui.label(RichText::new(warning).size(11.0).color(theme::MUTED));
+                }
+            });
         }
         let query = self.installed_query.to_lowercase();
         let programs: Vec<_> = self
             .programs
             .iter()
-            .filter(|program| {
+            .enumerate()
+            .filter(|(_, program)| {
                 format!("{} {}", program.name, program.publisher)
                     .to_lowercase()
                     .contains(&query)
@@ -158,7 +189,7 @@ impl SoftDownloaderApp {
                             .is_some_and(|p| p.matches_search(&query))
                     })
             })
-            .cloned()
+            .map(|(index, _)| index)
             .collect();
         ui.horizontal(|ui| {
             ui.label(
@@ -176,6 +207,7 @@ impl SoftDownloaderApp {
                 self.selected_removals.extend(
                     programs
                         .iter()
+                        .map(|&index| &self.programs[index])
                         .filter(|p| p.target.can_remove())
                         .map(|p| p.id.clone()),
                 );
@@ -193,93 +225,107 @@ impl SoftDownloaderApp {
             );
             return;
         }
+        ui.spacing_mut().item_spacing.y = 8.0;
         egui::ScrollArea::vertical()
+            .id_salt("installed-programs")
             .auto_shrink([false, false])
-            .show(ui, |ui| {
-                for program in programs {
-                    theme::card_frame().show(ui, |ui| {
-                        ui.set_width((ui.available_width() - 2.0).max(150.0));
-                        ui.horizontal(|ui| {
-                            if !self.icons.show(ui, program.icon_path.as_deref(), 34.0) {
-                                theme::app_icon(ui, &program.id, 34.0);
-                            }
-                            let mut selected = self.selected_removals.contains(&program.id);
-                            if ui
-                                .add_enabled(
-                                    !self.queue_active
-                                        && !self.programs_loading
-                                        && !self.loading
-                                        && program.target.can_remove(),
-                                    egui::Checkbox::without_text(&mut selected),
-                                )
-                                .changed()
-                            {
-                                if selected {
-                                    self.selected_removals.insert(program.id.clone());
-                                } else {
-                                    self.selected_removals.remove(&program.id);
-                                }
-                            }
-                            let width = (ui.available_width() - 330.0).max(180.0);
-                            ui.allocate_ui_with_layout(
-                                Vec2::new(width, 42.0),
-                                Layout::top_down(Align::Min),
-                                |ui| {
-                                    ui.add(
-                                        egui::Label::new(RichText::new(&program.name).strong())
-                                            .truncate(),
-                                    );
-                                    ui.add(
-                                        egui::Label::new(
-                                            RichText::new(format!(
-                                                "{} · {}",
-                                                program.version, program.publisher
-                                            ))
-                                            .size(11.0)
-                                            .color(theme::DIM),
-                                        )
-                                        .truncate(),
-                                    );
-                                },
-                            );
-                            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                                if ui
-                                    .add_enabled(
-                                        !self.queue_active
-                                            && !self.programs_loading
-                                            && !self.loading
-                                            && program.target.can_remove(),
-                                        egui::Button::new(
-                                            RichText::new("Удалить").color(theme::RED),
-                                        ),
-                                    )
-                                    .clicked()
-                                {
-                                    self.remove_programs(&BTreeSet::from([program.id.clone()]));
-                                }
-                                if let Some(folder) = program.target.folder()
-                                    && ui.small_button("Папка").clicked()
-                                    && let Err(error) = crate::system::open_folder(&folder)
-                                {
-                                    self.error = Some(format!("{error:#}"));
-                                }
-                                theme::pill(
-                                    ui,
-                                    if !program.target.can_remove() {
-                                        "ВРУЧНУЮ"
-                                    } else if program.quiet {
-                                        "ТИХО"
-                                    } else {
-                                        "МАСТЕР"
-                                    },
-                                    theme::MUTED,
-                                );
-                            });
-                        });
+            .show_rows(ui, 68.0, programs.len(), |ui, rows| {
+                for &index in &programs[rows] {
+                    let program = self.programs[index].clone();
+                    ui.push_id(&program.id, |ui| {
+                        self.installed_row(ui, &program);
                     });
-                    ui.add_space(4.0);
                 }
             });
+    }
+
+    fn installed_row(&mut self, ui: &mut egui::Ui, program: &crate::uninstall::InstalledProgram) {
+        let width = ui.available_width();
+        let store_app = matches!(
+            program.target,
+            crate::uninstall::UninstallTarget::Appx { .. }
+        );
+        let name = if store_app && program.package_ids.is_empty() {
+            program.name.rsplit('.').next().unwrap_or(&program.name)
+        } else {
+            &program.name
+        };
+        let publisher = if store_app {
+            "Microsoft Store"
+        } else {
+            &program.publisher
+        };
+        theme::card_frame().inner_margin(12).show(ui, |ui| {
+            ui.set_width((width - 24.0).max(150.0));
+            ui.horizontal(|ui| {
+                let mut selected = self.selected_removals.contains(&program.id);
+                if ui
+                    .add_enabled(
+                        self.list_actions_enabled() && program.target.can_remove(),
+                        egui::Checkbox::without_text(&mut selected),
+                    )
+                    .on_hover_text("Выбрать для удаления")
+                    .changed()
+                {
+                    if selected {
+                        self.selected_removals.insert(program.id.clone());
+                    } else {
+                        self.selected_removals.remove(&program.id);
+                    }
+                }
+                if !self.icons.show(ui, program.icon_path.as_deref(), 36.0) {
+                    theme::app_icon(ui, name, 36.0);
+                }
+                let text_width = (ui.available_width() - 48.0).max(160.0);
+                ui.allocate_ui_with_layout(
+                    Vec2::new(text_width, 44.0),
+                    Layout::top_down(Align::Min),
+                    |ui| {
+                        ui.set_min_width(text_width);
+                        ui.spacing_mut().item_spacing.y = 4.0;
+                        ui.add(egui::Label::new(RichText::new(name).strong()).truncate())
+                            .on_hover_text(&program.name);
+                        ui.add(
+                            egui::Label::new(
+                                RichText::new(format!("{} · {}", program.version, publisher))
+                                    .size(11.0)
+                                    .color(theme::DIM),
+                            )
+                            .truncate(),
+                        );
+                    },
+                );
+                ui.menu_button("···", |ui| {
+                    ui.label(
+                        RichText::new(if program.quiet {
+                            "Поддерживает тихое удаление"
+                        } else {
+                            "Штатный мастер удаления"
+                        })
+                        .size(11.0)
+                        .color(theme::MUTED),
+                    );
+                    if let Some(folder) = program.target.folder()
+                        && ui.button("Открыть папку").clicked()
+                    {
+                        if let Err(error) = crate::system::open_folder(&folder) {
+                            self.error = Some(format!("{error:#}"));
+                        }
+                        ui.close();
+                    }
+                    if ui
+                        .add_enabled(
+                            self.list_actions_enabled() && program.target.can_remove(),
+                            egui::Button::new(RichText::new("Удалить программу").color(theme::RED)),
+                        )
+                        .clicked()
+                    {
+                        self.remove_programs(&BTreeSet::from([program.id.clone()]));
+                        ui.close();
+                    }
+                });
+            });
+        });
     }
 
     fn empty_state(&mut self, ui: &mut egui::Ui, title: &str, subtitle: &str) {

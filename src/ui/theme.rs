@@ -46,6 +46,7 @@ pub fn apply(ctx: &egui::Context) {
     style.spacing.item_spacing = Vec2::new(10.0, 10.0);
     style.spacing.button_padding = Vec2::new(12.0, 9.0);
     style.spacing.interact_size.y = 34.0;
+    style.animation_time = 0.16;
     style
         .text_styles
         .insert(egui::TextStyle::Body, FontId::proportional(14.0));
@@ -59,6 +60,17 @@ pub fn apply(ctx: &egui::Context) {
         .text_styles
         .insert(egui::TextStyle::Heading, FontId::proportional(26.0));
     ctx.set_style(style);
+}
+
+pub fn set_motion(ctx: &egui::Context, reduced: bool) {
+    ctx.style_mut(|style| {
+        style.animation_time = if reduced { 0.0 } else { 0.16 };
+        style.scroll_animation = if reduced {
+            egui::style::ScrollAnimation::none()
+        } else {
+            egui::style::ScrollAnimation::duration(0.16)
+        };
+    });
 }
 
 pub fn card_frame() -> egui::Frame {
@@ -280,18 +292,22 @@ pub fn nav(
 ) -> bool {
     let (rect, response) =
         ui.allocate_exact_size(Vec2::new(ui.available_width(), 39.0), Sense::click());
-    if active || response.hovered() {
+    let selected = ui
+        .ctx()
+        .animate_bool_responsive(response.id.with("active"), active);
+    let hovered = ui
+        .ctx()
+        .animate_bool_responsive(response.id.with("hover"), response.hovered());
+    if selected > 0.0 || hovered > 0.0 {
         ui.painter().rect_filled(
             rect,
             8,
-            if active {
-                ACCENT.gamma_multiply(0.10)
-            } else {
-                SURFACE
-            },
+            SIDEBAR
+                .lerp_to_gamma(SURFACE, hovered)
+                .lerp_to_gamma(ACCENT.gamma_multiply(0.10), selected),
         );
     }
-    let color = if active { ACCENT } else { MUTED };
+    let color = MUTED.lerp_to_gamma(ACCENT, selected);
     draw_icon(
         ui,
         Rect::from_min_size(rect.min + Vec2::new(12.0, 10.0), Vec2::splat(18.0)),
@@ -326,21 +342,6 @@ pub fn nav(
 }
 
 pub fn window_icon() -> egui::IconData {
-    let mut rgba = vec![0_u8; 64 * 64 * 4];
-    for y in 0_usize..64 {
-        for x in 0_usize..64 {
-            let arrow = (29..=34).contains(&x) && (14..=37).contains(&y)
-                || ((26..=41).contains(&y) && x.abs_diff(31) == 41 - y)
-                || ((44..=48).contains(&y) && (17..=46).contains(&x))
-                || ((39..=47).contains(&y) && ((17..=20).contains(&x) || (43..=46).contains(&x)));
-            let color = if arrow { BG } else { ACCENT };
-            let start = (y * 64 + x) * 4;
-            rgba[start..start + 4].copy_from_slice(&color.to_array());
-        }
-    }
-    egui::IconData {
-        rgba,
-        width: 64,
-        height: 64,
-    }
+    eframe::icon_data::from_png_bytes(include_bytes!("../../assets/SoftDownloader.png"))
+        .expect("the bundled application icon is a valid PNG")
 }

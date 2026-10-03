@@ -98,13 +98,13 @@ impl Inventory {
     }
 }
 
-struct NameMatcher {
+pub(crate) struct NameMatcher {
     names: HashSet<String>,
     pattern: Option<Regex>,
 }
 
 impl NameMatcher {
-    fn new(package: &Package) -> Result<Self> {
+    pub(crate) fn new(package: &Package) -> Result<Self> {
         Ok(Self {
             names: std::iter::once(&package.name)
                 .chain(&package.detect.names)
@@ -120,7 +120,11 @@ impl NameMatcher {
     }
 
     fn matches(&self, name: &str) -> bool {
-        self.names.contains(&normalize_name(name))
+        self.matches_normalized(name, &normalize_name(name))
+    }
+
+    pub(crate) fn matches_normalized(&self, name: &str, normalized: &str) -> bool {
+        self.names.contains(normalized)
             || self.pattern.as_ref().is_some_and(|regex| {
                 regex
                     .find(name)
@@ -238,6 +242,13 @@ pub fn scan(catalog: &Catalog, library: &Library, cancel: &CancellationToken) ->
         }
     }
     add_portables(catalog, &mut inventory.programs);
+    for package in &catalog.packages {
+        if let Some(program) = inventory.programs.iter_mut().find(|program| {
+            program.package_ids.contains(&package.id) && program.icon_path.is_none()
+        }) {
+            program.icon_path = package_icon_file(package);
+        }
+    }
     inventory
         .programs
         .sort_by_cached_key(|p| p.name.to_lowercase());

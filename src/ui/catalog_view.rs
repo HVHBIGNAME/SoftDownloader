@@ -1,6 +1,6 @@
 use eframe::egui::{self, Align, Layout, Margin, RichText, Sense, Stroke, Vec2};
 
-use super::app::{Page, SoftDownloaderApp};
+use super::app::SoftDownloaderApp;
 use super::theme::{self, Icon};
 use crate::catalog::{InstallSpec, Package, PackageKind};
 use crate::storage::is_installed;
@@ -15,12 +15,11 @@ impl SoftDownloaderApp {
             .unwrap_or_else(|| match self.kind {
                 Some(PackageKind::App) => "Программы".into(),
                 Some(PackageKind::Addon) => "Аддоны и утилиты".into(),
-                None => "Всё для твоей работы.".into(),
+                None => "Каталог программ".into(),
             });
         ui.horizontal(|ui| {
             ui.add(egui::Label::new(RichText::new(title).size(27.0).strong()).truncate());
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                theme::pill(ui, "WINDOWS", theme::MUTED);
                 if self.loading {
                     ui.add(egui::Spinner::new().size(14.0));
                 } else if self.programs_loading {
@@ -34,18 +33,40 @@ impl SoftDownloaderApp {
                     .add_enabled(!self.queue_active, egui::Button::new("Обновить").small())
                     .clicked()
                 {
-                    self.load_source(self.active_source.clone());
+                    self.start_catalog_load(self.active_source.clone(), true);
+                }
+                if ui
+                    .add_enabled(
+                        self.list_actions_enabled(),
+                        egui::Button::new("Импорт списка").small(),
+                    )
+                    .on_hover_text("Восстановить выбор из JSON-файла · Ctrl+O")
+                    .clicked()
+                {
+                    self.request_program_list_import();
+                }
+                if self.list_busy {
+                    ui.spinner();
                 }
             });
         });
         ui.label(
-            RichText::new("Официальный софт и твои дополнения — в одном месте.")
+            RichText::new("Выберите нужное. Зависимости добавятся автоматически.")
                 .size(13.0)
                 .color(theme::MUTED),
         );
         ui.add_space(6.0);
-        if self.active_source.is_empty() && self.details.is_none() {
-            self.drive_banner(ui);
+        if let Some(imported) = &self.imported_selection {
+            let label = format!("Из списка: {}", imported.name);
+            ui.horizontal(|ui| {
+                ui.add(
+                    egui::Label::new(RichText::new(label).color(theme::ACCENT).size(12.0))
+                        .truncate(),
+                );
+                if ui.small_button("Весь каталог").clicked() {
+                    self.imported_selection = None;
+                }
+            });
         }
         if !self.document.diagnostics.is_empty() {
             ui.label(
@@ -68,6 +89,10 @@ impl SoftDownloaderApp {
                             .category_contains(category, &p.category)
                     })
                     && p.matches_search(&self.query)
+                    && self
+                        .imported_selection
+                        .as_ref()
+                        .is_none_or(|list| list.ids.contains(&p.id))
             })
             .cloned()
             .collect();
@@ -119,23 +144,6 @@ impl SoftDownloaderApp {
             return;
         }
         self.package_grid(ui, &packages);
-    }
-
-    fn drive_banner(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.label(
-                RichText::new("Добавь свои пакеты из Google Диска")
-                    .size(12.0)
-                    .color(theme::ACCENT),
-            );
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if ui.button("Подключить Диск  >").clicked() {
-                    self.page = Page::Settings;
-                    self.details = None;
-                }
-            });
-        });
-        ui.add_space(2.0);
     }
 
     fn search_and_filters(&mut self, ui: &mut egui::Ui) {
@@ -245,12 +253,11 @@ impl SoftDownloaderApp {
     fn package_card(&mut self, ui: &mut egui::Ui, package: &Package, width: f32) {
         let selected = self.selected.contains(&package.id);
         let installed = is_installed(package, self.installation_state());
-        let stroke = if selected {
-            theme::ACCENT.gamma_multiply(0.65)
-        } else {
-            theme::BORDER
-        };
-        theme::card_frame()
+        let selection = ui
+            .ctx()
+            .animate_bool_responsive(ui.id().with("card-selection"), selected);
+        let stroke = theme::BORDER.lerp_to_gamma(theme::ACCENT, selection * 0.75);
+        let card = theme::card_frame()
             .stroke(Stroke::new(1.0_f32, stroke))
             .show(ui, |ui| {
                 ui.set_width((width - 34.0).max(180.0));
@@ -345,20 +352,30 @@ impl SoftDownloaderApp {
                     });
                 });
             });
+        let hover = ui
+            .ctx()
+            .animate_bool_responsive(ui.id().with("card-hover"), card.response.contains_pointer());
+        if hover > 0.0 && !selected {
+            ui.painter().rect_stroke(
+                card.response.rect,
+                12,
+                Stroke::new(1.0, theme::BORDER.lerp_to_gamma(theme::MUTED, hover * 0.45)),
+                egui::StrokeKind::Inside,
+            );
+        }
     }
 
     /// Draws the real program icon when the package is already on this PC.
     ///
     /// Returns `true` when an icon was painted so the letter tile is skipped.
     pub(super) fn package_icon(&mut self, ui: &mut egui::Ui, package: &Package, size: f32) -> bool {
-        let installed = self.programs.iter().find(|program| {
-            program.package_ids.contains(&package.id) && program.icon_path.is_some()
-        });
-        let path = match installed {
-            Some(program) => program.icon_path.clone(),
-            None => crate::inventory::package_icon_file(package),
-        };
-        self.icons.show(ui, path.as_deref(), size)
+        self.icons.show(
+            ui,
+            self.package_icons
+                .get(&package.id)
+                .map(|path| path.as_path()),
+            size,
+        )
     }
 
     fn package_control(

@@ -120,46 +120,27 @@ fn read_program(
 fn icon_file(key: &RegKey) -> Option<PathBuf> {
     let candidates = [string(key, "DisplayIcon"), string(key, "InstallLocation")];
     for candidate in candidates.into_iter().flatten() {
-        let reference = candidate.trim().trim_matches('"');
-        let path = match reference.rsplit_once(',') {
-            Some((head, index)) if index.trim().parse::<i32>().is_ok() => head.trim(),
-            _ => reference,
+        let Ok(path) = expand_environment(icon_reference_path(&candidate)) else {
+            continue;
         };
-        let path = expand_environment(path).ok()?;
         let path = PathBuf::from(path);
         if path.is_file() {
             return Some(path);
         }
-        if let Some(found) = first_executable(&path) {
+        if let Some(found) = crate::system::icons::primary_file(&path) {
             return Some(found);
         }
     }
     None
 }
 
-/// Looks for the most plausible launcher inside an installation folder.
-///
-/// Updaters and helpers are skipped so the main window icon is preferred.
-fn first_executable(folder: &Path) -> Option<PathBuf> {
-    let mut fallback = None;
-    for entry in std::fs::read_dir(folder).ok()?.flatten() {
-        let path = entry.path();
-        if path
-            .extension()
-            .is_none_or(|extension| !extension.eq_ignore_ascii_case("exe"))
-        {
-            continue;
-        }
-        let stem = path.file_stem()?.to_string_lossy().to_ascii_lowercase();
-        if stem.starts_with("unins") || stem.contains("updater") || stem.starts_with("crashpad") {
-            continue;
-        }
-        if !stem.contains("uninstall") && !stem.contains("setup") {
-            return Some(path);
-        }
-        fallback = fallback.or(Some(path));
-    }
-    fallback
+fn icon_reference_path(reference: &str) -> &str {
+    let reference = reference.trim();
+    let path = match reference.rsplit_once(',') {
+        Some((head, index)) if index.trim().parse::<i32>().is_ok() => head,
+        _ => reference,
+    };
+    path.trim().trim_matches('"')
 }
 
 fn open(hive: Hive, path: &str, is_64bit: bool) -> std::io::Result<RegKey> {
@@ -313,6 +294,22 @@ fn split_command_line(command: &str) -> Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn icon_references_allow_spaces_commas_quotes_and_negative_indices() {
+        assert_eq!(
+            icon_reference_path(r#" "C:\Program Files\App, Inc\app.exe",-42 "#),
+            r"C:\Program Files\App, Inc\app.exe"
+        );
+        assert_eq!(
+            icon_reference_path(r#""C:\App\app.exe""#),
+            r"C:\App\app.exe"
+        );
+        assert_eq!(
+            icon_reference_path(r"C:\App, Inc\app.exe,0"),
+            r"C:\App, Inc\app.exe"
+        );
+    }
 
     #[test]
     fn converts_msi_repair_registration_to_quiet_removal() {

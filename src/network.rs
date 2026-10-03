@@ -190,7 +190,16 @@ pub async fn read_limited(response: Response, limit: usize) -> Result<Vec<u8>> {
 }
 
 pub async fn load_catalog(client: &Client, source: &str) -> Result<CatalogDocument> {
-    crate::discovery::resolve(client, load_document(client, source).await?).await
+    let mut document = resolve_catalog(client, source).await?;
+    crate::discovery::apply_manager_availability(&mut document);
+    Ok(document)
+}
+
+pub(crate) async fn resolve_catalog(client: &Client, source: &str) -> Result<CatalogDocument> {
+    let document = tokio::time::timeout(SOURCE_TIMEOUT, load_document(client, source))
+        .await
+        .context("Каталог не ответил вовремя")??;
+    crate::discovery::resolve(client, document).await
 }
 
 async fn load_document(client: &Client, source: &str) -> Result<CatalogDocument> {

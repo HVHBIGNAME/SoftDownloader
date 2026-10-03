@@ -12,18 +12,23 @@ pub struct IconImage {
 }
 
 impl IconImage {
-    fn new(size: u32, bgra: Vec<u8>) -> Option<Self> {
-        let bytes = bgra.len();
-        if size == 0 || bytes != (size as usize) * (size as usize) * 4 {
+    fn from_backgrounds(size: u32, black: &[u8], white: &[u8]) -> Option<Self> {
+        let expected = (size as usize).checked_mul(size as usize)?.checked_mul(4)?;
+        if size == 0 || black.len() != expected || white.len() != expected {
             return None;
         }
-        let mut rgba = bgra;
-        // 32-bit DIB sections carry an unreliable alpha channel; GDI icons are
-        // opaque unless the application ships an alpha mask of its own.
-        for offset in (0..rgba.len()).step_by(4) {
-            rgba.swap(offset, offset + 2);
-            if rgba[offset + 3] == 0 {
-                rgba[offset + 3] = 255;
+        let mut rgba = vec![0; expected];
+        // Rendering on both backgrounds recovers alpha for legacy AND masks
+        // as well as premultiplied 32-bit icons: white - black = 1 - alpha.
+        for offset in (0..expected).step_by(4) {
+            let alpha = 255 - white[offset].saturating_sub(black[offset]);
+            rgba[offset + 3] = alpha;
+            if alpha != 0 {
+                for (rgb, bgr) in [(0, 2), (1, 1), (2, 0)] {
+                    rgba[offset + rgb] = ((black[offset + bgr] as u32 * 255 + alpha as u32 / 2)
+                        / alpha as u32)
+                        .min(255) as u8;
+                }
             }
         }
         Some(Self { size, rgba })
@@ -72,14 +77,15 @@ mod platform {
     use std::ptr::null_mut;
 
     use windows_sys::Win32::{
-        Foundation::HANDLE,
         Graphics::Gdi::{
-            BI_RGB, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS, DeleteObject, GetDC, GetDIBits,
-            ReleaseDC,
+            BI_RGB, BITMAPINFO, BITMAPINFOHEADER, CreateCompatibleDC, CreateDIBSection,
+            DIB_RGB_COLORS, DeleteDC, DeleteObject, GdiFlush, HBITMAP, HDC, HGDIOBJ, SelectObject,
         },
         UI::{
             Shell::ExtractIconExW,
-            WindowsAndMessaging::{DestroyIcon, GetIconInfo, ICONINFO, PrivateExtractIconsW},
+            WindowsAndMessaging::{
+                DI_NORMAL, DestroyIcon, DrawIconEx, HICON, PrivateExtractIconsW,
+            },
         },
     };
 
@@ -108,9 +114,7 @@ mod platform {
         if found == 0 || icon.is_null() {
             return system_icon(&name, size);
         }
-        let image = unsafe { bitmap_from_icon(icon, size) };
-        unsafe { DestroyIcon(icon) };
-        image
+        render_icon(&OwnedIcon(icon), size)
     }
 
     fn system_icon(name: &[u16], size: u32) -> Option<IconImage> {
@@ -120,80 +124,122 @@ mod platform {
         if count == 0 {
             return None;
         }
-        // ExtractIconExW only exposes the fixed 32 and 16 pixel handles.
-        let (icon, actual) = if size > 32 && !large.is_null() {
-            (large, 32)
-        } else if !small.is_null() {
-            (small, 16)
-        } else {
-            (large, 32)
-        };
-        let image = unsafe { bitmap_from_icon(icon, actual) };
-        unsafe {
-            if !large.is_null() {
-                DestroyIcon(large);
-            }
-            if !small.is_null() {
-                DestroyIcon(small);
-            }
-        }
-        image
+        let large = OwnedIcon(large);
+        let small = OwnedIcon(small);
+        render_icon(if large.0.is_null() { &small } else { &large }, size)
     }
 
-    unsafe fn bitmap_from_icon(icon: HANDLE, size: u32) -> Option<IconImage> {
-        let mut info = ICONINFO::default();
-        if unsafe { GetIconInfo(icon, &mut info) } == 0 {
-            return None;
-        }
-        let bitmap = if info.hbmColor.is_null() {
-            info.hbmMask
-        } else {
-            info.hbmColor
-        };
-        if bitmap.is_null() {
-            return None;
-        }
-        let screen = unsafe { GetDC(null_mut()) };
-        if screen.is_null() {
-            return None;
-        }
-        let mut header = BITMAPINFO {
-            bmiHeader: BITMAPINFOHEADER {
-                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
-                biWidth: size as i32,
-                // A negative height requests a top-down DIB matching image order.
-                biHeight: -(size as i32),
-                biPlanes: 1,
-                biBitCount: 32,
-                biCompression: BI_RGB,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        let mut pixels = vec![0_u8; (size as usize) * (size as usize) * 4];
-        let read = unsafe {
-            GetDIBits(
-                screen,
-                bitmap,
-                0,
-                size,
-                pixels.as_mut_ptr() as *mut c_void,
-                &mut header,
-                DIB_RGB_COLORS,
-            )
-        };
-        unsafe {
-            ReleaseDC(null_mut(), screen);
-            DeleteObject(bitmap);
-            DeleteObject(info.hbmMask);
-            if !info.hbmColor.is_null() {
-                DeleteObject(info.hbmColor);
+    struct OwnedIcon(HICON);
+
+    impl Drop for OwnedIcon {
+        fn drop(&mut self) {
+            if !self.0.is_null() {
+                unsafe {
+                    DestroyIcon(self.0);
+                }
             }
         }
-        if read == 0 {
+    }
+
+    struct Surface {
+        dc: HDC,
+        bitmap: HBITMAP,
+        previous: HGDIOBJ,
+        pixels: *mut c_void,
+        size: u32,
+    }
+
+    impl Surface {
+        fn new(size: u32) -> Option<Self> {
+            let header = BITMAPINFO {
+                bmiHeader: BITMAPINFOHEADER {
+                    biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                    biWidth: size as i32,
+                    biHeight: -(size as i32),
+                    biPlanes: 1,
+                    biBitCount: 32,
+                    biCompression: BI_RGB,
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+            let dc = unsafe { CreateCompatibleDC(null_mut()) };
+            if dc.is_null() {
+                return None;
+            }
+            let mut pixels = null_mut();
+            let bitmap = unsafe {
+                CreateDIBSection(dc, &header, DIB_RGB_COLORS, &mut pixels, null_mut(), 0)
+            };
+            if bitmap.is_null() {
+                unsafe {
+                    DeleteDC(dc);
+                }
+                return None;
+            }
+            let previous = unsafe { SelectObject(dc, bitmap) };
+            let surface = Self {
+                dc,
+                bitmap,
+                previous,
+                pixels,
+                size,
+            };
+            if surface.pixels.is_null() || previous.is_null() || previous as isize == -1 {
+                return None;
+            }
+            Some(surface)
+        }
+
+        fn render(&mut self, icon: &OwnedIcon, background: u8) -> Option<Vec<u8>> {
+            let length = (self.size * self.size * 4) as usize;
+            // The DIB owns exactly size*size 32-bit pixels and outlives this slice.
+            unsafe {
+                std::slice::from_raw_parts_mut(self.pixels.cast::<u8>(), length).fill(background);
+            }
+            let drawn = unsafe {
+                DrawIconEx(
+                    self.dc,
+                    0,
+                    0,
+                    icon.0,
+                    self.size as i32,
+                    self.size as i32,
+                    0,
+                    null_mut(),
+                    DI_NORMAL,
+                )
+            };
+            if drawn == 0 {
+                return None;
+            }
+            if unsafe { GdiFlush() } == 0 {
+                return None;
+            }
+            Some(unsafe { std::slice::from_raw_parts(self.pixels.cast::<u8>(), length) }.to_vec())
+        }
+    }
+
+    impl Drop for Surface {
+        fn drop(&mut self) {
+            unsafe {
+                if !self.previous.is_null() && self.previous as isize != -1 {
+                    SelectObject(self.dc, self.previous);
+                }
+                DeleteObject(self.bitmap);
+                DeleteDC(self.dc);
+            }
+        }
+    }
+
+    fn render_icon(icon: &OwnedIcon, size: u32) -> Option<IconImage> {
+        if icon.0.is_null() {
             return None;
         }
-        IconImage::new(size, pixels)
+        let mut surface = Surface::new(size)?;
+        let black = surface.render(icon, 0)?;
+        let white = surface.render(icon, 255)?;
+        IconImage::from_backgrounds(size, &black, &white)
     }
 }
 
@@ -215,10 +261,20 @@ mod tests {
     #[test]
     fn rejects_missing_files_and_odd_sizes() {
         assert!(from_executable(Path::new(r"C:\missing\program.exe"), 32).is_none());
-        assert!(IconImage::new(0, Vec::new()).is_none());
-        assert!(IconImage::new(2, vec![0; 8]).is_none());
-        let image = IconImage::new(1, vec![1, 2, 3, 0]).unwrap();
+        assert!(IconImage::from_backgrounds(0, &[], &[]).is_none());
+        assert!(IconImage::from_backgrounds(2, &[0; 8], &[0; 8]).is_none());
+        let image = IconImage::from_backgrounds(1, &[1, 2, 3, 0], &[1, 2, 3, 255]).unwrap();
         assert_eq!(&image.rgba, &[3, 2, 1, 255], "BGRA is swapped to RGBA");
+    }
+
+    #[test]
+    fn keeps_transparent_and_translucent_pixels() {
+        let transparent =
+            IconImage::from_backgrounds(1, &[0, 0, 0, 0], &[255, 255, 255, 0]).unwrap();
+        assert_eq!(transparent.rgba, [0, 0, 0, 0]);
+        let translucent =
+            IconImage::from_backgrounds(1, &[10, 20, 30, 0], &[137, 147, 157, 0]).unwrap();
+        assert_eq!(translucent.rgba, [60, 40, 20, 128]);
     }
 
     #[test]
@@ -285,7 +341,7 @@ mod tests {
         assert_eq!(image.rgba.len(), 32 * 32 * 4);
         let visible = (0..image.rgba.len())
             .step_by(4)
-            .any(|at| image.rgba[at + 3] == 255 && image.rgba[at] > image.rgba[at + 1]);
+            .any(|at| image.rgba[at + 3] > 0);
         assert!(visible, "the extracted icon must contain visible pixels");
     }
 }

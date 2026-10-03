@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
 
@@ -6,6 +6,7 @@ use anyhow::Result;
 use eframe::egui::{self, Align, Color32, Layout, Margin, RichText, Stroke, Vec2};
 
 use super::icons::IconLoader;
+use super::program_lists::{ImportPreview, ImportedSelection};
 use super::theme::{self, Icon};
 use crate::catalog::{CatalogDocument, Package, PackageKind};
 use crate::engine::{Engine, JobStatus, WorkerEvent};
@@ -13,7 +14,7 @@ use crate::planner::create_plan;
 use crate::storage::{Library, Settings, Store};
 use crate::uninstall::InstalledProgram;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Hash)]
 pub(super) enum Page {
     Catalog,
     Installed,
@@ -44,13 +45,22 @@ pub struct SoftDownloaderApp {
     inventory_generation: u64,
     pub(super) programs: Vec<InstalledProgram>,
     pub(super) icons: IconLoader,
+    pub(super) package_icons: BTreeMap<String, std::path::PathBuf>,
     pub(super) programs_loading: bool,
     pub(super) installed_query: String,
     pub(super) selected_removals: BTreeSet<String>,
-    settings: Settings,
+    pub(super) settings: Settings,
+    pub(super) builtin_source: String,
+    pub(super) catalog_status: String,
+    pub(super) catalog_warnings: Vec<String>,
+    pub(super) list_busy: bool,
+    pub(super) import_preview: Option<ImportPreview>,
+    pub(super) imported_selection: Option<ImportedSelection>,
+    pub(super) message: Option<(String, std::time::Instant)>,
     pub(super) source_input: String,
     pub(super) active_source: String,
     pending_source: Option<String>,
+    pending_setting: Option<String>,
     load_generation: u64,
     pub(super) loading: bool,
     pub(super) page: Page,
@@ -76,13 +86,13 @@ impl SoftDownloaderApp {
     ) -> Result<Self> {
         theme::apply(&cc.egui_ctx);
         let settings = store.load_settings()?;
+        theme::set_motion(&cc.egui_ctx, settings.reduced_motion);
         let library = store.load_library()?;
         let (engine, events) = Engine::new()?;
+        let builtin_source = crate::config::additional_catalog_url()?;
         let source = catalog_override.unwrap_or_else(|| {
             if settings.catalog_source.is_empty() {
-                option_env!("SOFTDOWNLOADER_CATALOG_URL")
-                    .unwrap_or_default()
-                    .to_owned()
+                builtin_source.clone()
             } else {
                 settings.catalog_source.clone()
             }
@@ -98,14 +108,23 @@ impl SoftDownloaderApp {
             inventory_unverified: BTreeSet::new(),
             inventory_generation: 0,
             programs: Vec::new(),
-            icons: IconLoader::new(),
+            icons: IconLoader::new(cc.egui_ctx.clone())?,
+            package_icons: BTreeMap::new(),
             programs_loading: false,
             installed_query: String::new(),
             selected_removals: BTreeSet::new(),
             settings,
+            builtin_source,
+            catalog_status: "Обновление каталога…".into(),
+            catalog_warnings: Vec::new(),
+            list_busy: false,
+            import_preview: None,
+            imported_selection: None,
+            message: None,
             source_input: source.clone(),
             active_source: String::new(),
             pending_source: None,
+            pending_setting: None,
             load_generation: 0,
             loading: false,
             page: Page::Catalog,
@@ -122,7 +141,7 @@ impl SoftDownloaderApp {
             close_dialog: false,
             close_when_done: false,
         };
-        app.load_source(source);
+        app.start_catalog_load(source, false);
         Ok(app)
     }
 
@@ -130,10 +149,22 @@ impl SoftDownloaderApp {
         if self.queue_active {
             return;
         }
+        self.pending_setting = Some(if source == self.builtin_source {
+            String::new()
+        } else {
+            source.clone()
+        });
+        self.start_catalog_load(source, true);
+    }
+
+    pub(super) fn start_catalog_load(&mut self, source: String, force: bool) {
+        if self.queue_active {
+            return;
+        }
         self.loading = true;
         self.error = None;
         self.pending_source = Some(source.clone());
-        self.load_generation = self.engine.load_catalog(source);
+        self.load_generation = self.engine.load_catalog(source, self.store.clone(), force);
     }
 
     fn poll_events(&mut self) {
@@ -153,25 +184,7 @@ impl SoftDownloaderApp {
                 WorkerEvent::Catalog { generation, result }
                     if generation == self.load_generation =>
                 {
-                    self.loading = false;
-                    match result {
-                        Ok(document) => {
-                            self.document = document;
-                            self.active_source = self.pending_source.take().unwrap_or_default();
-                            self.settings.catalog_source = self.active_source.clone();
-                            if let Err(error) = self.store.save_settings(&self.settings) {
-                                self.error = Some(format!("{error:#}"));
-                            }
-                            self.selected.clear();
-                            self.details = None;
-                            self.category = None;
-                        }
-                        Err(error) => {
-                            self.error = Some(error);
-                            self.pending_source = None;
-                        }
-                    }
-                    self.refresh_programs();
+                    self.receive_catalog(result);
                 }
                 WorkerEvent::Catalog { .. } => {}
                 WorkerEvent::Status { id, status } => {
@@ -203,6 +216,18 @@ impl SoftDownloaderApp {
                     match result {
                         Ok(inventory) => {
                             self.programs = inventory.programs;
+                            self.package_icons.clear();
+                            for program in &self.programs {
+                                if let Some(path) = &program.icon_path {
+                                    for id in program.package_ids.iter().chain(&program.managed_ids)
+                                    {
+                                        self.package_icons
+                                            .entry(id.clone())
+                                            .or_insert_with(|| path.clone());
+                                    }
+                                }
+                            }
+                            self.icons.refresh();
                             self.inventory_warnings = inventory.warnings;
                             self.inventory_unverified = inventory.unverified;
                             self.selected_removals
@@ -224,6 +249,7 @@ impl SoftDownloaderApp {
                 WorkerEvent::Warning(message) => {
                     self.error = Some(message);
                 }
+                WorkerEvent::ProgramList(result) => self.receive_program_list(result),
                 WorkerEvent::QueueFinished => {
                     self.queue_active = false;
                     self.refresh_programs();
@@ -246,8 +272,46 @@ impl SoftDownloaderApp {
         }
     }
 
+    fn receive_catalog(&mut self, result: Result<crate::catalog_cache::CatalogLoad, String>) {
+        self.loading = false;
+        match result {
+            Ok(loaded) => {
+                self.catalog_status = if loaded.cached {
+                    format!("Из кэша · {} мин. назад", loaded.age_seconds / 60)
+                } else {
+                    "Каталог обновлён".into()
+                };
+                self.catalog_warnings = loaded.warnings;
+                self.document = loaded.document;
+                self.active_source = self.pending_source.take().unwrap_or_default();
+                if let Some(source) = self.pending_setting.take() {
+                    self.settings.catalog_source = source;
+                    if let Err(error) = self.store.save_settings(&self.settings) {
+                        self.error = Some(format!("{error:#}"));
+                    }
+                }
+                self.selected.retain(|id| {
+                    self.document
+                        .catalog
+                        .package(id)
+                        .is_some_and(Package::ready)
+                });
+                self.imported_selection = None;
+                self.details = None;
+                self.category = None;
+            }
+            Err(error) => {
+                self.catalog_status = "Обновление не удалось".into();
+                self.error = Some(error);
+                self.pending_source = None;
+                self.pending_setting = None;
+            }
+        }
+        self.refresh_programs();
+    }
+
     pub(super) fn prepare_install(&mut self, selected: BTreeSet<String>) {
-        if self.queue_active || self.loading || self.programs_loading {
+        if self.queue_active || self.loading || self.programs_loading || self.list_busy {
             return;
         }
         match create_plan(&self.document.catalog, &selected, self.installation_state()) {
@@ -373,7 +437,7 @@ impl SoftDownloaderApp {
                         ui.spacing_mut().item_spacing.y = 3.0;
                         ui.label(RichText::new("SoftDownloader").strong().size(17.0));
                         ui.label(
-                            RichText::new("ТВОЯ КОЛЛЕКЦИЯ СОФТА")
+                            RichText::new("ПРОГРАММЫ ДЛЯ WINDOWS")
                                 .size(8.0)
                                 .color(theme::DIM),
                         );
@@ -401,49 +465,24 @@ impl SoftDownloaderApp {
                         self.page = Page::Settings;
                         self.details = None;
                     }
-                    ui.add_space(6.0);
-                    ui.allocate_ui_with_layout(
-                        Vec2::new(ui.available_width(), 74.0),
-                        Layout::top_down(Align::Min),
-                        |ui| {
-                            egui::Frame::new()
-                                .fill(theme::SURFACE)
-                                .corner_radius(10)
-                                .inner_margin(12)
-                                .show(ui, |ui| {
-                                    ui.set_width(170.0);
-                                    ui.with_layout(Layout::top_down(Align::Min), |ui| {
-                                        ui.label(
-                                            RichText::new(if self.active_source.is_empty() {
-                                                "Официальные источники"
-                                            } else if self.document.local_root.is_some() {
-                                                "Локальная коллекция"
-                                            } else {
-                                                "Онлайн-коллекция"
-                                            })
-                                            .size(12.0)
-                                            .strong(),
-                                        );
-                                        ui.label(
-                                            RichText::new(if self.loading {
-                                                "Обновляем каталог…"
-                                            } else if !self.document.diagnostics.is_empty() {
-                                                "Есть недоступные источники"
-                                            } else {
-                                                "Каталог подключён"
-                                            })
-                                            .size(11.0)
-                                            .color(
-                                                if !self.document.diagnostics.is_empty() {
-                                                    theme::ORANGE
-                                                } else {
-                                                    theme::ACCENT
-                                                },
-                                            ),
-                                        );
-                                    });
-                                });
-                        },
+                    ui.add_space(10.0);
+                    let warning =
+                        !self.catalog_warnings.is_empty() || !self.document.diagnostics.is_empty();
+                    ui.label(
+                        RichText::new(if self.loading {
+                            "Обновление каталога…"
+                        } else {
+                            &self.catalog_status
+                        })
+                        .size(11.0)
+                        .color(if warning {
+                            theme::ORANGE
+                        } else {
+                            theme::MUTED
+                        }),
+                    )
+                    .on_hover_text(
+                        "Каталог сохраняется на час. Кнопка «Обновить» запрашивает свежие данные.",
                     );
                 });
             });
@@ -481,10 +520,12 @@ impl SoftDownloaderApp {
         }
     }
 
-    fn show_catalog(&mut self, kind: Option<PackageKind>) {
+    pub(super) fn show_catalog(&mut self, kind: Option<PackageKind>) {
         self.page = Page::Catalog;
         self.kind = kind;
         self.category = None;
+        self.imported_selection = None;
+        self.details = None;
     }
 
     fn category_navigation(&mut self, ui: &mut egui::Ui) {
@@ -497,7 +538,7 @@ impl SoftDownloaderApp {
             .collect();
         egui::ScrollArea::vertical()
             .id_salt("sidebar-groups")
-            .max_height((ui.available_height() - 160.0).max(60.0))
+            .max_height((ui.available_height() - 108.0).max(60.0))
             .show(ui, |ui| {
                 ui.spacing_mut().item_spacing.y = 2.0;
                 for (category, depth) in categories {
@@ -523,6 +564,7 @@ impl SoftDownloaderApp {
                             self.page = Page::Catalog;
                             self.category = Some(category.id.clone());
                             self.kind = None;
+                            self.imported_selection = None;
                         }
                     });
                 }
@@ -530,6 +572,9 @@ impl SoftDownloaderApp {
     }
 
     fn selection_bar(&mut self, ctx: &egui::Context) {
+        let visible = self.queue_active
+            || self.page == Page::Catalog && !self.selected.is_empty()
+            || self.page == Page::Installed && !self.selected_removals.is_empty();
         egui::TopBottomPanel::bottom("selection-bar")
             .exact_height(76.0)
             .frame(
@@ -538,7 +583,7 @@ impl SoftDownloaderApp {
                     .inner_margin(Margin::symmetric(28, 16))
                     .stroke(Stroke::new(1.0_f32, theme::BORDER)),
             )
-            .show(ctx, |ui| {
+            .show_animated(ctx, visible, |ui| {
                 ui.horizontal_centered(|ui| {
                     if self.queue_active {
                         ui.spinner();
@@ -578,20 +623,6 @@ impl SoftDownloaderApp {
                             {
                                 self.remove_programs(&self.selected_removals.clone());
                             }
-                        });
-                    } else if self.selected.is_empty() {
-                        theme::icon(ui, Icon::Check, theme::DIM);
-                        ui.label(
-                            RichText::new("Твоё рабочее пространство начинается здесь")
-                                .color(theme::MUTED)
-                                .size(13.0),
-                        );
-                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                            ui.label(
-                                RichText::new("Выбери нужные программы")
-                                    .size(12.0)
-                                    .color(theme::DIM),
-                            );
                         });
                     } else {
                         let plan = create_plan(
@@ -670,11 +701,40 @@ impl SoftDownloaderApp {
         }
     }
 
+    fn toast(&mut self, ctx: &egui::Context) {
+        if self.import_preview.is_some() || self.confirm_plan.is_some() {
+            return;
+        }
+        let Some((message, shown_at)) = self.message.clone() else {
+            return;
+        };
+        let Some(remaining) = Duration::from_secs(6).checked_sub(shown_at.elapsed()) else {
+            self.message = None;
+            return;
+        };
+        ctx.request_repaint_after(remaining);
+        egui::Area::new(egui::Id::new("notification"))
+            .order(egui::Order::Foreground)
+            .anchor(egui::Align2::RIGHT_BOTTOM, Vec2::new(-24.0, -90.0))
+            .show(ctx, |ui| {
+                theme::card_frame().show(ui, |ui| {
+                    ui.set_max_width(520.0);
+                    ui.horizontal(|ui| {
+                        theme::icon(ui, Icon::Check, theme::ACCENT);
+                        ui.label(RichText::new(message).color(theme::ACCENT).size(12.0));
+                        if ui.small_button("×").clicked() {
+                            self.message = None;
+                        }
+                    });
+                });
+            });
+    }
+
     fn confirmation(&mut self, ctx: &egui::Context) {
         let Some(plan) = self.confirm_plan.clone() else {
             return;
         };
-        egui::Modal::new(egui::Id::new("confirm-install")).show(ctx, |ui| {
+        egui::Modal::new(egui::Id::new("confirm-install")).frame(theme::card_frame().inner_margin(24)).show(ctx, |ui| {
             ui.set_width(510.0);
             theme::heading(ui, "Всё готово к установке", "Зависимости добавлены автоматически. Проверь список.");
             egui::ScrollArea::vertical().max_height(270.0).show(ui, |ui| {
@@ -722,8 +782,12 @@ impl SoftDownloaderApp {
 impl eframe::App for SoftDownloaderApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.poll_events();
-        if self.loading || self.queue_active || self.programs_loading {
+        self.icons.collect(ctx);
+        if self.loading || self.queue_active || self.programs_loading || self.list_busy {
             ctx.request_repaint_after(Duration::from_millis(100));
+        }
+        if ctx.input_mut(|input| input.consume_key(egui::Modifiers::CTRL, egui::Key::O)) {
+            self.request_program_list_import();
         }
         self.sidebar(ctx);
         self.selection_bar(ctx);
@@ -738,6 +802,15 @@ impl eframe::App for SoftDownloaderApp {
             )
             .show(ctx, |ui| {
                 self.notice(ui);
+                for page in [Page::Catalog, Page::Installed, Page::Queue, Page::Settings] {
+                    let opacity = ctx.animate_bool_responsive(
+                        egui::Id::new(("page-fade", page)),
+                        self.page == page,
+                    );
+                    if self.page == page {
+                        ui.set_opacity(0.6 + 0.4 * opacity);
+                    }
+                }
                 match self.page {
                     Page::Catalog => self.catalog_page(ui),
                     Page::Queue => self.queue_page(ui),
@@ -745,7 +818,9 @@ impl eframe::App for SoftDownloaderApp {
                     Page::Settings => self.settings_page(ui),
                 }
             });
+        self.toast(ctx);
         self.confirmation(ctx);
+        self.import_dialog(ctx);
         self.handle_close(ctx);
     }
 

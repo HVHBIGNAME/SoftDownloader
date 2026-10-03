@@ -1,158 +1,138 @@
-# SoftDownloader
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="SoftDownloader — один каталог, ваш список, новый компьютер" width="100%">
+</p>
 
-Нативный менеджер программ для **Windows 10/11 x64** на Rust + egui. **97 пакетов в 22 группах:** WinGet, Microsoft Store, GitHub, сайты разработчиков и свои дополнения с Google Диска.
+<p align="center">
+  <a href="https://github.com/HVHBIGNAME/SoftDownloader/releases/latest"><img src="https://img.shields.io/github/v/release/HVHBIGNAME/SoftDownloader?style=flat-square&amp;color=bcef77&amp;label=release" alt="Последний релиз"></a>
+  <a href="https://github.com/HVHBIGNAME/SoftDownloader/actions/workflows/windows.yml"><img src="https://github.com/HVHBIGNAME/SoftDownloader/actions/workflows/windows.yml/badge.svg" alt="Windows CI"></a>
+  <img src="https://img.shields.io/badge/Windows-10%20%2F%2011%20x64-859ba8?style=flat-square" alt="Windows 10/11 x64">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-859ba8?style=flat-square" alt="MIT"></a>
+</p>
 
-![Каталог SoftDownloader](docs/assets/catalog.png)
+**Нативный менеджер программ для Windows на Rust + egui.** Выберите софт, проверьте план и установите нужное одной очередью. Сохранённый список поможет собрать такое же рабочее окружение на другом ПК.
 
-## Что умеет
+<p align="center">
+  <a href="https://github.com/HVHBIGNAME/SoftDownloader/releases/latest"><b>Скачать для Windows</b></a> ·
+  <a href="#перенос-списка-программ">Перенос программ</a> ·
+  <a href="#видео-использования">Видео</a> ·
+  <a href="docs/verification.md">Проверки</a>
+</p>
 
-- **Готовая коллекция:** браузеры, мессенджеры, ИИ-редакторы, инструменты разработки, VPN, медиа, игровые лаунчеры и системные утилиты.
-- **Поиск, группы и подгруппы.** VPN, разработка, утилиты; группы дополняются вашим каталогом.
-- **Связанные дополнения:** у программы отображаются её аддоны и дополнительные утилиты. Зависимости устанавливаются первыми.
-- **Одиночная и массовая установка:** WinGet, EXE/MSI, ZIP, portable EXE и расширения VS Code. Очередь, прогресс и повтор неудачных задач.
-- **Обнаружение и удаление:** реестр Windows, Microsoft Store, WinGet, расширения VS Code и управляемые пакеты. CLI/portable также ищутся в известных папках и PATH.
-- **Точное сопоставление:** алиасы, локализованные названия, ветки Python/JDK и архитектуры Visual C++. Если версия неизвестна, это явно показано.
-- **Контроль файлов:** SHA-256 из GitHub или вашего каталога; для официального сайта без опубликованного хеша — проверка Authenticode средствами Windows.
-- **Значки программ:** собственная иконка приложения в Windows и реальные иконки установленных программ, считанные из самих EXE. Ничего не скачивается и не запускается.
-- **Google Drive:** публичные ссылки для пользователей и локальная синхронизируемая папка для владельца коллекции.
+![Каталог программ в SoftDownloader 0.4.0](docs/assets/catalog.png)
 
-### Что включено
+## Начать работу
+
+1. Скачайте ZIP из [последнего релиза](https://github.com/HVHBIGNAME/SoftDownloader/releases/latest), распакуйте и запустите **`SoftDownloader.exe`**.
+2. Дождитесь проверки установленного ПО. Найдите программы через поиск или группы и отметьте нужные.
+3. Нажмите **«Установить выбранное»**, проверьте зависимости и подтвердите установку. Результаты появятся в очереди.
+
+Для пакетов WinGet нужен [Установщик приложений Microsoft](https://apps.microsoft.com/detail/9nblggh4nns1). EXE/MSI при необходимости откроют штатный мастер или запрос UAC.
+
+## Перенос списка программ
+
+**На текущем ПК:** `Установлено → Экспорт списка` → сохраните JSON-файл.
+
+**На новом ПК:** `Импорт списка` или **Ctrl+O** → выберите файл → проверьте найденные программы → **«Добавить к выбору»** → **«Установить выбранное»**.
+
+- В экспорт попадает полный обнаруженный список, включая программы вне каталога.
+- Доступные отсутствующие программы отмечаются в предпросмотре; выбор можно изменить.
+- Уже установленные пропускаются. Неизвестные и недоступные записи видны с пояснением.
+- Используются рецепты текущего каталога. Сохранённые версии служат справкой; зависимости добавляются автоматически.
+
+**[Подробности и формат списка](docs/program-lists.md)** · **[Пример JSON](docs/examples/workstation.softdownloader.json)**
+
+| Предпросмотр импорта | Выбор перед установкой |
+|---|---|
+| ![Предпросмотр списка программ](docs/assets/restore.png) | ![Выбранные программы из импортированного списка](docs/assets/selection.png) |
+
+## Видео использования
+
+[![Короткая запись интерфейса](docs/assets/workflow.gif)](https://github.com/HVHBIGNAME/SoftDownloader/releases/download/v0.4.0/SoftDownloader-0.4.0-demo.mp4)
+
+**[Открыть / скачать полное видео MP4 · 30 секунд](https://github.com/HVHBIGNAME/SoftDownloader/releases/download/v0.4.0/SoftDownloader-0.4.0-demo.mp4)** — запись настоящего окна: группы, настройки, экспорт, импорт примера, выбор и подтверждение плана. Запись заканчивается перед запуском установщиков.
+
+## Возможности
+
+| | |
+|---|---|
+| **97 пакетов · 22 группы** | Браузеры, общение, разработка, ИИ, VPN, медиа, игры и системные утилиты. |
+| **Одна очередь** | WinGet, Microsoft Store, EXE/MSI, ZIP, portable EXE и расширения VS Code. Повтор незавершённых задач и отмена загрузок. |
+| **Учёт установленного** | Реестр Windows, Store, WinGet, VS Code, известные папки и PATH. Удаление по одной программе или списком. |
+| **Компактный интерфейс** | Тёмная тема, мягкая подсветка, короткие переходы, виртуализированные списки. Уведомления не сдвигают содержимое. Анимацию можно уменьшить. |
+| **Локальные иконки** | Извлечение из установленных программ в фоне, кэш удачных и неудачных чтений. Для остальных — цветные плитки. |
+| **Кэш и таймауты** | Каталог сохраняется на час. Явное обновление обходит кэш; успешные ответы сохраняются даже при таймауте других источников. |
+| **Проверка файлов** | SHA-256 из каталога/GitHub; для официального сайта без опубликованного хеша — Authenticode средствами Windows. |
+
+<details>
+<summary><b>Что есть в каталоге</b></summary>
 
 | Группа | Примеры |
 |---|---|
 | Общение и браузеры | Discord, Telegram, AyuGram, Thunderbird, Brave, Chrome, Firefox |
 | ИИ | Cursor, Trae, Antigravity, Claude Desktop, Claude Code/CLI, Cline, Hermes |
-| Разработка | VS Code, Visual Studio Community 2026, Sublime Text, Notepad++, DB Browser, Git, Docker |
+| Разработка | VS Code, Visual Studio Community 2026, Sublime Text, Notepad++, Git, Docker, DB Browser |
 | Языки и среды | Python 3.13/3.14, Node.js LTS, Go, Rust, Visual C++ x64/x86, Temurin JDK 8/11/17/21/25 |
-| VPN и сеть | Amnezia, FlClash, Happ, Proton, Mullvad, Windscribe, WireGuard, IVPN, WARP, Hiddify, Tailscale, Proxifier, TgWsProxy, zapret |
+| VPN и сеть | Amnezia, FlClash, Happ, Proton, Mullvad, Windscribe, WireGuard, WARP, Hiddify, Tailscale, Proxifier, TgWsProxy, zapret |
 | Медиа и творчество | Spotify, VLC, OBS, Audacity, Blender, GIMP, Inkscape, CapCut, DroidCam |
-| Игры и устройства | Steam, WeMod, LabyMod, Modrinth, Prism/Prism Cracked, LiquidLauncher, Minecraft, Meta Horizon Link, Sideloadly, 3uTools, iTunes |
-| Утилиты | WinRAR, Bandizip, 7-Zip, CrystalDiskInfo/Mark, System Informer, ShareX, Twinkle Tray, Wireshark, OP Auto Clicker, Shutdown Timer Classic и другие |
+| Игры и устройства | Steam, WeMod, LabyMod, Modrinth, Prism, LiquidLauncher, Minecraft, Meta Horizon Link, Sideloadly, 3uTools, iTunes |
+| Утилиты | WinRAR, Bandizip, 7-Zip, CrystalDiskInfo/Mark, System Informer, ShareX, Twinkle Tray, Wireshark, OP Auto Clicker, таймеры выключения |
 
-**81 пакет использует WinGet (80 из `winget`, один из `msstore`), 9 — прямые загрузки, Cline — Marketplace.** У шести карточек есть кнопка **«САЙТ»** и инструкция: Hermes, AME Wizard Beta, AMD Software, NVIDIA App, ESET Premium и 2IP StartGuard. Эти карточки не входят в массовую установку. Страница 2IP при проверке отвечала HTTP 503.
+81 пакет использует WinGet: 80 из `winget`, один из `msstore`. Ещё 9 — прямые загрузки, Cline — Marketplace. У шести ручных карточек есть ссылка и инструкция: Hermes, AME Wizard Beta, AMD Software, NVIDIA App, ESET Premium и 2IP StartGuard.
 
-Claude Code и Claude CLI объединены в одну карточку. System Informer — продолжение Process Hacker. Shutdown PC Timer доступен из Microsoft Store; Shutdown Timer Classic добавлен отдельно. Полный список и правила обнаружения: [`catalog/extended.json`](catalog/extended.json).
+Полные записи и правила обнаружения: [`catalog/extended.json`](catalog/extended.json). Claude Code и Claude CLI объединены; System Informer — продолжение Process Hacker. TgWsProxy и zapret требуют настройки после распаковки. Подробности установки и удаления — в [документации](docs/catalog.md).
 
-## Запуск
+</details>
 
-Готовая сборка формируется в [GitHub Actions](https://github.com/HVHBIGNAME/SoftDownloader/actions) как артефакт `SoftDownloader-windows-x64`. После публикации тега `v*` ZIP появится также в [Releases](https://github.com/HVHBIGNAME/SoftDownloader/releases).
+| Установленные программы | Настройки |
+|---|---|
+| ![Установленное ПО и экспорт](docs/assets/installed.png) | ![Настройки источников и анимации](docs/assets/settings.png) |
 
-Распакуйте ZIP и запустите **`SoftDownloader.exe`**. Для карточек WinGet нужен [Установщик приложений Microsoft](https://apps.microsoft.com/detail/9nblggh4nns1); проверить доступность можно командой `winget --version`. Для своих дополнений откройте **Настройки → Дополнительный каталог** и вставьте ссылку на `catalog.public.json` с Google Диска.
+## Google Диск — для дополнительного софта
 
-Каталог и список установленного обновляются в фоне. До завершения проверки ПК установка временно недоступна. Большая коллекция отрисовывает только видимые строки карточек.
+Основной каталог получает программы из WinGet, GitHub и с сайтов разработчиков. **Google Диск предназначен для дополнительных пакетов, которые будут добавлены позже.** Адрес этой коллекции встраивается в приложение; обычному пользователю не нужно подключать свой Диск.
 
-## Иконки и сетевые запросы
+В `0.4.0` канал дополнений подготовлен, публичный каталог ещё не задан. Его адрес задаётся владельцем сборки в [`catalog/channel.json`](catalog/channel.json) или через `SOFTDOWNLOADER_CATALOG_URL` при сборке. Дополнения объединяются с основным каталогом, а стабильные ID сохраняют совместимость экспортированных списков.
 
-**Иконки.** У приложения есть собственная иконка для Проводника, панели задач и запуска из меню «Пуск»: `assets/SoftDownloader.ico` встраивается в EXE на этапе сборки. Внутри интерфейса карточки и список установленного показывают настоящие иконки программ — они читаются из исполняемых файлов через API Windows (`PrivateExtractIconsW` и `GetDIBits`). Путь берётся из `DisplayIcon` или `InstallLocation` в реестре, а для portable — из управляемой папки пакета. Чтение выполняется в фоновом потоке по 64 пикселя и кэшируется, поэтому список из сотен программ не тормозит. Если иконки нет, показывается цветная плитка с буквами. Ничего не скачивается из интернета и ни один файл не запускается.
+Настройка собственного источника находится в свёрнутом разделе настроек для владельца коллекции. **[Подготовка и публикация дополнений](docs/google-drive.md)** · **[Формат каталога](docs/catalog.md)**
 
-**Меньше сетевых запросов.** Каталог сохраняется локально и повторно используется в течение часа, поэтому приложение не опрашивает GitHub и сайты при каждом запуске. Если обновление не удалось, показывается последний рабочий каталог вместо пустого окна. У каждого источника свой таймаут 8 секунд, на все источники — общий бюджет 20 секунд; источники, не ответившие вовремя, помечаются в карточке. Подключение к серверу ограничено 5 секундами, чтение ответа — 30. Перечисление установленных программ WinGet и Store ограничено 25 секундами и отменяется, если пользователь запросил новую проверку.
+## Сборка и проверки
 
-### Из исходников
-
-Требуются Rust 1.88+ с MSVC toolchain и Visual Studio Build Tools с компонентом Desktop development with C++.
+Нужны Rust **1.88+**, MSVC toolchain и Visual Studio Build Tools с компонентом Desktop development with C++.
 
 ```powershell
 cargo run --release
-```
 
-Локальная папка Google Drive или отдельный профиль:
-
-```powershell
-cargo run -- --catalog "G:\Мой диск\SoftDownloader\catalog.json"
-cargo run -- --data-dir "C:\Temp\SoftDownloader-test"
-```
-
-## Свой Google Диск
-
-Папка Google Drive for desktop синхронизирует установщики. `tools/catalog.py` подготавливает метаданные; нужен Python 3.11+, дополнительные Python-пакеты не требуются.
-
-```powershell
-$root = "G:\Мой диск\SoftDownloader"
-python tools/catalog.py init --root "$root"
-
-python tools/catalog.py add --root "$root" `
-  --file "C:\Installers\MyUtility.exe" `
-  --id my-utility --name "Моя утилита" --version "1.0" `
-  --category utilities --silent-arg=/S
-```
-
-Для утилиты, связанной с HTTP Debugger, добавьте `--kind addon --depends-on httpdebugger --category network-tools`. Параметры тихой установки задаются по документации конкретного установщика.
-
-Затем откройте доступ **«Все, у кого есть ссылка / Читатель»** к скопированному установщику и привяжите его ссылку:
-
-```powershell
-python tools/catalog.py link --root "$root" --id my-utility `
-  --drive-url "https://drive.google.com/file/d/FILE_ID/view"
-python tools/catalog.py publish --root "$root"
-```
-
-Откройте такой же доступ к `catalog.public.json`. Его ссылку пользователи вставляют в настройки приложения.
-
-**[Полная инструкция Google Drive](docs/google-drive.md)** · **[Формат каталога и официальные источники](docs/catalog.md)**
-
-## Установка и удаление
-
-EXE запускается с параметрами из каталога. MSI использует `/qn /norestart`; администратор запрашивается через штатное окно UAC. Код `3010`/`1641` отображается как необходимость перезагрузки.
-
-WinGet получает точный ID из источника `winget` и использует проверку файла и параметры установки из манифеста. Актуальная версия и размер определяются самим менеджером. Обнаруженная WinGet-программа пропускается при установке; автоматическое обновление всех уже установленных программ не выполняется. Cline устанавливается в обычный профиль VS Code, а подключение модели настраивается пользователем.
-
-Удаление использует `QuietUninstallString` или тихий MSI-деинсталлятор. Если программа зарегистрировала только обычное удаление, откроется её штатный мастер — такие строки помечены **«МАСТЕР»**. UWP/MSIX удаляются для текущего пользователя; системные, служебные и неудаляемые пакеты исключены из списка.
-
-ZIP и portable EXE получают собственную управляемую папку в AppData или Documents. Кнопка **«Папка»** открывает её. Обновление заменяет содержимое управляемой папки; удаление удаляет её целиком. Внешний portable, найденный только по файлу, отмечен **«ВРУЧНУЮ»**: для него доступно открытие папки.
-
-TgWsProxy требует настройки подключения после запуска. Для zapret распаковываются файлы; стратегия и служба настраиваются через `service.bat`. Созданную вручную службу удалите этим же скриптом перед удалением файлов пакета. Prism Cracked использует обычную ZIP-сборку без `portable.txt`, в отдельной папке программы.
-
-Остановка очереди отменяет скачивание и следующие задачи. Уже запущенный установщик или деинсталлятор завершает работу. Проверенные файлы с опубликованным SHA-256 остаются в кэше для повторного использования.
-
-## Проверки и сборка
-
-Подробности: [результаты проверок](docs/verification.md).
-
-```powershell
 cargo fmt --all -- --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 python -m unittest discover -s tools/tests -v
 
-# Проверить реальные официальные источники (нужен интернет)
-cargo run --bin catalog-check -- --resolve
-
-# Подтвердить WinGet ID без установки программ
-cargo run --bin catalog-check -- --check-winget
-
-# Проверить обнаружение на своём ПК
-cargo run --bin catalog-check -- --inventory
-
-# Собрать переносимый ZIP
 cargo build --release --bins --locked
 powershell -ExecutionPolicy Bypass -File tools/package.ps1
 ```
 
-Установленные программы на рабочем ПК не изменяются тестами: полный цикл установки/удаления проверяется на изолированном ZIP-пакете. Проверка источников скачивает только метаданные; `catalog-check --download-only ID --cache DIR --resolve` отдельно скачивает и проверяет установщик без запуска.
+Отдельный профиль: `SoftDownloader.exe --data-dir "C:\Temp\SoftDownloader-test"`.
+Локальный каталог дополнений: `SoftDownloader.exe --catalog "G:\Мой диск\SoftDownloader\catalog.json"`.
 
-## Структура
+`catalog-check --resolve` проверяет официальные метаданные, `--check-winget` — ID пакетов, `--inventory` — обнаружение на ПК. Интеграционные тесты установки/удаления используют изолированные фиктивные пакеты. **[Результаты проверок 0.4.0](docs/verification.md)**.
+
+Скриншоты и видео воспроизводятся через [`tools/capture_ui.py`](tools/capture_ui.py), иконка — через [`tools/make_branding.py`](tools/make_branding.py). Этим дополнительным инструментам нужен Pillow; видео также использует FFmpeg.
+
+### Основные модули
 
 ```text
-src/catalog.rs          модель каталога и зависимости
-src/discovery.rs        GitHub Releases и разбор официальных страниц
-src/inventory.rs        сопоставление источников установленного ПО
-src/system/             WinGet, Microsoft Store, VS Code и иконки
-src/ui/icons.rs        фоновое чтение и кэш иконок программ
-src/network.rs          HTTPS и Google Drive
-src/transfer.rs         загрузка, кэш и SHA-256
-src/installer/          EXE/MSI, Authenticode, ZIP и portable
-src/uninstall/          реестр Windows и способы удаления
-src/engine.rs           фоновая очередь
-src/ui/                 нативный интерфейс
-catalog/builtin.json    официальный каталог
-catalog/extended.json   расширенная коллекция и правила обнаружения
-assets/SoftDownloader.ico  иконка приложения, встраивается в EXE при сборке
-tools/catalog.py        подготовка дополнительных пакетов
-tools/catalog_model.py  проверка метаданных и копирование файлов
+src/program_list.rs    экспорт, валидация и сопоставление списков
+src/catalog_cache.rs   кэш, обновление и восстановление метаданных
+src/config.rs          встроенный канал дополнений
+src/catalog.rs         каталог, категории и зависимости
+src/discovery.rs       GitHub Releases и официальные сайты
+src/inventory.rs       обнаружение и сопоставление программ
+src/engine.rs          фоновые задачи и последовательная очередь
+src/ui/                интерфейс и фоновые иконки
+src/system/            WinGet, Store, VS Code и Windows API
+src/installer/         установщики, подписи, ZIP и portable
+src/uninstall/         реестр и способы удаления
+tools/catalog.py      подготовка дополнительных пакетов
 ```
 
-Каталог с Google Диска дополняет встроенный. Запись с таким же `id` заменяет встроенную — так можно закрепить версию или изменить параметры установки. При распространении своей сборки можно задать `SOFTDOWNLOADER_CATALOG_URL` во время `cargo build`; ссылка станет источником дополнений по умолчанию.
-
-Настройки, история, кэш и журналы находятся в локальной папке данных пользователя. Точный путь доступен в настройках приложения. Доступ к Google Drive выполняется по публичным ссылкам; сервисный аккаунт и ключ Google Cloud не нужны.
-
-Лицензия кода: [MIT](LICENSE). У сторонних программ собственные лицензии и условия использования.
+Настройки, история, кэш и журналы хранятся локально; папка открывается из настроек. Исходный код — [MIT](LICENSE). Сторонние программы распространяются на условиях своих разработчиков.

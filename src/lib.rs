@@ -1,4 +1,6 @@
 pub mod catalog;
+pub mod catalog_cache;
+pub mod config;
 pub mod discovery;
 pub mod engine;
 pub mod installer;
@@ -6,6 +8,7 @@ pub mod inventory;
 pub mod network;
 pub mod paths;
 pub mod planner;
+pub mod program_list;
 pub mod storage;
 pub mod system;
 pub mod transfer;

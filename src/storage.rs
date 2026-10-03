@@ -12,6 +12,7 @@ use crate::catalog::Package;
 #[serde(default)]
 pub struct Settings {
     pub catalog_source: String,
+    pub reduced_motion: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -124,11 +125,13 @@ mod tests {
         store
             .save_settings(&Settings {
                 catalog_source: "one".into(),
+                ..Default::default()
             })
             .unwrap();
         store
             .save_settings(&Settings {
                 catalog_source: "two".into(),
+                ..Default::default()
             })
             .unwrap();
         assert_eq!(store.load_settings().unwrap().catalog_source, "two");

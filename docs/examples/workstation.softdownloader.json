@@ -1,0 +1,17 @@
+{
+  "format": "softdownloader.program-list",
+  "schema_version": 1,
+  "created_at": 1790985600,
+  "app_version": "0.4.0",
+  "programs": [
+    {"package_ids": ["7zip"], "name": "7-Zip", "version": "", "publisher": "Igor Pavlov"},
+    {"package_ids": ["vscode"], "name": "Visual Studio Code", "version": "", "publisher": "Microsoft"},
+    {"package_ids": ["git"], "name": "Git", "version": "", "publisher": "Git"},
+    {"package_ids": ["firefox"], "name": "Mozilla Firefox", "version": "", "publisher": "Mozilla"},
+    {"package_ids": ["audacity"], "name": "Audacity", "version": "", "publisher": "Muse Group"},
+    {"package_ids": ["inkscape"], "name": "Inkscape", "version": "", "publisher": "Inkscape"},
+    {"package_ids": ["vlc"], "name": "VLC media player", "version": "", "publisher": "VideoLAN"},
+    {"package_ids": ["eset-premium"], "name": "ESET Premium", "version": "", "publisher": "ESET"},
+    {"package_ids": [], "name": "Моя дополнительная утилита", "version": "1.0", "publisher": "Пример записи вне каталога"}
+  ]
+}
