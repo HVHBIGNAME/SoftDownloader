@@ -27,6 +27,7 @@ USER.GetClassNameW.argtypes = [wt.HWND, wt.LPWSTR, ct.c_int]
 USER.GetClientRect.argtypes = [wt.HWND, ct.POINTER(wt.RECT)]
 USER.SetWindowPos.argtypes = [wt.HWND, wt.HWND, ct.c_int, ct.c_int, ct.c_int, ct.c_int, wt.UINT]
 USER.SetForegroundWindow.argtypes = [wt.HWND]
+USER.ShowWindow.argtypes = [wt.HWND, ct.c_int]
 USER.PostMessageW.argtypes = [wt.HWND, wt.UINT, wt.WPARAM, wt.LPARAM]
 USER.SendMessageW.argtypes = [wt.HWND, wt.UINT, wt.WPARAM, wt.LPARAM]
 USER.SendMessageW.restype = wt.LPARAM
@@ -66,15 +67,22 @@ def render_window(window: int) -> Image.Image:
     rect = wt.RECT()
     if not USER.GetClientRect(window, ct.byref(rect)):
         raise RuntimeError("Window is closed")
+    if rect.right <= 0 or rect.bottom <= 0:
+        USER.ShowWindow(window, 9)
+        USER.SetWindowPos(window, wt.HWND(-1), 50, 40, 1296, 879, 0x40)
+        time.sleep(0.3)
+        if not USER.GetClientRect(window, ct.byref(rect)) or rect.right <= 0 or rect.bottom <= 0:
+            raise RuntimeError("Window has no drawable client area")
     screen = USER.GetDC(window)
     memory = GDI.CreateCompatibleDC(screen)
     info = BitmapInfo(size=40, width=rect.right, height=-rect.bottom, planes=1, bits=32)
     pixels = ct.c_void_p()
     bitmap = GDI.CreateDIBSection(screen, ct.byref(info), 0, ct.byref(pixels), None, 0)
     if not bitmap:
+        error = ct.get_last_error()
         GDI.DeleteDC(memory)
         USER.ReleaseDC(window, screen)
-        raise RuntimeError("Could not allocate a window capture bitmap")
+        raise RuntimeError(f"Could not allocate {rect.right}x{rect.bottom} capture bitmap: Windows error {error}")
     previous = GDI.SelectObject(memory, bitmap)
     try:
         if not USER.PrintWindow(window, memory, 3):
@@ -125,7 +133,8 @@ class Session:
             self.process.terminate()
             self.process.wait(timeout=10)
             raise
-        USER.SetWindowPos(self.window, wt.HWND(-1), 50, 40, 1296, 879, 0)
+        USER.ShowWindow(self.window, 9)
+        USER.SetWindowPos(self.window, wt.HWND(-1), 50, 40, 1296, 879, 0x40)
         USER.SetForegroundWindow(self.window)
         self.caption = "Каталог программ для Windows"
 
