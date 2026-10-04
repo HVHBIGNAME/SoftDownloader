@@ -359,7 +359,10 @@ impl SoftDownloaderApp {
             ui.painter().rect_stroke(
                 card.response.rect,
                 12,
-                Stroke::new(1.0, theme::BORDER.lerp_to_gamma(theme::MUTED, hover * 0.45)),
+                Stroke::new(
+                    1.0_f32,
+                    theme::BORDER.lerp_to_gamma(theme::MUTED, hover * 0.45),
+                ),
                 egui::StrokeKind::Inside,
             );
         }
