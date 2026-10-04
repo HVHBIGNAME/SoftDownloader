@@ -3,27 +3,19 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path -LiteralPath $root)) { throw 'Project root was not found' }
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'dist' }
+$OutputDirectory = [System.IO.Path]::GetFullPath($OutputDirectory)
+if (-not (Test-Path -LiteralPath (Split-Path -Parent $OutputDirectory))) { throw 'Output parent directory does not exist' }
 $manifest = Get-Content -LiteralPath (Join-Path $root 'Cargo.toml') -Raw
 $version = [regex]::Match($manifest, '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
 if (-not $version) { throw 'Package version was not found' }
-$name = "SoftDownloader-$version-windows-x64"
-$stage = Join-Path $OutputDirectory $name
-foreach ($binary in @('softdownloader.exe', 'catalog-check.exe')) {
-    if (-not (Test-Path -LiteralPath (Join-Path $root "target\release\$binary"))) { throw "Build first: cargo build --release --bins --locked ($binary missing)" }
-}
-[void](New-Item -ItemType Directory -Path $stage -Force)
-Copy-Item -LiteralPath (Join-Path $root 'target\release\softdownloader.exe') -Destination (Join-Path $stage 'SoftDownloader.exe') -Force
-Copy-Item -LiteralPath (Join-Path $root 'target\release\catalog-check.exe') -Destination $stage -Force
-foreach ($file in @('README.md', 'LICENSE')) { Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage -Force }
-foreach ($directory in @('docs', 'catalog')) { Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $stage -Recurse -Force }
-Copy-Item -LiteralPath (Join-Path $root 'assets\SoftDownloader.ico') -Destination $stage -Force
-[void](New-Item -ItemType Directory -Path (Join-Path $stage 'tools') -Force)
-foreach ($file in @('catalog.py', 'catalog_model.py')) {
-    Copy-Item -LiteralPath (Join-Path $root "tools\$file") -Destination (Join-Path $stage 'tools') -Force
-}
-$zip = Join-Path $OutputDirectory "$name.zip"
-Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force
-$digest = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-Set-Content -LiteralPath "$zip.sha256" -Value "$digest  $name.zip" -Encoding Ascii
-"Package: $zip"
+$binary = Join-Path $root 'target\release\softdownloader.exe'
+if (-not (Test-Path -LiteralPath $binary)) { throw 'Build first: cargo build --release --locked' }
+[void](New-Item -ItemType Directory -Path $OutputDirectory -Force)
+$destination = Join-Path $OutputDirectory 'SoftDownloader.exe'
+Copy-Item -LiteralPath $binary -Destination $destination -Force
+$digest = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash.ToLowerInvariant()
+Set-Content -LiteralPath "$destination.sha256" -Value "$digest  SoftDownloader.exe" -Encoding Ascii
+$bytes = (Get-Item -LiteralPath $destination).Length
+"Standalone $version`: $destination"
+"Size: $bytes bytes ($([math]::Round($bytes / 1MB, 2)) MiB)"
 "SHA-256: $digest"

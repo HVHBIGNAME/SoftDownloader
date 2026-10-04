@@ -118,8 +118,13 @@ class Session:
         self.output = output
         self.profile = profile
         self.render_lock = threading.RLock()
-        self.process = subprocess.Popen([str(exe), "--data-dir", str(profile)])
-        self.window = self.wait_window("SoftDownloader")
+        self.process = subprocess.Popen([str(exe.resolve()), "--data-dir", str(profile.resolve())], cwd=exe.resolve().parent)
+        try:
+            self.window = self.wait_window("SoftDownloader")
+        except Exception:
+            self.process.terminate()
+            self.process.wait(timeout=10)
+            raise
         USER.SetWindowPos(self.window, wt.HWND(-1), 50, 40, 1296, 879, 0)
         USER.SetForegroundWindow(self.window)
         self.caption = "Каталог программ для Windows"

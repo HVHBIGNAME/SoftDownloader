@@ -8,6 +8,14 @@ license = "MIT"
 repository = "https://github.com/HVHBIGNAME/SoftDownloader"
 default-run = "softdownloader"
 
+[features]
+catalog-tools = []
+
+[[bin]]
+name = "catalog-check"
+path = "src/bin/catalog-check.rs"
+required-features = ["catalog-tools"]
+
 [build-dependencies]
 embed-resource = "3"
 
@@ -20,7 +28,7 @@ hex = "0.4"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "cookies"] }
 rfd = "0.17.2"
 regex = "1.11"
-scraper = "0.24"
+scraper = { version = "0.24", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
@@ -38,10 +46,11 @@ winreg = "0.55"
 tokio = { version = "1.45", features = ["test-util"] }
 
 [profile.release]
-opt-level = "s"
-lto = "thin"
+opt-level = "z"
+lto = "fat"
 codegen-units = 1
 strip = true
+panic = "abort"
 
 [lints.clippy]
 dbg_macro = "warn"

@@ -7,11 +7,11 @@ Windows, 3 октября 2026 года. Основной каталог: **97 �
 | Проверка | Результат |
 |---|---|
 | `cargo fmt --all -- --check` | Пройдено |
-| `cargo clippy --all-targets --locked -- -D warnings` | Без предупреждений |
-| `cargo test --all-targets --locked` | **55 тестов**: 49 модульных, 1 lifecycle, 5 planning |
+| `cargo clippy --all-targets --all-features --locked -- -D warnings` | Без предупреждений |
+| `cargo test --all-targets --all-features --locked` | **55 тестов**: 49 модульных, 1 lifecycle, 5 planning |
 | `python -m unittest discover -s tools/tests -v` | **9 тестов** |
 | JSON Schema Draft 2020-12 | Три встроенных каталога и отрицательные примеры проверены |
-| `cargo build --release --bins --locked` | Оба EXE собраны со статическим CRT |
+| `cargo build --release --locked` | Один EXE со статическим CRT |
 
 Интеграционный lifecycle создаёт изолированный ZIP и фиктивный portable EXE. Проверяются хеш, пропуск зависимой задачи после ошибки, сохранение истории, установка/замена и удаление только тестовых папок.
 
@@ -77,4 +77,4 @@ python tools/capture_ui.py `
 
 `aislop scan --json`: **92/100**, ошибок нет, предупреждений о сложности нет. Шесть предупреждений `hardcoded-url` оставлены как ложные срабатывания: протокольные URL Google Drive, адреса `vendor.example` в тестах и построение `https://{host}/` в валидаторах. Правила анализа не отключались.
 
-`cargo audit` не выполнялся: утилита не установлена в окружении. Проверки CI и итоговый ZIP доступны в [Windows Actions](https://github.com/HVHBIGNAME/SoftDownloader/actions/workflows/windows.yml) и [релизе 0.4.0](https://github.com/HVHBIGNAME/SoftDownloader/releases/tag/v0.4.0).
+`cargo audit` не выполнялся: утилита не установлена в окружении. Проверки CI и готовый EXE доступны в [Windows Actions](https://github.com/HVHBIGNAME/SoftDownloader/actions/workflows/windows.yml) и [релизе 0.4.0](https://github.com/HVHBIGNAME/SoftDownloader/releases/tag/v0.4.0).

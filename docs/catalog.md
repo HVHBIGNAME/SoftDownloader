@@ -3,8 +3,8 @@
 JSON Schema: [`catalog/schema.json`](../catalog/schema.json). Авторитетная проверка использует ту же Rust-модель, что и приложение:
 
 ```powershell
-cargo run --bin catalog-check -- "G:\Мой диск\SoftDownloader\catalog.json"
-cargo run --bin catalog-check -- --public "G:\Мой диск\SoftDownloader\catalog.public.json"
+cargo run --features catalog-tools --bin catalog-check -- "G:\Мой диск\SoftDownloader\catalog.json"
+cargo run --features catalog-tools --bin catalog-check -- --public "G:\Мой диск\SoftDownloader\catalog.public.json"
 ```
 
 ## Пакет с установщиком на Google Drive

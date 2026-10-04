@@ -9,10 +9,10 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-859ba8?style=flat-square" alt="MIT"></a>
 </p>
 
-**Нативный менеджер программ для Windows на Rust + egui.** Выберите софт, проверьте план и установите нужное одной очередью. Сохранённый список поможет собрать такое же рабочее окружение на другом ПК.
+**Нативный менеджер программ для Windows на Rust + egui — один EXE.** Скачайте и запустите: каталог, иконки и интерфейс уже внутри. Выберите софт, проверьте план и установите нужное одной очередью. Сохранённый список поможет собрать такое же рабочее окружение на другом ПК.
 
 <p align="center">
-  <a href="https://github.com/HVHBIGNAME/SoftDownloader/releases/latest"><b>Скачать для Windows</b></a> ·
+  <a href="https://github.com/HVHBIGNAME/SoftDownloader/releases/latest/download/SoftDownloader.exe"><b>Скачать SoftDownloader.exe</b></a> ·
   <a href="#перенос-списка-программ">Перенос программ</a> ·
   <a href="#видео-использования">Видео</a> ·
   <a href="docs/verification.md">Проверки</a>
@@ -22,11 +22,13 @@
 
 ## Начать работу
 
-1. Скачайте ZIP из [последнего релиза](https://github.com/HVHBIGNAME/SoftDownloader/releases/latest), распакуйте и запустите **`SoftDownloader.exe`**.
+1. Скачайте **[SoftDownloader.exe](https://github.com/HVHBIGNAME/SoftDownloader/releases/latest/download/SoftDownloader.exe)** и запустите его.
 2. Дождитесь проверки установленного ПО. Найдите программы через поиск или группы и отметьте нужные.
 3. Нажмите **«Установить выбранное»**, проверьте зависимости и подтвердите установку. Результаты появятся в очереди.
 
 Для пакетов WinGet нужен [Установщик приложений Microsoft](https://apps.microsoft.com/detail/9nblggh4nns1). EXE/MSI при необходимости откроют штатный мастер или запрос UAC.
+
+Само приложение поставляется одним файлом, работает с системными библиотеками Windows и хранит настройки/кэш в AppData. Установка Rust, Python или отдельного runtime для его запуска не требуется. Файл `.sha256` в релизе — необязательная проверка скачивания; видео и документация доступны отдельно.
 
 ## Перенос списка программ
 
@@ -55,6 +57,7 @@
 
 | | |
 |---|---|
+| **Один файл** | `SoftDownloader.exe` со встроенными каталогом, шрифтами и иконками. Сборка оптимизирована по размеру: full LTO, `opt-level=z`, статический CRT. |
 | **97 пакетов · 22 группы** | Браузеры, общение, разработка, ИИ, VPN, медиа, игры и системные утилиты. |
 | **Одна очередь** | WinGet, Microsoft Store, EXE/MSI, ZIP, portable EXE и расширения VS Code. Повтор незавершённых задач и отмена загрузок. |
 | **Учёт установленного** | Реестр Windows, Store, WinGet, VS Code, известные папки и PATH. Удаление по одной программе или списком. |
@@ -103,18 +106,21 @@
 cargo run --release
 
 cargo fmt --all -- --check
-cargo clippy --all-targets --locked -- -D warnings
-cargo test --all-targets --locked
+cargo clippy --all-targets --all-features --locked -- -D warnings
+cargo test --all-targets --all-features --locked
 python -m unittest discover -s tools/tests -v
 
-cargo build --release --bins --locked
+cargo build --release --locked
 powershell -ExecutionPolicy Bypass -File tools/package.ps1
+python tools/verify_standalone.py --file dist/SoftDownloader.exe
 ```
 
 Отдельный профиль: `SoftDownloader.exe --data-dir "C:\Temp\SoftDownloader-test"`.
 Локальный каталог дополнений: `SoftDownloader.exe --catalog "G:\Мой диск\SoftDownloader\catalog.json"`.
 
-`catalog-check --resolve` проверяет официальные метаданные, `--check-winget` — ID пакетов, `--inventory` — обнаружение на ПК. Интеграционные тесты установки/удаления используют изолированные фиктивные пакеты. **[Результаты проверок 0.4.0](docs/verification.md)**.
+Обычный `cargo build --release` собирает только приложение: `target/release/softdownloader.exe`. Скрипт выпуска копирует его в `dist/SoftDownloader.exe` и записывает контрольную сумму.
+
+Служебный CLI собирается отдельно: `cargo run --features catalog-tools --bin catalog-check -- --resolve`. Флаги `--check-winget` и `--inventory` проверяют ID и обнаружение программ. CLI предназначен разработчику и в пользовательский релиз не входит. Интеграционные тесты установки/удаления используют изолированные фиктивные пакеты. **[Результаты проверок 0.4.0](docs/verification.md)**.
 
 Скриншоты и видео воспроизводятся через [`tools/capture_ui.py`](tools/capture_ui.py), иконка — через [`tools/make_branding.py`](tools/make_branding.py). Этим дополнительным инструментам нужен Pillow; видео также использует FFmpeg.
 

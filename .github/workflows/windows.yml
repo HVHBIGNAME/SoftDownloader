@@ -27,26 +27,28 @@ jobs:
       - name: Formatting
         run: cargo fmt --all -- --check
       - name: Clippy
-        run: cargo clippy --all-targets --locked -- -D warnings
+        run: cargo clippy --all-targets --all-features --locked -- -D warnings
       - name: Rust tests
-        run: cargo test --all-targets --locked
+        run: cargo test --all-targets --all-features --locked
       - name: Catalog tooling tests
         run: python -m unittest discover -s tools/tests -v
       - name: Validate bundled catalogs
         run: |
-          cargo run --bin catalog-check --locked -- catalog/builtin.json
+          cargo run --features catalog-tools --bin catalog-check --locked -- catalog/builtin.json
           python tools/catalog.py validate --catalog catalog/extended.json --public
           python tools/catalog.py validate --catalog catalog/demo.json
       - name: Release build
-        run: cargo build --release --bins --locked
-      - name: Package
+        run: cargo build --release --locked
+      - name: Standalone executable
         run: ./tools/package.ps1
+      - name: Verify standalone distribution
+        run: python tools/verify_standalone.py --file dist/SoftDownloader.exe
       - uses: actions/upload-artifact@v4
         with:
           name: SoftDownloader-windows-x64
           path: |
-            dist/*.zip
-            dist/*.sha256
+            dist/SoftDownloader.exe
+            dist/SoftDownloader.exe.sha256
           retention-days: 30
 
   release:
