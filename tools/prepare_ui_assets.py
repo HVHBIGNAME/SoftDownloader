@@ -68,10 +68,10 @@ def prepare(archive: ZipFile, assets: Path) -> None:
     write_license(themes / "LICENSE-TWEMOJI.txt", download(f"{TWEMOJI_URL}/LICENSE-GRAPHICS"))
 
 
-def video_previews(folder: Path) -> None:
+def video_previews(folder: Path, clip_ids: list[int]) -> None:
     if not folder.is_dir():
         raise ValueError("Video preview folder must exist")
-    for clip_id in (3352, 4281):
+    for clip_id in clip_ids:
         data = download(f"https://assets.mixkit.co/videos/{clip_id}/{clip_id}-720.mp4")
         path = folder / f"mixkit-{clip_id}.mp4"
         path.write_bytes(data)
@@ -86,7 +86,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--inspect", action="store_true")
     parser.add_argument("--video-dir", type=Path, help="Also download real stock clips here for visual review")
+    parser.add_argument("--video-id", type=int, action="append", help="Review only these Mixkit clips (requires --video-dir)")
     args = parser.parse_args()
+    if args.video_id:
+        if not args.video_dir or any(clip_id <= 0 for clip_id in args.video_id):
+            parser.error("Positive video IDs and --video-dir are required")
+        video_previews(args.video_dir, args.video_id)
+        return
     assets = Path(__file__).resolve().parent.parent / "assets"
     if not assets.is_dir():
         parser.error("Project assets folder was not found")
@@ -97,7 +103,7 @@ def main() -> None:
             return
         prepare(archive, assets)
     if args.video_dir:
-        video_previews(args.video_dir)
+        video_previews(args.video_dir, [3352, 4281, 4033, 44373])
 
 
 if __name__ == "__main__":

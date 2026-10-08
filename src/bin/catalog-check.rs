@@ -157,7 +157,7 @@ fn inspect_video(path: &std::path::Path, snapshot: Option<&std::path::Path>) -> 
     }
     let mut count = 1;
     let mut previous = first.timestamp;
-    for _ in 0..329 {
+    for _ in 0..1199 {
         let Some(frame) = decoder.next_frame()? else {
             break;
         };

@@ -16,5 +16,23 @@
     "url": "https://assets.mixkit.co/videos/4281/4281-720.mp4",
     "size": 1691554,
     "sha256": "265779c0b985b8e9848f5738920ba41760519f1a9aeaf284d747035683a67610"
+  },
+  {
+    "id": "northern-lights",
+    "name": "Северное сияние",
+    "description": "Зелёное сияние над горами, 12 секунд, 3,6 МБ",
+    "source": "https://mixkit.co/free-stock-video/aurora-borealis-timelapse-4033/",
+    "url": "https://assets.mixkit.co/videos/4033/4033-720.mp4",
+    "size": 3789731,
+    "sha256": "13013b96f6f80d956346ee1a452e3b96fc897827bd70426b42de9830d7a33c05"
+  },
+  {
+    "id": "ocean-sunset",
+    "name": "Закат над морем",
+    "description": "Мягкие волны и вечерний горизонт, 18 секунд, 5,8 МБ",
+    "source": "https://mixkit.co/free-stock-video/sunset-in-an-aerial-shot-over-the-sea-44373/",
+    "url": "https://assets.mixkit.co/videos/44373/44373-720.mp4",
+    "size": 6093857,
+    "sha256": "62677a99693f02f06296558f0c4ecf1d180714812c8181036c69e73a7c0b9ca6"
   }
 ]

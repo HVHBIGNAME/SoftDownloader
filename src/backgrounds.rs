@@ -72,7 +72,8 @@ mod tests {
     #[test]
     fn stock_backgrounds_have_pinned_hashes_and_source_attribution() {
         let presets = super::presets().unwrap();
-        assert_eq!(presets.len(), 2);
-        assert_ne!(presets[0].id, presets[1].id);
+        assert_eq!(presets.len(), 4);
+        let ids: std::collections::BTreeSet<_> = presets.iter().map(|preset| &preset.id).collect();
+        assert_eq!(ids.len(), presets.len());
     }
 }

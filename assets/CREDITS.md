@@ -16,5 +16,7 @@
 
 - [Snow falling in a pine forest](https://mixkit.co/free-stock-video/snow-falling-in-a-pine-forest-3352/), Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
 - [Matterhorn Mountain Landscape](https://mixkit.co/free-stock-video/matterhorn-mountain-landscape-4281/), Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
+- [Aurora borealis timelapse](https://mixkit.co/free-stock-video/aurora-borealis-timelapse-4033/), dubassy / Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
+- [Sunset in an aerial shot over the sea](https://mixkit.co/free-stock-video/sunset-in-an-aerial-shot-over-the-sea-44373/), Mixkit, [Stock Video Free License](https://mixkit.co/license/#videoFree).
 
 Подготовка звуков и графики воспроизводится через `python tools/prepare_ui_assets.py` с FFmpeg. Пользовательские MP4 остаются на компьютере пользователя и никуда не отправляются.
