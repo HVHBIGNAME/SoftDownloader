@@ -11,7 +11,7 @@ use softdownloader::{
 };
 use tokio_util::sync::CancellationToken;
 
-const USAGE: &str = "catalog-check [catalog.json] [--public] [--resolve] [--check-winget] [--inventory [--data-dir DIR]] [--download-only ID --cache DIR]";
+const USAGE: &str = "catalog-check [catalog.json] [--public] [--resolve] [--check-winget] [--inventory [--data-dir DIR]] [--download-only ID --cache DIR] [--video FILE --frame PNG]";
 
 #[derive(Default)]
 struct Options {
@@ -23,6 +23,8 @@ struct Options {
     download: Option<String>,
     cache: Option<PathBuf>,
     data_dir: Option<PathBuf>,
+    video: Option<PathBuf>,
+    frame: Option<PathBuf>,
 }
 
 impl Options {
@@ -39,6 +41,14 @@ impl Options {
                 "--resolve" => options.resolve = true,
                 "--check-winget" => options.check_winget = true,
                 "--inventory" => options.inventory = true,
+                "--video" => {
+                    options.video = Some(PathBuf::from(args.next().context("Missing video path")?))
+                }
+                "--frame" => {
+                    options.frame = Some(PathBuf::from(
+                        args.next().context("Missing PNG output path")?,
+                    ))
+                }
                 "--download-only" => {
                     options.download = Some(args.next().context("Missing package ID")?)
                 }
@@ -74,6 +84,9 @@ async fn main() -> Result<()> {
     let Some(options) = Options::parse()? else {
         return Ok(());
     };
+    if let Some(video) = &options.video {
+        return inspect_video(video, options.frame.as_deref());
+    }
     let client = network::client()?;
     let document = load_document(&client, &options).await?;
     if options.public {
@@ -119,6 +132,49 @@ async fn main() -> Result<()> {
         )
         .await?;
     }
+    Ok(())
+}
+
+fn inspect_video(path: &std::path::Path, snapshot: Option<&std::path::Path>) -> Result<()> {
+    use eframe::icon_data::IconDataExt;
+    let mut decoder = softdownloader::video::Decoder::open(&path.canonicalize()?)?;
+    let first = decoder.next_frame()?.context("Video contains no frames")?;
+    println!(
+        "Native Windows video: {}x{}, first timestamp {:?}",
+        first.size[0], first.size[1], first.timestamp
+    );
+    if let Some(path) = snapshot {
+        ensure!(
+            path.parent().is_some_and(|parent| parent.is_dir()),
+            "Snapshot parent must exist"
+        );
+        let image = eframe::egui::IconData {
+            rgba: first.rgba.clone(),
+            width: first.size[0] as u32,
+            height: first.size[1] as u32,
+        };
+        std::fs::write(path, image.to_png_bytes().map_err(anyhow::Error::msg)?)?;
+    }
+    let mut count = 1;
+    let mut previous = first.timestamp;
+    for _ in 0..329 {
+        let Some(frame) = decoder.next_frame()? else {
+            break;
+        };
+        ensure!(
+            frame.timestamp >= previous,
+            "Non-monotonic video timestamps"
+        );
+        previous = frame.timestamp;
+        count += 1;
+    }
+    decoder.rewind()?;
+    let repeated = decoder.next_frame()?.context("Rewinding failed")?;
+    ensure!(
+        repeated.rgba == first.rgba && repeated.timestamp == first.timestamp,
+        "Rewound frame differs"
+    );
+    println!("Decoded {count} frames, exact rewind verified; no audio stream selected");
     Ok(())
 }
 

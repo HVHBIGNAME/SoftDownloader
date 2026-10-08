@@ -7,14 +7,15 @@ The walkthrough stops at the installation confirmation and never runs installers
 import argparse
 import ctypes as ct
 from ctypes import wintypes as wt
-import json
-import os
+import logging
 from pathlib import Path
 import subprocess
 import threading
 import time
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
+
+from ui_movie import Movie
 
 
 USER = ct.WinDLL("user32", use_last_error=True)
@@ -26,7 +27,18 @@ USER.GetWindowTextW.argtypes = [wt.HWND, wt.LPWSTR, ct.c_int]
 USER.GetClassNameW.argtypes = [wt.HWND, wt.LPWSTR, ct.c_int]
 USER.GetClientRect.argtypes = [wt.HWND, ct.POINTER(wt.RECT)]
 USER.SetWindowPos.argtypes = [wt.HWND, wt.HWND, ct.c_int, ct.c_int, ct.c_int, ct.c_int, wt.UINT]
+USER.GetWindowLongPtrW.argtypes = [wt.HWND, ct.c_int]
+USER.GetWindowLongPtrW.restype = ct.c_ssize_t
 USER.SetForegroundWindow.argtypes = [wt.HWND]
+USER.BringWindowToTop.argtypes = [wt.HWND]
+USER.ClientToScreen.argtypes = [wt.HWND, ct.POINTER(wt.POINT)]
+USER.SetCursorPos.argtypes = [ct.c_int, ct.c_int]
+USER.WindowFromPoint.argtypes = [wt.POINT]
+USER.WindowFromPoint.restype = wt.HWND
+USER.GetForegroundWindow.restype = wt.HWND
+USER.AttachThreadInput.argtypes = [wt.DWORD, wt.DWORD, wt.BOOL]
+KERNEL = ct.WinDLL("kernel32", use_last_error=True)
+KERNEL.GetCurrentThreadId.restype = wt.DWORD
 USER.ShowWindow.argtypes = [wt.HWND, ct.c_int]
 USER.PostMessageW.argtypes = [wt.HWND, wt.UINT, wt.WPARAM, wt.LPARAM]
 USER.SendMessageW.argtypes = [wt.HWND, wt.UINT, wt.WPARAM, wt.LPARAM]
@@ -63,13 +75,62 @@ GDI.CreateDIBSection.argtypes = [wt.HDC, ct.POINTER(BitmapInfo), wt.UINT, ct.POI
 GDI.CreateDIBSection.restype = wt.HANDLE
 
 
+class MouseInput(ct.Structure):
+    _fields_ = [("dx", wt.LONG), ("dy", wt.LONG), ("data", wt.DWORD),
+                ("flags", wt.DWORD), ("time", wt.DWORD), ("extra", ct.c_size_t)]
+
+
+class KeyboardInput(ct.Structure):
+    _fields_ = [("virtual", wt.WORD), ("scan", wt.WORD), ("flags", wt.DWORD),
+                ("time", wt.DWORD), ("extra", ct.c_size_t)]
+
+
+class InputData(ct.Union):
+    _fields_ = [("mouse", MouseInput), ("keyboard", KeyboardInput)]
+
+
+class Input(ct.Structure):
+    _fields_ = [("type", wt.DWORD), ("data", InputData)]
+
+
+USER.SendInput.argtypes = [wt.UINT, ct.POINTER(Input), ct.c_int]
+USER.SendInput.restype = wt.UINT
+
+
+def key_button(code: int, flags: int = 0, unicode: bool = False) -> None:
+    keyboard = KeyboardInput(virtual=0 if unicode else code, scan=code if unicode else 0, flags=flags | (4 if unicode else 0))
+    event = Input(type=1, data=InputData(keyboard=keyboard))
+    if USER.SendInput(1, ct.byref(event), ct.sizeof(event)) != 1:
+        raise ct.WinError(ct.get_last_error())
+
+
+def focus_window(window: int) -> None:
+    foreground = USER.GetForegroundWindow()
+    if foreground == window or USER.SetForegroundWindow(window):
+        return
+    current = KERNEL.GetCurrentThreadId()
+    owner = USER.GetWindowThreadProcessId(foreground, None)
+    target = USER.GetWindowThreadProcessId(window, None)
+    attached = USER.AttachThreadInput(current, owner, True)
+    target_attached = USER.AttachThreadInput(current, target, True)
+    try:
+        USER.BringWindowToTop(window)
+        USER.SetForegroundWindow(window)
+        time.sleep(0.1)
+    finally:
+        if target_attached:
+            USER.AttachThreadInput(current, target, False)
+        if attached:
+            USER.AttachThreadInput(current, owner, False)
+
+
 def render_window(window: int) -> Image.Image:
     rect = wt.RECT()
     if not USER.GetClientRect(window, ct.byref(rect)):
         raise RuntimeError("Window is closed")
     if rect.right <= 0 or rect.bottom <= 0:
         USER.ShowWindow(window, 9)
-        USER.SetWindowPos(window, wt.HWND(-1), 50, 40, 1296, 879, 0x40)
+        USER.SetWindowPos(window, None, 50, 40, 1296, 879, 0x54)
         time.sleep(0.3)
         if not USER.GetClientRect(window, ct.byref(rect)) or rect.right <= 0 or rect.bottom <= 0:
             raise RuntimeError("Window has no drawable client area")
@@ -123,20 +184,30 @@ def windows(pid: int, parent: int | None = None) -> list[int]:
 
 class Session:
     def __init__(self, exe: Path, profile: Path, output: Path) -> None:
+        from ui_scenarios import silent_profile
+
+        silent_profile(profile)
         self.output = output
         self.profile = profile
         self.render_lock = threading.RLock()
         self.process = subprocess.Popen([str(exe.resolve()), "--data-dir", str(profile.resolve())], cwd=exe.resolve().parent)
         try:
             self.window = self.wait_window("SoftDownloader")
+            self.assert_normal_window()
         except Exception:
             self.process.terminate()
             self.process.wait(timeout=10)
             raise
         USER.ShowWindow(self.window, 9)
-        USER.SetWindowPos(self.window, wt.HWND(-1), 50, 40, 1296, 879, 0x40)
-        USER.SetForegroundWindow(self.window)
+        USER.SetWindowPos(self.window, None, 50, 40, 1296, 879, 0x54)
+        focus_window(self.window)
+        USER.SendMessageW(self.window, 0x0006, 1, 0)
+        USER.SendMessageW(self.window, 0x0007, 0, 0)
         self.caption = "Каталог программ для Windows"
+
+    def assert_normal_window(self) -> None:
+        if USER.GetWindowLongPtrW(self.window, -20) & 0x00000008:
+            raise RuntimeError("Application window unexpectedly has WS_EX_TOPMOST")
 
     def wait_window(self, title: str = "", class_name: str = "", timeout: float = 20) -> int:
         deadline = time.monotonic() + timeout
@@ -151,27 +222,69 @@ class Session:
 
     def snapshot(self) -> Image.Image:
         with self.render_lock:
+            self.assert_normal_window()
             return render_window(self.window)
 
     def capture(self, name: str) -> None:
         image = self.snapshot()
-        red, green, blue = image.getpixel((image.width - 10, image.height // 2))
-        if not 3 <= red <= green <= blue <= 70:
-            raise RuntimeError("Capture did not contain the application surface")
+        if max(high - low for low, high in image.getextrema()) < 32:
+            raise RuntimeError("Capture contains a blank application surface")
         image.save(self.output / f"{name}.png", optimize=True)
 
     def click(self, x: int, y: int) -> None:
-        point = (y << 16) | x
         with self.render_lock:
-            USER.PostMessageW(self.window, 0x200, 0, point)
-            USER.PostMessageW(self.window, 0x201, 1, point)
-            USER.PostMessageW(self.window, 0x202, 0, point)
-            time.sleep(0.15)
+            for _ in range(4):
+                focus_window(self.window)
+                screen = wt.POINT(x, y)
+                if not USER.ClientToScreen(self.window, ct.byref(screen)):
+                    raise ct.WinError(ct.get_last_error())
+                if not USER.SetCursorPos(screen.x, screen.y):
+                    raise ct.WinError(ct.get_last_error())
+                time.sleep(0.2)
+                if USER.WindowFromPoint(screen) == self.window:
+                    break
+                time.sleep(0.5)
+            if USER.WindowFromPoint(screen) != self.window:
+                hit = USER.WindowFromPoint(screen)
+                raise RuntimeError(f"Target application is covered by {text(hit, True)}; refusing to click another window")
+            position = (x & 0xFFFF) | ((y & 0xFFFF) << 16)
+            for message, buttons in [(0x0200, 0), (0x0201, 1), (0x0200, 1), (0x0202, 0)]:
+                USER.SendMessageW(self.window, message, buttons, position)
         time.sleep(0.45)
+
+    def key(self, code: int, control: bool = False) -> None:
+        with self.render_lock:
+            if USER.GetForegroundWindow() != self.window:
+                raise RuntimeError("Target application is not focused; refusing keyboard input")
+            try:
+                if control:
+                    key_button(0x11)
+                key_button(code)
+                time.sleep(0.04)
+                key_button(code, 2)
+            finally:
+                if control:
+                    key_button(0x11, 2)
+        time.sleep(0.25)
+
+    def search(self, query: str) -> None:
+        self.key(ord("F"), control=True)
+        self.key(ord("A"), control=True)
+        self.key(0x08)
+        encoded = query.encode("utf-16-le")
+        with self.render_lock:
+            for index in range(0, len(encoded), 2):
+                if USER.GetForegroundWindow() != self.window:
+                    raise RuntimeError("Target application lost keyboard focus")
+                unit = int.from_bytes(encoded[index:index + 2], "little")
+                key_button(unit, unicode=True)
+                key_button(unit, 2, unicode=True)
+                time.sleep(0.02)
+        time.sleep(0.7)
 
     def choose_file(self, path: Path) -> None:
         dialog = self.wait_window(class_name="#32770")
-        USER.SetWindowPos(dialog, wt.HWND(-1), 185, 155, 980, 640, 0)
+        USER.SetWindowPos(dialog, None, 185, 155, 980, 640, 0x14)
         edits = [child for child in windows(self.process.pid, dialog)
                  if text(child, True) == "Edit" and USER.IsWindowEnabled(child)]
         if not edits:
@@ -188,16 +301,21 @@ class Session:
             time.sleep(0.1)
         if dialog in windows(self.process.pid):
             raise RuntimeError("Native file dialog did not close")
+        focus_window(self.window)
         time.sleep(1)
 
     def click_primary(self) -> None:
+        from ui_scenarios import preferences
+
+        appearance = preferences(self).get("appearance")
+        color = appearance.get("accent", [134, 185, 232]) if appearance is not None else [134, 185, 232]
         image = self.snapshot()
         run = None
         for y in range(420, image.height - 8, 2):
             start = None
             for x in range(250, image.width - 10):
-                r, g, b = image.getpixel((x, y))
-                accent = 160 < r < 215 and g > 210 and 70 < b < 155
+                pixel = image.getpixel((x, y))
+                accent = all(abs(actual - wanted) <= 3 for actual, wanted in zip(pixel, color))
                 if accent and start is None:
                     start = x
                 if not accent and start is not None:
@@ -219,97 +337,13 @@ class Session:
         if code:
             raise RuntimeError(f"Application exit code: {code}")
 
-    def transfer_scenario(self, example: Path) -> None:
-        exported = self.profile / f"programs-{time.time_ns()}.json"
-        self.caption = "1. Откройте установленные программы. Экспорт сохранит полный список."
-        self.click(100, 183)
-        self.capture("installed")
-        time.sleep(2)
-        self.caption = "2. Экспорт списка: имена, версии, издатели и ID программ в одном JSON-файле."
-        self.click(1186, 43)
-        self.choose_file(exported)
-        self.capture("export")
-        document = json.loads(exported.read_text(encoding="utf-8"))
-        if document.get("format") != "softdownloader.program-list" or not document["programs"]:
-            raise RuntimeError("The exported program list is invalid")
-        for entry in document["programs"]:
-            if set(entry) != {"name", "version", "publisher", "package_ids"}:
-                raise RuntimeError("The exported list contains unexpected fields")
-        print(f"Exported {len(document['programs'])} programs, without machine-specific data")
-        time.sleep(2)
-        self.caption = "3. На другом ПК нажмите «Импорт списка» и выберите сохранённый JSON."
-        self.click(1050, 43)
-        self.choose_file(example)
-        self.caption = "4. В примере уже установленное пропускается. Доступные программы можно отметить."
-        self.capture("restore")
-        time.sleep(3)
-        self.click_primary()
-        self.caption = "5. Список добавлен к выбору. При необходимости измените состав программ."
-        time.sleep(1)
-        self.capture("selection")
-        time.sleep(2)
-        self.click_primary()
-        self.caption = "6. Проверьте план. Установка начнётся только после вашего подтверждения."
-        time.sleep(1)
-        self.capture("confirmation")
-        image = self.snapshot()
-        if image.getpixel((image.width - 10, image.height // 2))[0] >= 14:
-            raise RuntimeError("Installation confirmation did not open")
-        time.sleep(3)
-
-
-class Movie:
-    def __init__(self, session: Session, output: Path) -> None:
-        self.session = session
-        self.finished = threading.Event()
-        self.error: Exception | None = None
-        width, height = session.snapshot().size
-        self.size = width, height + 76
-        self.font = ImageFont.truetype(str(Path(os.environ["WINDIR"]) / "Fonts" / "segoeui.ttf"), 19)
-        self.process = subprocess.Popen([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "rawvideo",
-            "-pixel_format", "rgb24", "-video_size", f"{width}x{height + 76}",
-            "-framerate", "24", "-i", "-", "-an", "-c:v", "libx264",
-            "-preset", "veryfast", "-crf", "22", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(output),
-        ], stdin=subprocess.PIPE)
-        self.thread = threading.Thread(target=self.record, daemon=True)
-        self.thread.start()
-
-    def record(self) -> None:
-        start = time.monotonic()
-        written = 0
-        try:
-            while not self.finished.is_set():
-                screen = self.session.snapshot()
-                frame = Image.new("RGB", self.size, (18, 21, 24))
-                frame.paste(screen)
-                draw = ImageDraw.Draw(frame)
-                draw.line([(0, screen.height), (frame.width, screen.height)], fill=(46, 52, 57))
-                draw.text((32, screen.height + 24), self.session.caption, font=self.font, fill=(188, 239, 119))
-                data = frame.tobytes()
-                due = max(written + 1, int((time.monotonic() - start) * 24) + 1)
-                for _ in range(due - written):
-                    self.process.stdin.write(data)
-                written = due
-                self.finished.wait(max(0, start + written / 24 - time.monotonic()))
-        except Exception as error:
-            self.error = error
-
-    def close(self) -> None:
-        self.finished.set()
-        self.thread.join(timeout=15)
-        if self.thread.is_alive():
-            self.process.kill()
-            raise TimeoutError("Video recording did not stop")
-        self.process.stdin.close()
-        code = self.process.wait(timeout=30)
-        if self.error:
-            raise self.error
-        if code:
-            raise RuntimeError(f"FFmpeg exit code: {code}")
+    def transfer_scenario(self, example: Path, review: bool = False) -> None:
+        from ui_scenarios import transfer
+        transfer(self, example, review)
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exe", type=Path, required=True)
     parser.add_argument("--profile", type=Path, required=True)
@@ -317,6 +351,9 @@ def main() -> None:
     parser.add_argument("--wait", type=int, default=55)
     parser.add_argument("--transfer", type=Path, help="Import this example after testing export")
     parser.add_argument("--video", type=Path, help="Record the client window to MP4 (requires FFmpeg)")
+    parser.add_argument("--features", action="store_true", help="Exercise favorites, layouts, custom sets, undo and removal preview")
+    parser.add_argument("--appearance", action="store_true", help="Verify themes, sound settings and real video download/playback/pause")
+    parser.add_argument("--check-layout", action="store_true", help="Also capture the minimum-size window after the walkthrough")
     args = parser.parse_args()
     if not args.exe.is_file() or not args.profile.parent.is_dir() or not args.output.is_dir():
         parser.error("Executable and output/profile parent folders must exist")
@@ -328,26 +365,42 @@ def main() -> None:
             if not args.video.parent.is_dir():
                 parser.error("Video parent directory must exist")
             movie = Movie(session, args.video)
+        from ui_scenarios import features, layout, narrow_window, removal_preview
+
+        layout(session, "list")
         session.capture("catalog")
         time.sleep(2)
         session.caption = "Группы и подгруппы помогают быстро найти нужный софт."
-        session.click(105, 529)
+        session.click(600, 170)
         session.capture("categories")
+        session.key(0x1B)
         time.sleep(2)
-        session.click(100, 183)
+        if args.features:
+            features(session)
+            removal_preview(session)
+        if args.appearance:
+            from ui_appearance_scenarios import appearance
+            appearance(session)
+        session.click(100, 252)
         time.sleep(1)
         session.capture("installed")
-        session.click(100, 779)
+        session.click(100, 773)
         session.caption = "Google Диск встроен для будущих дополнений. Основной каталог работает самостоятельно."
         time.sleep(1)
         session.capture("settings")
         if args.transfer:
-            session.transfer_scenario(args.transfer)
+            session.transfer_scenario(args.transfer, review=args.features)
         if movie:
             movie.close()
             movie = None
+        if args.check_layout:
+            narrow_window(session)
         session.close()
         print(f"Screens captured in {args.output}; app closed normally")
+    except Exception:
+        if session.process.poll() is None:
+            session.capture("failure")
+        raise
     finally:
         if movie:
             movie.close()

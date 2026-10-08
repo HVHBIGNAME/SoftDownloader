@@ -93,6 +93,27 @@ pub async fn acquire(
     })
 }
 
+pub(crate) async fn acquire_asset(
+    client: &Client,
+    artifact: &Artifact,
+    destination: &Path,
+    cancel: &CancellationToken,
+    report: impl Fn(Progress),
+) -> Result<()> {
+    if tokio::fs::try_exists(destination).await?
+        && verify_file(destination, artifact, cancel).await.is_ok()
+    {
+        ensure!(!cancel.is_cancelled(), "Отменено");
+        return Ok(());
+    }
+    let (reader, _) = tokio::select! {
+        _ = cancel.cancelled() => anyhow::bail!("Отменено"),
+        result = artifact_reader(client, artifact, None) => result?,
+    };
+    copy_verified(reader, artifact, destination, cancel, report).await?;
+    Ok(())
+}
+
 async fn artifact_reader(
     client: &Client,
     artifact: &Artifact,

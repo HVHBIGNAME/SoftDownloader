@@ -1,49 +1,16 @@
 use eframe::egui::{
-    self, Align2, Color32, CornerRadius, FontId, Margin, Pos2, Rect, RichText, Sense, Stroke, Vec2,
+    self, Align2, Color32, FontId, Margin, Pos2, Rect, RichText, Sense, Stroke, Vec2,
 };
 
-pub const BG: Color32 = Color32::from_rgb(18, 21, 24);
-pub const SIDEBAR: Color32 = Color32::from_rgb(22, 26, 29);
-pub const SURFACE: Color32 = Color32::from_rgb(29, 33, 37);
-pub const RAISED: Color32 = Color32::from_rgb(36, 41, 46);
-pub const BORDER: Color32 = Color32::from_rgb(46, 52, 57);
-pub const TEXT: Color32 = Color32::from_rgb(236, 240, 237);
-pub const MUTED: Color32 = Color32::from_rgb(151, 160, 166);
-pub const DIM: Color32 = Color32::from_rgb(107, 119, 125);
-pub const ACCENT: Color32 = Color32::from_rgb(188, 239, 119);
-pub const VIOLET: Color32 = Color32::from_rgb(186, 169, 242);
-pub const ORANGE: Color32 = Color32::from_rgb(238, 178, 117);
-pub const RED: Color32 = Color32::from_rgb(242, 142, 142);
+mod palette;
+pub use palette::{Palette, ThemeTransition, colors, on_color};
+mod status;
+pub use status::{PackageStatus, package_status};
 
-pub fn apply(ctx: &egui::Context) {
+pub fn initialize(ctx: &egui::Context) {
+    system_fonts(ctx);
     let mut style = (*ctx.style()).clone();
-    style.visuals = egui::Visuals::dark();
-    style.visuals.override_text_color = Some(TEXT);
-    style.visuals.panel_fill = BG;
-    style.visuals.window_fill = SURFACE;
-    style.visuals.extreme_bg_color = BG;
-    style.visuals.faint_bg_color = SURFACE;
-    style.visuals.window_stroke = Stroke::new(1.0_f32, BORDER);
-    style.visuals.selection.bg_fill = ACCENT.gamma_multiply(0.25);
-    style.visuals.selection.stroke = Stroke::new(1.0_f32, ACCENT);
-    style.visuals.hyperlink_color = ACCENT;
-    style.visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0_f32, BORDER);
-    style.visuals.widgets.inactive.bg_fill = SURFACE;
-    style.visuals.widgets.inactive.weak_bg_fill = SURFACE;
-    style.visuals.widgets.inactive.bg_stroke = Stroke::new(1.0_f32, BORDER);
-    style.visuals.widgets.hovered.bg_fill = RAISED;
-    style.visuals.widgets.hovered.weak_bg_fill = RAISED;
-    style.visuals.widgets.hovered.bg_stroke = Stroke::new(1.0_f32, MUTED.gamma_multiply(0.5));
-    style.visuals.widgets.active.bg_fill = ACCENT.gamma_multiply(0.25);
-    for widgets in [
-        &mut style.visuals.widgets.inactive,
-        &mut style.visuals.widgets.hovered,
-        &mut style.visuals.widgets.active,
-        &mut style.visuals.widgets.noninteractive,
-    ] {
-        widgets.corner_radius = CornerRadius::same(8);
-    }
-    style.spacing.item_spacing = Vec2::new(10.0, 10.0);
+    style.spacing.item_spacing = Vec2::new(12.0, 12.0);
     style.spacing.button_padding = Vec2::new(12.0, 9.0);
     style.spacing.interact_size.y = 34.0;
     style.animation_time = 0.16;
@@ -62,35 +29,29 @@ pub fn apply(ctx: &egui::Context) {
     ctx.set_style(style);
 }
 
-pub fn set_motion(ctx: &egui::Context, reduced: bool) {
-    ctx.style_mut(|style| {
-        style.animation_time = if reduced { 0.0 } else { 0.16 };
-        style.scroll_animation = if reduced {
-            egui::style::ScrollAnimation::none()
-        } else {
-            egui::style::ScrollAnimation::duration(0.16)
-        };
-    });
-}
-
-pub fn card_frame() -> egui::Frame {
-    egui::Frame::new()
-        .fill(SURFACE)
-        .stroke(Stroke::new(1.0_f32, BORDER))
-        .corner_radius(12)
-        .inner_margin(16)
-}
-
-pub fn primary(text: impl Into<String>) -> egui::Button<'static> {
-    egui::Button::new(RichText::new(text.into()).color(BG).strong())
-        .fill(ACCENT)
-        .min_size(Vec2::new(0.0, 40.0))
-        .corner_radius(8)
+fn system_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+    #[cfg(windows)]
+    if let Ok(system) = crate::installer::windows::system_directory()
+        && let Some(windows) = system.parent()
+        && let Ok(bytes) = std::fs::read(windows.join("Fonts/segoeui.ttf"))
+    {
+        fonts
+            .font_data
+            .insert("Segoe UI".into(), egui::FontData::from_owned(bytes).into());
+        fonts
+            .families
+            .entry(egui::FontFamily::Proportional)
+            .or_default()
+            .insert(0, "Segoe UI".into());
+    }
+    ctx.set_fonts(fonts);
 }
 
 pub fn pill(ui: &mut egui::Ui, text: &str, color: Color32) {
+    let colors = colors(ui.ctx());
     egui::Frame::new()
-        .fill(color.gamma_multiply(0.09))
+        .fill(colors.surface.lerp_to_gamma(color, 0.08))
         .corner_radius(5)
         .inner_margin(Margin::symmetric(7, 3))
         .show(ui, |ui| {
@@ -99,9 +60,10 @@ pub fn pill(ui: &mut egui::Ui, text: &str, color: Color32) {
 }
 
 pub fn heading(ui: &mut egui::Ui, title: &str, subtitle: &str) {
-    ui.label(RichText::new(title).size(29.0).strong());
+    let colors = colors(ui.ctx());
+    ui.label(RichText::new(title).size(28.0).strong());
     ui.add_space(1.0);
-    ui.label(RichText::new(subtitle).color(MUTED).size(14.0));
+    ui.label(RichText::new(subtitle).color(colors.muted).size(14.0));
     ui.add_space(16.0);
 }
 
@@ -118,6 +80,7 @@ pub fn bytes(bytes: u64) -> String {
 }
 
 pub fn app_icon(ui: &mut egui::Ui, id: &str, size: f32) {
+    let colors = colors(ui.ctx());
     let fallback: String = if let Some(version) = id.strip_prefix("java-") {
         format!("J{version}")
     } else {
@@ -127,34 +90,39 @@ pub fn app_icon(ui: &mut egui::Ui, id: &str, size: f32) {
             .flat_map(char::to_uppercase)
             .collect()
     };
-    let palette = [ACCENT, VIOLET, ORANGE, Color32::from_rgb(126, 195, 240)];
+    let blue = if colors.dark {
+        Color32::from_rgb(126, 195, 240)
+    } else {
+        Color32::from_rgb(16, 103, 164)
+    };
+    let palette = [colors.accent, colors.violet, colors.orange, blue];
     let index = id.bytes().fold(0_u8, u8::wrapping_add) as usize % palette.len();
     let (letters, color) = match id {
-        "amnezia-vpn" => ("A", ORANGE),
-        "flclash" => ("Fl", VIOLET),
-        "happ" => ("H", Color32::from_rgb(126, 195, 240)),
-        "httpdebugger" => ("{ }", ACCENT),
-        "blender" | "blender-addon" => ("B", ORANGE),
-        "krita" => ("K", VIOLET),
-        "vscode" => ("VS", Color32::from_rgb(126, 195, 240)),
-        "obs" | "obs-addon" => ("OBS", Color32::from_rgb(208, 207, 229)),
-        "7zip" => ("7z", TEXT),
-        "git" => ("git", Color32::from_rgb(239, 157, 132)),
-        "vlc" => ("vlc", ORANGE),
-        "gimp" => ("G", Color32::from_rgb(202, 186, 155)),
-        "python" => ("Py", Color32::from_rgb(240, 211, 119)),
-        "notepad-plus-plus" => ("n+", ACCENT),
-        "discord" => ("D", VIOLET),
-        "telegram" => ("TG", Color32::from_rgb(126, 195, 240)),
-        "ayugram" => ("Ay", VIOLET),
-        "brave" => ("Br", ORANGE),
-        "chrome" => ("Ch", Color32::from_rgb(126, 195, 240)),
-        "firefox" => ("Fx", ORANGE),
-        "spotify" => ("Sp", ACCENT),
-        "claude" | "claude-code" => ("Cl", ORANGE),
-        "cursor" => ("Cu", TEXT),
-        "trae" => ("Tr", ACCENT),
-        "prism-launcher" | "prism-cracked" => ("Pr", VIOLET),
+        "amnezia-vpn" => ("A", colors.orange),
+        "flclash" => ("Fl", colors.violet),
+        "happ" => ("H", blue),
+        "httpdebugger" => ("{ }", colors.accent),
+        "blender" | "blender-addon" => ("B", colors.orange),
+        "krita" => ("K", colors.violet),
+        "vscode" => ("VS", blue),
+        "obs" | "obs-addon" => ("OBS", colors.text),
+        "7zip" => ("7z", colors.text),
+        "git" => ("git", colors.orange),
+        "vlc" => ("vlc", colors.orange),
+        "gimp" => ("G", colors.dim),
+        "python" => ("Py", colors.orange),
+        "notepad-plus-plus" => ("n+", colors.accent),
+        "discord" => ("D", colors.violet),
+        "telegram" => ("TG", blue),
+        "ayugram" => ("Ay", colors.violet),
+        "brave" => ("Br", colors.orange),
+        "chrome" => ("Ch", blue),
+        "firefox" => ("Fx", colors.orange),
+        "spotify" => ("Sp", colors.accent),
+        "claude" | "claude-code" => ("Cl", colors.orange),
+        "cursor" => ("Cu", colors.text),
+        "trae" => ("Tr", colors.accent),
+        "prism-launcher" | "prism-cracked" => ("Pr", colors.violet),
         _ => (fallback.as_str(), palette[index]),
     };
     let (rect, _) = ui.allocate_exact_size(Vec2::splat(size), Sense::hover());
@@ -170,9 +138,15 @@ pub fn app_icon(ui: &mut egui::Ui, id: &str, size: f32) {
 }
 
 pub fn logo(ui: &mut egui::Ui, size: f32) {
+    let colors = colors(ui.ctx());
     let (rect, _) = ui.allocate_exact_size(Vec2::splat(size), Sense::hover());
-    ui.painter().rect_filled(rect, 9.0, ACCENT);
-    draw_icon(ui, rect.shrink(size * 0.20), Icon::Download, BG);
+    ui.painter().rect_filled(rect, 9.0, colors.accent_fill);
+    draw_icon(
+        ui,
+        rect.shrink(size * 0.20),
+        Icon::Download,
+        colors.on_accent,
+    );
 }
 
 #[derive(Clone, Copy)]
@@ -184,6 +158,7 @@ pub enum Icon {
     Settings,
     Search,
     Folder,
+    Star,
 }
 
 pub fn icon(ui: &mut egui::Ui, icon: Icon, color: Color32) {
@@ -280,6 +255,21 @@ fn draw_icon(ui: &egui::Ui, rect: Rect, icon: Icon, color: Color32) {
                 (0.92, 0.3),
             ]);
         }
+        Icon::Star => {
+            line(&[
+                (0.5, 0.04),
+                (0.64, 0.34),
+                (0.97, 0.38),
+                (0.73, 0.62),
+                (0.79, 0.96),
+                (0.5, 0.79),
+                (0.21, 0.96),
+                (0.27, 0.62),
+                (0.03, 0.38),
+                (0.36, 0.34),
+                (0.5, 0.04),
+            ]);
+        }
     }
 }
 
@@ -290,8 +280,17 @@ pub fn nav(
     active: bool,
     count: Option<usize>,
 ) -> bool {
+    let colors = colors(ui.ctx());
     let (rect, response) =
         ui.allocate_exact_size(Vec2::new(ui.available_width(), 39.0), Sense::click());
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::SelectableLabel,
+            ui.is_enabled(),
+            active,
+            text,
+        )
+    });
     let selected = ui
         .ctx()
         .animate_bool_responsive(response.id.with("active"), active);
@@ -302,12 +301,20 @@ pub fn nav(
         ui.painter().rect_filled(
             rect,
             8,
-            SIDEBAR
-                .lerp_to_gamma(SURFACE, hovered)
-                .lerp_to_gamma(ACCENT.gamma_multiply(0.10), selected),
+            colors
+                .sidebar
+                .lerp_to_gamma(colors.raised, hovered * 0.55 + selected * 0.30),
         );
     }
-    let color = MUTED.lerp_to_gamma(ACCENT, selected);
+    if selected > 0.0 {
+        let indicator = Rect::from_center_size(
+            Pos2::new(rect.left() + 3.0, rect.center().y),
+            Vec2::new(3.0, 18.0),
+        );
+        ui.painter()
+            .rect_filled(indicator, 2, colors.accent.gamma_multiply(selected));
+    }
+    let color = colors.muted.lerp_to_gamma(colors.text, selected);
     draw_icon(
         ui,
         Rect::from_min_size(rect.min + Vec2::new(12.0, 10.0), Vec2::splat(18.0)),
@@ -316,7 +323,7 @@ pub fn nav(
     );
     let mut label = egui::text::LayoutJob::simple(
         text.to_owned(),
-        FontId::proportional(13.0),
+        FontId::proportional(14.0),
         color,
         (rect.width() - if count.is_some() { 74.0 } else { 52.0 }).max(10.0),
     );
@@ -341,7 +348,105 @@ pub fn nav(
         .clicked()
 }
 
+pub fn favorite_button(ui: &mut egui::Ui, selected: bool, name: &str) -> egui::Response {
+    let colors = colors(ui.ctx());
+    let (rect, response) = ui.allocate_exact_size(Vec2::splat(34.0), Sense::click());
+    let label = format!(
+        "{} «{name}»",
+        if selected {
+            "Убрать из избранного"
+        } else {
+            "В избранное"
+        }
+    );
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::Checkbox,
+            ui.is_enabled(),
+            selected,
+            &label,
+        )
+    });
+    let hover = ui
+        .ctx()
+        .animate_bool_responsive(response.id.with("hover"), response.hovered());
+    ui.painter()
+        .rect_filled(rect, 7, colors.surface.lerp_to_gamma(colors.raised, hover));
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            rect,
+            7,
+            Stroke::new(1.0_f32, colors.accent),
+            egui::StrokeKind::Inside,
+        );
+    }
+    draw_icon(
+        ui,
+        rect.shrink(8.0),
+        Icon::Star,
+        if selected {
+            colors.accent
+        } else {
+            colors.muted
+        },
+    );
+    response
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text(label)
+}
+
+pub fn filter_chip(ui: &mut egui::Ui, label: impl Into<String>, selected: bool) -> egui::Response {
+    let colors = colors(ui.ctx());
+    ui.add(
+        egui::Button::new(RichText::new(label.into()).size(12.0).color(if selected {
+            colors.text
+        } else {
+            colors.muted
+        }))
+        .fill(if selected {
+            colors.raised
+        } else {
+            Color32::TRANSPARENT
+        })
+        .stroke(Stroke::new(
+            1.0_f32,
+            if selected {
+                colors.border
+            } else {
+                Color32::TRANSPARENT
+            },
+        ))
+        .corner_radius(6),
+    )
+}
+
 pub fn window_icon() -> egui::IconData {
     eframe::icon_data::from_png_bytes(include_bytes!("../../assets/SoftDownloader.png"))
         .expect("the bundled application icon is a valid PNG")
+}
+
+pub fn percent_slider(
+    ui: &mut egui::Ui,
+    value: &mut u8,
+    range: std::ops::RangeInclusive<u8>,
+    label: &str,
+) -> egui::Response {
+    let colors = colors(ui.ctx());
+    ui.scope(|ui| {
+        let style = ui.style_mut();
+        style.spacing.slider_width = 160.0;
+        style.spacing.interact_size.y = 24.0;
+        style.visuals.widgets.inactive.bg_fill = colors.border;
+        style.visuals.widgets.hovered.bg_fill = colors.accent_fill;
+        style.visuals.widgets.active.bg_fill = colors.accent_fill;
+        style.visuals.selection.bg_fill = colors.accent_fill;
+        style.visuals.handle_shape = egui::style::HandleShape::Circle;
+        ui.add(
+            egui::Slider::new(value, range)
+                .suffix(" %")
+                .text(label)
+                .trailing_fill(true),
+        )
+    })
+    .inner
 }

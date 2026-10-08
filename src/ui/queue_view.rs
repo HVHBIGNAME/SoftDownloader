@@ -1,12 +1,13 @@
 use eframe::egui::{self, Align, Layout, RichText, Vec2};
 use std::collections::BTreeSet;
 
-use super::app::{Page, SoftDownloaderApp};
+use super::app::SoftDownloaderApp;
 use super::theme;
 use crate::engine::JobStatus;
 
 impl SoftDownloaderApp {
     pub(super) fn queue_page(&mut self, ui: &mut egui::Ui) {
+        let colors = theme::colors(ui.ctx());
         theme::heading(
             ui,
             "Очередь задач",
@@ -29,7 +30,7 @@ impl SoftDownloaderApp {
             theme::pill(
                 ui,
                 &format!("{done} из {} выполнено", self.queue.len()),
-                theme::ACCENT,
+                colors.accent,
             );
             if self.queue_active {
                 ui.spinner();
@@ -49,7 +50,7 @@ impl SoftDownloaderApp {
                     {
                         self.engine.cancel();
                     }
-                } else if ui.button("Повторить незавершённые").clicked() {
+                } else {
                     let failed: BTreeSet<_> = self
                         .queue
                         .iter()
@@ -61,28 +62,40 @@ impl SoftDownloaderApp {
                         })
                         .map(|item| item.id.clone())
                         .collect();
-                    if self.queue.first().is_some_and(|item| item.removal) {
-                        self.remove_programs(&failed);
-                    } else if !failed.is_empty() {
-                        self.prepare_install(failed);
+                    if !failed.is_empty()
+                        && ui
+                            .add_enabled(
+                                self.list_actions_enabled(),
+                                egui::Button::new("Повторить незавершённые"),
+                            )
+                            .clicked()
+                    {
+                        if self.queue.first().is_some_and(|item| item.removal) {
+                            self.remove_programs(&failed);
+                        } else {
+                            self.prepare_install(failed);
+                        }
+                    }
+                    if ui.button("Очистить очередь").clicked() {
+                        self.queue.clear();
                     }
                 }
             });
         });
         if self.queue_active {
-            ui.label(RichText::new("Остановка отменяет загрузки и следующие задачи. Запущенный мастер завершит работу.").size(11.0).color(theme::DIM));
+            ui.label(RichText::new("Остановка отменяет загрузки и следующие задачи. Запущенный мастер завершит работу.").size(11.0).color(colors.dim));
         }
         ui.add_space(14.0);
         egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
             for item in &self.queue {
-                theme::card_frame().show(ui, |ui| {
+                colors.card_frame().show(ui, |ui| {
                     ui.set_width((ui.available_width()-2.0).max(150.0));
-                    let color = match item.status { JobStatus::Done { .. } => theme::ACCENT, JobStatus::Failed(_) => theme::RED, JobStatus::Skipped(_) | JobStatus::Cancelled => theme::ORANGE, _ => theme::MUTED };
+                    let color = match item.status { JobStatus::Done { .. } => colors.accent, JobStatus::Failed(_) => colors.red, JobStatus::Skipped(_) | JobStatus::Cancelled => colors.orange, _ => colors.muted };
                     ui.horizontal(|ui| {
                         theme::app_icon(ui, &item.id, 38.0);
                         ui.vertical(|ui| {
                             ui.label(RichText::new(&item.name).strong());
-                            ui.label(RichText::new(format!("{} · {}", if item.removal { "Удаление" } else { "Установка" }, item.version)).color(theme::DIM).size(11.0));
+                            ui.label(RichText::new(format!("{} · {}", if item.removal { "Удаление" } else { "Установка" }, item.version)).color(colors.dim).size(11.0));
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| { theme::pill(ui, item.status.label(), color); });
                     });
@@ -97,11 +110,11 @@ impl SoftDownloaderApp {
                     match &item.status {
                         JobStatus::Downloading => {
                             let total = if item.size == 0 { "размер уточняется".into() } else { theme::bytes(item.size) };
-                            ui.label(RichText::new(format!("{} / {total}    ·    {}/с", theme::bytes(item.downloaded), theme::bytes(item.bytes_per_second as u64))).color(theme::DIM).size(11.0));
+                            ui.label(RichText::new(format!("{} / {total}    ·    {}/с", theme::bytes(item.downloaded), theme::bytes(item.bytes_per_second as u64))).color(colors.dim).size(11.0));
                         }
                         JobStatus::Failed(message) | JobStatus::Skipped(message) => { ui.label(RichText::new(message).size(12.0).color(color)); }
-                        JobStatus::Installing | JobStatus::Removing => { ui.label(RichText::new("Если появилось окно UAC или штатный мастер, подтверди действие на панели задач.").color(theme::DIM).size(11.0)); }
-                        JobStatus::Done { reboot_required: true } => { ui.label(RichText::new("Windows требуется перезагрузка. Выполни её в удобное время.").color(theme::ORANGE).size(11.0)); }
+                        JobStatus::Installing | JobStatus::Removing => { ui.label(RichText::new("Если появилось окно UAC или штатный мастер, подтверди действие на панели задач.").color(colors.dim).size(11.0)); }
+                        JobStatus::Done { reboot_required: true } => { ui.label(RichText::new("Windows требуется перезагрузка. Выполни её в удобное время.").color(colors.orange).size(11.0)); }
                         _ => {}
                     }
                 });
@@ -111,6 +124,7 @@ impl SoftDownloaderApp {
     }
 
     pub(super) fn installed_page(&mut self, ui: &mut egui::Ui) {
+        let colors = theme::colors(ui.ctx());
         ui.horizontal(|ui| {
             ui.label(RichText::new("Установлено").size(27.0).strong());
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -140,16 +154,20 @@ impl SoftDownloaderApp {
         ui.label(
             RichText::new("Сохраните список, чтобы восстановить программы на другом компьютере.")
                 .size(13.0)
-                .color(theme::MUTED),
+                .color(colors.muted),
         );
         ui.add_space(16.0);
         ui.horizontal(|ui| {
-            ui.add(
+            let search = ui.add(
                 egui::TextEdit::singleline(&mut self.installed_query)
                     .hint_text("Поиск установленной программы…")
                     .desired_width((ui.available_width() - 170.0).max(180.0))
                     .margin(10.0),
             );
+            if self.focus_search {
+                search.request_focus();
+                self.focus_search = false;
+            }
             if ui
                 .add_enabled(
                     !self.queue_active && !self.programs_loading,
@@ -165,11 +183,11 @@ impl SoftDownloaderApp {
         });
         if !self.inventory_warnings.is_empty() {
             egui::CollapsingHeader::new(
-                RichText::new("Не все источники ответили").color(theme::ORANGE),
+                RichText::new("Не все источники ответили").color(colors.orange),
             )
             .show(ui, |ui| {
                 for warning in &self.inventory_warnings {
-                    ui.label(RichText::new(warning).size(11.0).color(theme::MUTED));
+                    ui.label(RichText::new(warning).size(11.0).color(colors.muted));
                 }
             });
         }
@@ -194,7 +212,7 @@ impl SoftDownloaderApp {
         ui.horizontal(|ui| {
             ui.label(
                 RichText::new(format!("Найдено: {}", programs.len()))
-                    .color(theme::DIM)
+                    .color(colors.dim)
                     .size(12.0),
             );
             if ui
@@ -240,6 +258,7 @@ impl SoftDownloaderApp {
     }
 
     fn installed_row(&mut self, ui: &mut egui::Ui, program: &crate::uninstall::InstalledProgram) {
+        let colors = theme::colors(ui.ctx());
         let width = ui.available_width();
         let store_app = matches!(
             program.target,
@@ -255,8 +274,8 @@ impl SoftDownloaderApp {
         } else {
             &program.publisher
         };
-        theme::card_frame().inner_margin(12).show(ui, |ui| {
-            ui.set_width((width - 24.0).max(150.0));
+        colors.card_frame().inner_margin(12).show(ui, |ui| {
+            ui.set_width((width - 26.0).max(150.0));
             ui.horizontal(|ui| {
                 let mut selected = self.selected_removals.contains(&program.id);
                 if ui
@@ -278,10 +297,10 @@ impl SoftDownloaderApp {
                 }
                 let text_width = (ui.available_width() - 48.0).max(160.0);
                 ui.allocate_ui_with_layout(
-                    Vec2::new(text_width, 44.0),
+                    Vec2::new(text_width, 42.0),
                     Layout::top_down(Align::Min),
                     |ui| {
-                        ui.set_min_width(text_width);
+                        ui.set_min_size(Vec2::new(text_width, 42.0));
                         ui.spacing_mut().item_spacing.y = 4.0;
                         ui.add(egui::Label::new(RichText::new(name).strong()).truncate())
                             .on_hover_text(&program.name);
@@ -289,7 +308,7 @@ impl SoftDownloaderApp {
                             egui::Label::new(
                                 RichText::new(format!("{} · {}", program.version, publisher))
                                     .size(11.0)
-                                    .color(theme::DIM),
+                                    .color(colors.dim),
                             )
                             .truncate(),
                         );
@@ -303,7 +322,7 @@ impl SoftDownloaderApp {
                             "Штатный мастер удаления"
                         })
                         .size(11.0)
-                        .color(theme::MUTED),
+                        .color(colors.muted),
                     );
                     if let Some(folder) = program.target.folder()
                         && ui.button("Открыть папку").clicked()
@@ -316,7 +335,7 @@ impl SoftDownloaderApp {
                     if ui
                         .add_enabled(
                             self.list_actions_enabled() && program.target.can_remove(),
-                            egui::Button::new(RichText::new("Удалить программу").color(theme::RED)),
+                            egui::Button::new(RichText::new("Удалить программу").color(colors.red)),
                         )
                         .clicked()
                     {
@@ -329,15 +348,16 @@ impl SoftDownloaderApp {
     }
 
     fn empty_state(&mut self, ui: &mut egui::Ui, title: &str, subtitle: &str) {
+        let colors = theme::colors(ui.ctx());
         ui.add_space(65.0);
         ui.vertical_centered(|ui| {
             theme::logo(ui, 54.0);
             ui.add_space(12.0);
             ui.label(RichText::new(title).size(22.0).strong());
-            ui.label(RichText::new(subtitle).color(theme::MUTED));
+            ui.label(RichText::new(subtitle).color(colors.muted));
             ui.add_space(10.0);
-            if ui.add(theme::primary("Открыть каталог  >")).clicked() {
-                self.page = Page::Catalog;
+            if ui.add(colors.primary("Открыть каталог")).clicked() {
+                self.show_catalog(None);
             }
         });
     }

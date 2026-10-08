@@ -1,0 +1,20 @@
+[
+  {
+    "id": "winter-forest",
+    "name": "Снег в хвойном лесу",
+    "description": "Настоящая съёмка снегопада, 10 секунд, 3,9 МБ",
+    "source": "https://mixkit.co/free-stock-video/snow-falling-in-a-pine-forest-3352/",
+    "url": "https://assets.mixkit.co/videos/3352/3352-720.mp4",
+    "size": 4062164,
+    "sha256": "d0a1fdf598e50c625101aecdb554181c9de5f5fa9d5bba7e46d422c0d3aca9e1"
+  },
+  {
+    "id": "night-mountains",
+    "name": "Звёзды над Маттерхорном",
+    "description": "Ночной таймлапс в Альпах, 4 секунды, 1,6 МБ",
+    "source": "https://mixkit.co/free-stock-video/matterhorn-mountain-landscape-4281/",
+    "url": "https://assets.mixkit.co/videos/4281/4281-720.mp4",
+    "size": 1691554,
+    "sha256": "265779c0b985b8e9848f5738920ba41760519f1a9aeaf284d747035683a67610"
+  }
+]

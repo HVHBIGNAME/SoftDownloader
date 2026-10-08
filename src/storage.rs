@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -7,12 +7,27 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::catalog::Package;
+use crate::preferences::{Appearance, BackgroundSettings, SoundSettings};
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(default)]
 pub struct Settings {
     pub catalog_source: String,
     pub reduced_motion: bool,
+    pub appearance: Appearance,
+    pub sound: SoundSettings,
+    pub background: BackgroundSettings,
+    pub favorites: BTreeSet<String>,
+    pub catalog_layout: CatalogLayout,
+    pub sort_by_name: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CatalogLayout {
+    Grid,
+    #[default]
+    List,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -75,7 +90,10 @@ impl Store {
     }
 
     pub fn load_settings(&self) -> Result<Settings> {
-        read_or_default(&self.root.join("settings.json"))
+        let mut settings: Settings = read_or_default(&self.root.join("settings.json"))?;
+        settings.sound.volume = settings.sound.volume.min(100);
+        settings.background.dimming = settings.background.dimming.clamp(45, 95);
+        Ok(settings)
     }
     pub fn save_settings(&self, settings: &Settings) -> Result<()> {
         write_json(&self.root.join("settings.json"), settings)
@@ -116,6 +134,37 @@ pub fn write_json(path: &Path, value: &impl Serialize) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn old_preferences_migrate_and_favorites_survive_a_catalog_change() {
+        let folder = tempfile::tempdir().unwrap();
+        let store = Store::at(folder.path().to_owned()).unwrap();
+        std::fs::write(
+            store.root.join("settings.json"),
+            br#"{"catalog_source":"old-source","reduced_motion":true}"#,
+        )
+        .unwrap();
+        let mut settings = store.load_settings().unwrap();
+        assert_eq!(settings.catalog_layout, CatalogLayout::List);
+        assert!(settings.favorites.is_empty());
+        assert!(settings.reduced_motion);
+        assert_eq!(settings.appearance, Appearance::default());
+        settings.favorites = BTreeSet::from(["vscode".into(), "future-drive-addon".into()]);
+        settings.catalog_layout = CatalogLayout::List;
+        settings.sort_by_name = true;
+        settings.appearance = Appearance {
+            theme: crate::preferences::Theme::Light,
+            accent: [20, 100, 200],
+            season: crate::preferences::SeasonMode::Off,
+        };
+        store.save_settings(&settings).unwrap();
+        let restored = store.load_settings().unwrap();
+        assert_eq!(restored.favorites, settings.favorites);
+        assert_eq!(restored.catalog_source, "old-source");
+        assert!(restored.sort_by_name);
+        assert_eq!(restored.catalog_layout, CatalogLayout::List);
+        assert_eq!(restored.appearance, settings.appearance);
+    }
 
     #[test]
     fn settings_replace_atomically_and_invalid_json_is_not_ignored() {

@@ -59,6 +59,7 @@ fn run() -> Result<()> {
         viewport: egui::ViewportBuilder::default()
             .with_title("SoftDownloader")
             .with_app_id("SoftDownloader")
+            .with_window_level(egui::WindowLevel::Normal)
             .with_inner_size([1280.0, 840.0])
             .with_min_inner_size([1024.0, 700.0])
             .with_icon(theme::window_icon()),

@@ -78,6 +78,8 @@ pub enum WorkerEvent {
     },
     Warning(String),
     ProgramList(Result<Option<ProgramListAction>, String>),
+    Background(Result<Option<std::path::PathBuf>, String>),
+    BackgroundProgress(Progress),
     QueueFinished,
 }
 
@@ -103,6 +105,7 @@ pub struct Engine {
     shutdown: CancellationToken,
     inventory_generation: u64,
     inventory_cancel: CancellationToken,
+    background_cancel: CancellationToken,
 }
 
 impl Engine {
@@ -122,6 +125,7 @@ impl Engine {
             shutdown: CancellationToken::new(),
             inventory_generation: 0,
             inventory_cancel: CancellationToken::new(),
+            background_cancel: CancellationToken::new(),
         };
         Ok((engine, receiver))
     }
@@ -185,6 +189,55 @@ impl Engine {
                 .transpose();
             let _ = sender.send(WorkerEvent::ProgramList(result));
         });
+    }
+
+    pub fn choose_background(&self) {
+        let sender = self.sender.clone();
+        self.runtime.spawn(async move {
+            let file = rfd::AsyncFileDialog::new()
+                .set_title("Выбрать видеофон")
+                .add_filter(
+                    "Видео (MP4 H.264 рекомендуется)",
+                    &["mp4", "m4v", "mov", "wmv"],
+                )
+                .pick_file()
+                .await;
+            let result = if let Some(file) = file {
+                validate_background(file.path().to_owned()).await.map(Some)
+            } else {
+                Ok(None)
+            };
+            let _ = sender.send(WorkerEvent::Background(
+                result.map_err(|error| format!("{error:#}")),
+            ));
+        });
+    }
+
+    pub fn download_background(&mut self, preset: crate::backgrounds::VideoPreset, store: Store) {
+        self.background_cancel.cancel();
+        self.background_cancel = self.shutdown.child_token();
+        let cancel = self.background_cancel.clone();
+        let client = self.client.clone();
+        let sender = self.sender.clone();
+        self.runtime.spawn(async move {
+            let download = async {
+                let path = crate::backgrounds::download(&client, &preset, &store, &cancel, |progress| {
+                    let _ = sender.send(WorkerEvent::BackgroundProgress(progress));
+                }).await?;
+                validate_background(path).await
+            };
+            let result = tokio::select! {
+                _ = cancel.cancelled() => Err(anyhow::anyhow!("Загрузка видеофона отменена")),
+                result = tokio::time::timeout(std::time::Duration::from_secs(120), download) => {
+                    result.map_err(|_| anyhow::anyhow!("Превышено время загрузки видеофона")).and_then(|result| result)
+                }
+            };
+            let _ = sender.send(WorkerEvent::Background(result.map(Some).map_err(|error| format!("{error:#}"))));
+        });
+    }
+
+    pub fn cancel_background(&self) {
+        self.background_cancel.cancel();
     }
 
     pub fn start(
@@ -276,6 +329,14 @@ impl Drop for Engine {
             task.abort();
         }
     }
+}
+
+async fn validate_background(path: std::path::PathBuf) -> Result<std::path::PathBuf> {
+    tokio::task::spawn_blocking(move || {
+        crate::video::validate_file(&path)?;
+        Ok(path)
+    })
+    .await?
 }
 
 struct QueueRunner {

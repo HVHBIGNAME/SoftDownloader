@@ -12,7 +12,7 @@ def main() -> None:
     scale = 4
     image = Image.new("RGBA", (256 * scale, 256 * scale))
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((8 * scale, 8 * scale, 248 * scale, 248 * scale), 54 * scale, fill="#BCEF77")
+    draw.rounded_rectangle((8 * scale, 8 * scale, 248 * scale, 248 * scale), 54 * scale, fill="#86B9E8")
     for points in [
         [(128, 54), (128, 148)],
         [(86, 108), (128, 150), (170, 108)],

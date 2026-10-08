@@ -1,19 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="268" viewBox="0 0 1280 268" role="img" aria-labelledby="title desc">
   <title id="title">SoftDownloader</title>
-  <desc id="desc">Программы для Windows. Один каталог. Ваш список. Новый компьютер.</desc>
+  <desc id="desc">Программы для Windows. Установка, свои наборы и оформление.</desc>
   <defs>
-    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#191f22"/><stop offset="1" stop-color="#111518"/></linearGradient>
-    <radialGradient id="glow"><stop stop-color="#bcef77" stop-opacity=".10"/><stop offset="1" stop-color="#bcef77" stop-opacity="0"/></radialGradient>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#21272e"/><stop offset="1" stop-color="#15191e"/></linearGradient>
   </defs>
   <rect width="1280" height="268" rx="20" fill="url(#bg)"/>
-  <ellipse cx="1090" cy="140" rx="370" ry="270" fill="url(#glow)"/>
-  <g stroke="#bcef77" fill="none" opacity=".12"><rect x="926" y="-66" width="224" height="224" rx="36" transform="rotate(18 1038 46)"/><rect x="1040" y="102" width="224" height="224" rx="36" transform="rotate(18 1152 214)"/></g>
-  <rect x="56" y="70" width="112" height="112" rx="27" fill="#bcef77"/>
+  <rect x="56" y="70" width="112" height="112" rx="27" fill="#86b9e8"/>
   <g stroke="#121518" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M112 94v42m-19-18 19 19 19-19"/><path d="M83 142v18h58v-18"/></g>
   <g font-family="Segoe UI,Arial,sans-serif">
-    <text x="202" y="83" fill="#bcef77" font-size="12" font-weight="600" letter-spacing="2.5">NATIVE WINDOWS · RUST + EGUI</text>
+    <text x="202" y="83" fill="#aab4bc" font-size="16">Программы для Windows</text>
     <text x="200" y="140" fill="#ecf0ed" font-size="48" font-weight="650" letter-spacing="-1.5">SoftDownloader</text>
-    <text x="202" y="177" fill="#a5aeb3" font-size="19">Один каталог. Ваш список. Новый компьютер.</text>
-    <text x="58" y="236" fill="#718089" font-size="12" letter-spacing="1.2">КАТАЛОГ  /  УСТАНОВКА  /  ПЕРЕНОС ПРОГРАММ</text>
+    <text x="202" y="177" fill="#aab4bc" font-size="19">Установите нужное. Сохраните свой набор. Настройте под себя.</text>
+    <text x="58" y="236" fill="#aab4bc" font-size="13">Один EXE со встроенным каталогом</text>
   </g>
 </svg>

@@ -3,6 +3,29 @@ use crate::catalog::CatalogDocument;
 use crate::storage::InstalledPackage;
 use crate::uninstall::UninstallTarget;
 
+#[test]
+fn custom_sets_roundtrip_with_ids_without_exporting_installer_recipes() {
+    let catalog = CatalogDocument::builtin().unwrap().catalog;
+    let app = catalog.package("vscode").unwrap();
+    let manual = catalog.package("eset-premium").unwrap();
+    let list = ProgramList::from_packages([app, app, manual]);
+    let json = serde_json::to_vec(&list).unwrap();
+    let restored = ProgramList::parse(&json).unwrap();
+    assert_eq!(restored.programs.len(), 2);
+    let rows = restored.match_catalog(&catalog, &Library::new());
+    assert!(
+        rows.iter()
+            .any(|row| row.package_id.as_deref() == Some("vscode")
+                && row.status == MatchStatus::Available)
+    );
+    assert!(
+        rows.iter()
+            .any(|row| row.package_id.as_deref() == Some("eset-premium")
+                && row.status == MatchStatus::Unavailable)
+    );
+    assert!(!String::from_utf8(json).unwrap().contains("silent_args"));
+}
+
 fn list(entries: &[(&[&str], &str)]) -> ProgramList {
     let mut list = ProgramList::from_inventory(&[]);
     list.programs = entries

@@ -54,7 +54,7 @@ pub struct MatchedProgram {
 
 impl ProgramList {
     pub fn from_inventory(programs: &[InstalledProgram]) -> Self {
-        let mut entries: Vec<_> = programs
+        let entries: Vec<_> = programs
             .iter()
             .map(|program| ProgramEntry {
                 package_ids: program
@@ -70,6 +70,25 @@ impl ProgramList {
                 publisher: single_line(&program.publisher),
             })
             .collect();
+        Self::from_entries(entries)
+    }
+
+    pub fn from_packages<'a>(packages: impl IntoIterator<Item = &'a Package>) -> Self {
+        let mut seen = BTreeSet::new();
+        let entries = packages
+            .into_iter()
+            .filter(|package| seen.insert(package.id.clone()))
+            .map(|package| ProgramEntry {
+                package_ids: vec![package.id.clone()],
+                name: single_line(&package.name),
+                version: single_line(&package.version),
+                publisher: single_line(&package.publisher),
+            })
+            .collect();
+        Self::from_entries(entries)
+    }
+
+    fn from_entries(mut entries: Vec<ProgramEntry>) -> Self {
         entries.sort_by_cached_key(|entry| entry.name.to_lowercase());
         Self {
             format: FORMAT.into(),
