@@ -22,6 +22,8 @@ pub struct Settings {
     pub sort_by_name: bool,
     pub updates: crate::updater::UpdateSettings,
     pub restore_selection: BTreeSet<String>,
+    pub installation: crate::installation::InstallationSettings,
+    pub program_sets: Vec<crate::program_sets::ProgramSet>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -95,9 +97,11 @@ impl Store {
         let mut settings: Settings = read_or_default(&self.root.join("settings.json"))?;
         settings.sound.volume = settings.sound.volume.min(100);
         settings.background.dimming = settings.background.dimming.clamp(45, 95);
+        crate::program_sets::validate_sets(&settings.program_sets)?;
         Ok(settings)
     }
     pub fn save_settings(&self, settings: &Settings) -> Result<()> {
+        crate::program_sets::validate_sets(&settings.program_sets)?;
         write_json(&self.root.join("settings.json"), settings)
     }
     pub fn load_library(&self) -> Result<Library> {
@@ -155,6 +159,18 @@ mod tests {
         settings.favorites = BTreeSet::from(["vscode".into(), "future-drive-addon".into()]);
         settings.restore_selection = BTreeSet::from(["git".into(), "vscode".into()]);
         settings.updates.enabled = false;
+        settings.installation.mode = crate::installation::InstallMode::Interactive;
+        settings
+            .installation
+            .overrides
+            .insert("git".into(), crate::installation::InstallMode::Silent);
+        settings.program_sets.push(
+            crate::program_sets::ProgramSet::new(
+                "Работа",
+                BTreeSet::from(["git".into(), "future-id".into()]),
+            )
+            .unwrap(),
+        );
         settings.catalog_layout = CatalogLayout::List;
         settings.sort_by_name = true;
         settings.appearance = Appearance {
@@ -171,6 +187,16 @@ mod tests {
         assert_eq!(restored.appearance, settings.appearance);
         assert_eq!(restored.restore_selection, settings.restore_selection);
         assert!(!restored.updates.enabled);
+        assert_eq!(
+            restored.installation.mode,
+            crate::installation::InstallMode::Interactive
+        );
+        assert_eq!(
+            restored.installation.mode_for("git"),
+            crate::installation::InstallMode::Silent
+        );
+        assert_eq!(restored.program_sets[0].name, "Работа");
+        assert!(restored.program_sets[0].ids.contains("future-id"));
     }
 
     #[test]

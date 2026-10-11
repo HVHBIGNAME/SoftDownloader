@@ -62,7 +62,7 @@ impl SoftDownloaderApp {
             } else if self.filter.quick == QuickFilter::Selected {
                 "Уберите лишнее или сохраните набор для другого компьютера."
             } else {
-                "Найдите программу и отметьте её для установки."
+                "Отметьте программы и нажмите «Установить» или выберите готовый набор."
             })
             .size(13.0)
             .color(if self.document.diagnostics.is_empty() {
@@ -88,10 +88,10 @@ impl SoftDownloaderApp {
 
     pub(super) fn search_and_filters(&mut self, ui: &mut egui::Ui) {
         let colors = theme::colors(ui.ctx());
-        egui::Frame::new()
+        let search = egui::Frame::new()
             .fill(colors.surface_tint(colors.surface))
             .stroke(Stroke::new(1.0_f32, colors.border))
-            .corner_radius(9)
+            .corner_radius(theme::CARD_RADIUS)
             .inner_margin(Margin::symmetric(14, 7))
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
@@ -117,8 +117,18 @@ impl SoftDownloaderApp {
                     {
                         self.filter.query.clear();
                     }
-                });
+                    input.has_focus()
+                })
+                .inner
             });
+        if search.inner {
+            ui.painter().rect_stroke(
+                search.response.rect,
+                theme::CARD_RADIUS,
+                Stroke::new(1.5, colors.accent),
+                egui::StrokeKind::Inside,
+            );
+        }
         ui.add_space(2.0);
         ui.horizontal_wrapped(|ui| {
             for (label, filter) in [
@@ -139,6 +149,13 @@ impl SoftDownloaderApp {
             }
             self.category_picker(ui);
             self.catalog_view_menu(ui);
+            if ui
+                .button("Наборы")
+                .on_hover_text("Готовые и сохранённые наборы программ")
+                .clicked()
+            {
+                self.open_sets();
+            }
         });
         if self.filter.has_constraints() {
             ui.horizontal_wrapped(|ui| {

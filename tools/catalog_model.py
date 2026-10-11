@@ -137,13 +137,16 @@ def validate_catalog(catalog: dict, public: bool = False) -> None:
         require(not manual or not (install or package.get("artifact")), "Manual sources only accept a URL and instructions")
         if source:
             validate_source(source)
+            require(source.get("type") != "direct" or install.get("type") in ("exe", "msi", "interactive"), "Direct sources require a native installer")
         validate_detection(package.get("detect", {}))
         artifact = package.get("artifact")
         if artifact:
-            validate_artifact(artifact, public and package.get("enabled", True), signed=source.get("type") == "website")
+            validate_artifact(artifact, public and package.get("enabled", True), signed=source.get("type") in ("website", "direct"))
         if install:
             validate_install(install)
             require(source.get("type") != "website" or install["type"] != "zip", "Website artifacts must be signed EXE/MSI files")
+            if source.get("type") == "direct":
+                require(install["type"] in ("exe", "msi", "interactive") and source["file_name"].lower().endswith(INSTALL_EXTENSIONS[install["type"]]), "Direct sources require a matching signed EXE/MSI installer")
             if artifact:
                 require(artifact["file_name"].lower().endswith(INSTALL_EXTENSIONS[install["type"]]), "Installer extension does not match install.type")
 
@@ -239,7 +242,15 @@ def validate_detection(detect: dict) -> None:
 
 def validate_source(source: dict) -> None:
     kind = source.get("type")
-    require(kind in ("github", "website", "winget", "manual"), "Unsupported source.type")
+    require(kind in ("github", "website", "winget", "manual", "direct"), "Unsupported source.type")
+    if kind in ("manual", "direct"):
+        https_url(source["url"])
+        if kind == "manual":
+            require(bool(source.get("instructions", "").strip()), "Manual source needs instructions")
+        else:
+            filename = source["file_name"]
+            require(len(safe_relative(filename).parts) == 1 and filename.lower().endswith((".exe", ".msi")), "Direct source requires an EXE/MSI filename")
+        return
     if kind == "github":
         require(bool(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", source.get("repository", ""))), "Invalid GitHub repository")
         re.compile(source["asset_pattern"])
@@ -254,12 +265,9 @@ def validate_source(source: dict) -> None:
         if source.get("version_pattern") is not None:
             pattern = source["version_pattern"]
             require(len(pattern) <= 256 and re.compile(pattern).groups == 1, "Version pattern requires exactly one capture group")
-    elif kind == "winget":
+    else:
         require(bool(TOOL_ID_PATTERN.fullmatch(source.get("package_id", ""))), "Invalid WinGet ID")
         require(source.get("repository", "winget") in ("winget", "msstore"), "Unsupported WinGet repository")
-    else:
-        https_url(source["url"])
-        require(bool(source.get("instructions", "").strip()), "Manual source needs instructions")
 
 
 def file_metadata(path: Path) -> tuple[int, str]:

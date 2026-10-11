@@ -68,9 +68,13 @@
           }
         },
         {
-          "if": { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "const": "website" } } } } },
+          "if": { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "enum": ["website", "direct"] } } } } },
           "then": { "properties": { "install": { "type": "object", "properties": { "type": { "enum": ["exe", "msi", "interactive", "portable"] } } } } },
           "else": { "properties": { "artifact": { "properties": { "sha256": { "minLength": 64 }, "size": { "minimum": 1 } } } } }
+        },
+        {
+          "if": { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "const": "direct" } } } } },
+          "then": { "required": ["install"], "properties": { "install": { "type": "object", "properties": { "type": { "enum": ["exe", "msi", "interactive"] } } } } }
         },
         {
           "if": { "required": ["source"], "properties": { "source": { "type": "object", "required": ["type"], "properties": { "type": { "const": "manual" } } } } },
@@ -109,6 +113,10 @@
     },
     "source": {
       "oneOf": [
+        {
+          "type": "object", "additionalProperties": false, "required": ["type", "url", "file_name"],
+          "properties": { "type": { "const": "direct" }, "url": { "$ref": "#/$defs/https" }, "file_name": { "type": "string", "pattern": "^[^/\\\\]+[.](exe|msi|EXE|MSI)$" } }
+        },
         {
           "type": "object", "additionalProperties": false, "required": ["type", "repository", "asset_pattern"],
           "properties": {

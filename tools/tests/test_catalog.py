@@ -116,6 +116,15 @@ class CatalogToolTests(unittest.TestCase):
             self.assertNotIn(key, manager_ids, package["id"])
             manager_ids.add(key)
 
+    def test_direct_installer_requires_a_matching_native_recipe(self):
+        base = catalog.builtin_catalog()
+        package = next(p for p in base["packages"] if p["id"] == "eset-premium")
+        package["artifact"] = {"file_name": package["source"]["file_name"], "size": 0, "sha256": "", "url": package["source"]["url"]}
+        catalog.validate_catalog(base, public=True)
+        package["install"] = {"type": "zip", "destination": {"root": "local_app_data", "path": "fixture"}}
+        with self.assertRaises(ValueError):
+            catalog.validate_catalog(base)
+
     def test_manager_pairing_and_detection_validation_reject_unsafe_input(self):
         document = {"schema_version": 1, "title": "Test", "categories": [], "packages": [{
             "id": "tool", "name": "Tool", "version": "Последняя", "publisher": "Test", "description": "Test", "category": "utilities",

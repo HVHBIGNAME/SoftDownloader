@@ -6,6 +6,55 @@ use crate::catalog::{Catalog, Package};
 use crate::storage::{Library, is_installed};
 use crate::uninstall::InstalledProgram;
 
+#[derive(Clone, Debug)]
+pub struct BlockedPackage {
+    pub id: String,
+    pub name: String,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct InstallBatch {
+    pub packages: Vec<Package>,
+    pub installed: usize,
+    pub blocked: Vec<BlockedPackage>,
+}
+
+pub fn prepare_batch(
+    catalog: &Catalog,
+    selected: &BTreeSet<String>,
+    library: &Library,
+) -> InstallBatch {
+    let mut batch = InstallBatch::default();
+    let mut added = BTreeSet::new();
+    for id in selected {
+        if catalog
+            .package(id)
+            .is_some_and(|p| is_installed(p, library))
+        {
+            batch.installed += 1;
+            continue;
+        }
+        match create_plan(catalog, &BTreeSet::from([id.clone()]), library) {
+            Ok(packages) => {
+                for package in packages {
+                    if added.insert(package.id.clone()) {
+                        batch.packages.push(package);
+                    }
+                }
+            }
+            Err(error) => batch.blocked.push(BlockedPackage {
+                id: id.clone(),
+                name: catalog
+                    .package(id)
+                    .map_or_else(|| id.clone(), |p| p.name.clone()),
+                reason: format!("{error:#}"),
+            }),
+        }
+    }
+    batch
+}
+
 pub fn removal_plan(
     catalog: &Catalog,
     state: &Library,

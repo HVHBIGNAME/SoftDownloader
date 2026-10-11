@@ -7,6 +7,9 @@ pub use palette::{Palette, ThemeTransition, colors, on_color};
 mod status;
 pub use status::{PackageStatus, package_status};
 
+pub const CARD_RADIUS: u8 = 16;
+pub const CONTROL_RADIUS: u8 = 10;
+
 pub fn initialize(ctx: &egui::Context) {
     system_fonts(ctx);
     let mut style = (*ctx.style()).clone();
@@ -52,7 +55,7 @@ pub fn pill(ui: &mut egui::Ui, text: &str, color: Color32) {
     let colors = colors(ui.ctx());
     egui::Frame::new()
         .fill(colors.surface.lerp_to_gamma(color, 0.08))
-        .corner_radius(5)
+        .corner_radius(255)
         .inner_margin(Margin::symmetric(7, 3))
         .show(ui, |ui| {
             ui.label(RichText::new(text).size(10.5).color(color));
@@ -282,7 +285,7 @@ pub fn nav(
 ) -> bool {
     let colors = colors(ui.ctx());
     let (rect, response) =
-        ui.allocate_exact_size(Vec2::new(ui.available_width(), 39.0), Sense::click());
+        ui.allocate_exact_size(Vec2::new(ui.available_width(), 42.0), Sense::click());
     response.widget_info(|| {
         egui::WidgetInfo::selected(
             egui::WidgetType::SelectableLabel,
@@ -294,17 +297,18 @@ pub fn nav(
     let selected = ui
         .ctx()
         .animate_bool_responsive(response.id.with("active"), active);
-    let hovered = ui
-        .ctx()
-        .animate_bool_responsive(response.id.with("hover"), response.hovered());
+    let hovered = ui.ctx().animate_bool_responsive(
+        response.id.with("hover"),
+        response.hovered() || response.has_focus(),
+    );
     if selected > 0.0 || hovered > 0.0 {
         ui.painter().rect_filled(
             rect,
-            8,
+            CONTROL_RADIUS,
             colors.surface_tint(
                 colors
                     .sidebar
-                    .lerp_to_gamma(colors.raised, hovered * 0.55 + selected * 0.30),
+                    .lerp_to_gamma(colors.raised, (hovered * 0.45 + selected * 0.75).min(1.0)),
             ),
         );
     }
@@ -316,12 +320,20 @@ pub fn nav(
         ui.painter()
             .rect_filled(indicator, 2, colors.accent.gamma_multiply(selected));
     }
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            rect,
+            CONTROL_RADIUS,
+            Stroke::new(1.0, colors.accent),
+            egui::StrokeKind::Inside,
+        );
+    }
     let color = colors.muted.lerp_to_gamma(colors.text, selected);
     draw_icon(
         ui,
-        Rect::from_min_size(rect.min + Vec2::new(12.0, 10.0), Vec2::splat(18.0)),
+        Rect::from_center_size(rect.left_center() + Vec2::new(21.0, 0.0), Vec2::splat(18.0)),
         icon_type,
-        color,
+        colors.muted.lerp_to_gamma(colors.accent, selected),
     );
     let mut label = egui::text::LayoutJob::simple(
         text.to_owned(),
@@ -337,17 +349,29 @@ pub fn nav(
         color,
     );
     if let Some(count) = count {
-        ui.painter().text(
-            Pos2::new(rect.right() - 12.0, rect.center().y),
-            Align2::RIGHT_CENTER,
-            count,
-            FontId::proportional(12.0),
-            color,
-        );
+        nav_count(ui, rect, count, color);
     }
     response
         .on_hover_cursor(egui::CursorIcon::PointingHand)
         .clicked()
+}
+
+fn nav_count(ui: &egui::Ui, rect: Rect, count: usize, color: Color32) {
+    let colors = colors(ui.ctx());
+    let text = ui
+        .painter()
+        .layout_no_wrap(count.to_string(), FontId::proportional(11.0), color);
+    let badge = Rect::from_center_size(
+        Pos2::new(
+            rect.right() - 10.0 - (text.size().x + 14.0) * 0.5,
+            rect.center().y,
+        ),
+        Vec2::new(text.size().x + 14.0, 22.0),
+    );
+    ui.painter()
+        .rect_filled(badge, 255, colors.surface_tint(colors.surface));
+    ui.painter()
+        .galley(badge.center() - text.size() * 0.5, text, color);
 }
 
 pub fn favorite_button(ui: &mut egui::Ui, selected: bool, name: &str) -> egui::Response {
@@ -374,13 +398,17 @@ pub fn favorite_button(ui: &mut egui::Ui, selected: bool, name: &str) -> egui::R
         .animate_bool_responsive(response.id.with("hover"), response.hovered());
     ui.painter().rect_filled(
         rect,
-        7,
-        colors.surface_tint(colors.surface.lerp_to_gamma(colors.raised, hover)),
+        CONTROL_RADIUS,
+        colors.surface_tint(
+            colors
+                .surface
+                .lerp_to_gamma(colors.raised, if selected { 0.8 } else { hover }),
+        ),
     );
     if response.has_focus() {
         ui.painter().rect_stroke(
             rect,
-            7,
+            CONTROL_RADIUS,
             Stroke::new(1.0_f32, colors.accent),
             egui::StrokeKind::Inside,
         );
@@ -421,7 +449,7 @@ pub fn filter_chip(ui: &mut egui::Ui, label: impl Into<String>, selected: bool) 
                 Color32::TRANSPARENT
             },
         ))
-        .corner_radius(6),
+        .corner_radius(255),
     )
 }
 

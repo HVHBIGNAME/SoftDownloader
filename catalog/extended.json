@@ -465,9 +465,10 @@
     },
     {
       "id": "eset-premium", "name": "ESET HOME Security Premium", "version": "Последняя", "publisher": "ESET",
-      "description": "ESET Premium / Smart Security Premium. Редакция и доступные функции определяются подпиской ESET.", "category": "security",
+      "description": "ESET Premium / Smart Security Premium. Официальный Live Installer скачивается и проверяется по подписи Windows, затем открывает мастер. Войдите в ESET HOME или укажите лицензию.", "category": "security",
       "tags": ["eset", "nod32 premium", "smart security premium", "антивирус"], "homepage": "https://www.eset.com/int/home/protection-plans/",
-      "source": { "type": "manual", "url": "https://download.eset.com/com/eset/tools/installers/live_essp/latest/eset_smart_security_premium_live_installer.exe", "instructions": "По ссылке скачивается официальный ESET Smart Security Premium Live Installer. Сохраните и запустите eset_smart_security_premium_live_installer.exe, затем войдите в ESET HOME или укажите действующую лицензию. NOD32 Antivirus и Premium — разные редакции." },
+      "source": { "type": "direct", "url": "https://download.eset.com/com/eset/tools/installers/live_essp/latest/eset_smart_security_premium_live_installer.exe", "file_name": "eset_smart_security_premium_live_installer.exe" },
+      "install": { "type": "interactive", "requires_admin": true },
       "detect": { "names": ["ESET Security", "ESET Smart Security Premium", "ESET HOME Security Premium"], "paths": ["%ProgramFiles%/ESET/ESET Security/egui.exe"] }
     },
     {
@@ -673,6 +674,118 @@
       "tags": ["obsidian", "markdown", "заметки"], "homepage": "https://obsidian.md/",
       "source": { "type": "winget", "package_id": "Obsidian.Obsidian" }, "install": { "type": "winget" },
       "detect": { "paths": ["%LOCALAPPDATA%/Obsidian/Obsidian.exe", "%LOCALAPPDATA%/Programs/Obsidian/Obsidian.exe"] }
+    },
+    {
+      "id": "localsend", "name": "LocalSend", "version": "Последняя", "publisher": "Tien Do Nam",
+      "description": "Передача файлов между ПК и телефоном по локальной сети без облака и регистрации.", "category": "utilities",
+      "tags": ["файлы", "передача", "телефон", "wifi"], "homepage": "https://localsend.org/",
+      "source": { "type": "winget", "package_id": "LocalSend.LocalSend" }, "install": { "type": "winget" },
+      "detect": { "names": ["LocalSend"] }
+    },
+    {
+      "id": "kde-connect", "name": "KDE Connect", "version": "Последняя", "publisher": "KDE e.V.",
+      "description": "Связь с телефоном: уведомления, передача файлов и управление воспроизведением. Сопряжение выполняется в приложении.", "category": "devices",
+      "tags": ["телефон", "уведомления", "файлы", "android"], "homepage": "https://kdeconnect.kde.org/",
+      "source": { "type": "winget", "package_id": "KDE.KDEConnect" }, "install": { "type": "winget" },
+      "detect": { "names": ["KDE Connect"] }
+    },
+    {
+      "id": "quicklook", "name": "QuickLook", "version": "Последняя", "publisher": "Paddy Xu",
+      "description": "Быстрый предпросмотр изображений, документов и других файлов по пробелу в Проводнике.", "category": "utilities",
+      "tags": ["предпросмотр", "проводник", "пробел", "файлы"], "homepage": "https://github.com/QL-Win/QuickLook",
+      "source": { "type": "winget", "package_id": "QL-Win.QuickLook" }, "install": { "type": "winget" },
+      "detect": { "names": ["QuickLook"] }
+    },
+    {
+      "id": "ditto", "name": "Ditto", "version": "Последняя", "publisher": "Scott Brogden",
+      "description": "История буфера обмена с поиском: сохраняет скопированный текст и изображения для повторной вставки.", "category": "utilities",
+      "tags": ["буфер обмена", "копирование", "история", "clipboard"], "homepage": "https://sabrogden.github.io/Ditto/",
+      "source": { "type": "winget", "package_id": "Ditto.Ditto" }, "install": { "type": "winget" },
+      "detect": { "names": ["Ditto"] }
+    },
+    {
+      "id": "flow-launcher", "name": "Flow Launcher", "version": "Последняя", "publisher": "Flow-Launcher Team",
+      "description": "Быстрый запуск программ, поиск файлов, калькулятор и плагины через клавиатурную панель.", "category": "utilities",
+      "tags": ["поиск", "лаунчер", "клавиатура", "плагины"], "homepage": "https://github.com/Flow-Launcher/Flow.Launcher",
+      "source": { "type": "winget", "package_id": "Flow-Launcher.Flow-Launcher" }, "install": { "type": "winget" },
+      "detect": { "names": ["Flow Launcher"] }
+    },
+    {
+      "id": "auto-dark-mode", "name": "Auto Dark Mode", "version": "Последняя", "publisher": "Armin Osaj & Samuel Schiegg",
+      "description": "Автоматическое переключение светлой и тёмной темы Windows по времени или закату. Расписание задаётся после установки.", "category": "system-tools",
+      "tags": ["тема", "оформление", "тёмный режим", "расписание"], "homepage": "https://github.com/AutoDarkMode/Windows-Auto-Night-Mode",
+      "source": { "type": "winget", "package_id": "ArminOsaj.AutoDarkMode" }, "install": { "type": "winget" },
+      "detect": { "names": ["Auto Dark Mode"], "winget_ids": ["Armin2208.WindowsAutoNightMode"] }
+    },
+    {
+      "id": "copyq", "name": "CopyQ", "version": "Последняя", "publisher": "Lukas Holecek",
+      "description": "Менеджер буфера обмена с вкладками, редактором, поиском и настраиваемыми командами.", "category": "utilities",
+      "tags": ["буфер обмена", "история", "clipboard", "автоматизация"], "homepage": "https://github.com/hluk/CopyQ",
+      "source": { "type": "winget", "package_id": "hluk.CopyQ" }, "install": { "type": "winget" },
+      "detect": { "names": ["CopyQ"], "commands": ["copyq.exe"] }
+    },
+    {
+      "id": "bcuninstaller", "name": "Bulk Crap Uninstaller", "version": "Последняя", "publisher": "Marcin Szeniak",
+      "description": "Массовое удаление программ и поиск оставшихся файлов. Список удаления и очистку подтверждайте в BCUninstaller.", "category": "system-tools",
+      "tags": ["удаление", "очистка", "BCU", "BCUninstaller"], "homepage": "https://www.bcuninstaller.com/",
+      "source": { "type": "winget", "package_id": "Klocman.BulkCrapUninstaller" }, "install": { "type": "winget" },
+      "detect": { "names": ["BCUninstaller", "Bulk Crap Uninstaller"] }
+    },
+    {
+      "id": "unigetui", "name": "UniGetUI", "version": "Последняя", "publisher": "Devolutions Inc.",
+      "description": "Графическое управление пакетами WinGet, Scoop, Chocolatey и других менеджеров: поиск, установка и обновления.", "category": "system-tools",
+      "tags": ["пакеты", "обновления", "winget", "wingetui"], "homepage": "https://devolutions.net/unigetui/",
+      "source": { "type": "winget", "package_id": "Devolutions.UniGetUI" }, "install": { "type": "winget" },
+      "detect": { "names": ["UniGetUI", "WingetUI"], "winget_ids": ["MartiCliment.UniGetUI", "MartiCliment.WingetUI"] }
+    },
+    {
+      "id": "pdf24", "name": "PDF24 Creator", "version": "Последняя", "publisher": "geek software GmbH",
+      "description": "Локальные инструменты PDF: объединение, разделение, сжатие, распознавание текста и виртуальный принтер.", "category": "productivity",
+      "tags": ["PDF", "документы", "сжатие", "OCR"], "homepage": "https://www.pdf24.org/en/",
+      "source": { "type": "winget", "package_id": "geeksoftwareGmbH.PDF24Creator" }, "install": { "type": "winget" },
+      "detect": { "names": ["PDF24 Creator"] }
+    },
+    {
+      "id": "naps2", "name": "NAPS2", "version": "Последняя", "publisher": "NAPS2 Software",
+      "description": "Сканирование документов в PDF и изображения, перестановка страниц и распознавание текста OCR.", "category": "productivity",
+      "tags": ["сканер", "сканирование", "PDF", "OCR"], "homepage": "https://www.naps2.com/",
+      "source": { "type": "winget", "package_id": "Cyanfish.NAPS2" }, "install": { "type": "winget" },
+      "detect": { "names": ["NAPS2"] }
+    },
+    {
+      "id": "file-converter", "name": "File Converter", "version": "Последняя", "publisher": "Adrien Allard",
+      "description": "Конвертация и сжатие изображений, аудио и видео прямо из контекстного меню Проводника.", "category": "utilities",
+      "tags": ["конвертация", "проводник", "изображения", "видео"], "homepage": "https://file-converter.io/",
+      "source": { "type": "winget", "package_id": "AdrienAllard.FileConverter" }, "install": { "type": "winget" },
+      "detect": { "names": ["File Converter"] }
+    },
+    {
+      "id": "screentogif", "name": "ScreenToGif", "version": "Последняя", "publisher": "Nicke Manarin",
+      "description": "Запись области экрана с покадровым редактированием и экспортом в GIF, APNG или видео.", "category": "video-tools",
+      "tags": ["GIF", "анимация", "запись экрана", "скринкаст"], "homepage": "https://www.screentogif.com/",
+      "source": { "type": "winget", "package_id": "NickeManarin.ScreenToGif" }, "install": { "type": "winget" },
+      "detect": { "names": ["ScreenToGif"] }
+    },
+    {
+      "id": "double-commander", "name": "Double Commander", "version": "Последняя", "publisher": "Alexander Koblov",
+      "description": "Бесплатный двухпанельный файловый менеджер с вкладками, работой с архивами и пакетным переименованием.", "category": "utilities",
+      "tags": ["файлы", "менеджер файлов", "две панели", "переименование"], "homepage": "https://doublecmd.sourceforge.io/",
+      "source": { "type": "winget", "package_id": "alexx2000.DoubleCommander" }, "install": { "type": "winget" },
+      "detect": { "names": ["Double Commander"], "commands": ["doublecmd.exe"] }
+    },
+    {
+      "id": "duplicati", "name": "Duplicati", "version": "Последняя", "publisher": "Duplicati Team",
+      "description": "Резервные копии файлов с шифрованием и расписанием в локальное или облачное хранилище. Папки и место хранения выбираются в приложении.", "category": "system-tools",
+      "tags": ["резервные копии", "бэкап", "backup", "шифрование"], "homepage": "https://www.duplicati.com/",
+      "source": { "type": "winget", "package_id": "Duplicati.Duplicati" }, "install": { "type": "winget" },
+      "detect": { "names": ["Duplicati"] }
+    },
+    {
+      "id": "imageglass", "name": "ImageGlass", "version": "Последняя", "publisher": "Duong Dieu Phap",
+      "description": "Просмотр фотографий и изображений, включая WebP, SVG, HEIC и другие форматы, с галереей и слайд-шоу.", "category": "media",
+      "tags": ["изображения", "фото", "просмотр", "галерея"], "homepage": "https://imageglass.org/",
+      "source": { "type": "winget", "package_id": "DuongDieuPhap.ImageGlass" }, "install": { "type": "winget" },
+      "detect": { "names": ["ImageGlass"] }
     },
     {
       "id": "r2modman", "name": "r2modman", "version": "Последняя", "publisher": "ebkr",

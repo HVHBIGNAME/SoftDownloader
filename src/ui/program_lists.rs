@@ -107,6 +107,7 @@ impl SoftDownloaderApp {
             return;
         };
         let mut close = false;
+        let mut install_ids = None;
         let response = egui::Modal::new(egui::Id::new("program-list-import")).frame(colors.dialog_frame().inner_margin(24)).show(ctx, |ui| {
             ui.set_width(640.0);
             theme::heading(ui, "Восстановить программы", "Выберите, что добавить к установке на этом компьютере.");
@@ -144,6 +145,11 @@ impl SoftDownloaderApp {
             ui.label(RichText::new("Версии в файле — для справки. Установка использует текущий каталог; зависимости добавятся автоматически.").size(11.0).color(colors.muted));
             ui.add_space(8.0);
             ui.horizontal(|ui| {
+                if ui.add_enabled(!preview.selected.is_empty() && self.list_actions_enabled(), egui::Button::new(format!("Установить сейчас · {}", preview.selected.len()))).clicked() {
+                    let current = preview.list.match_catalog(&self.document.catalog, &self.effective_state);
+                    install_ids = Some(current.into_iter().filter(|row| row.status == MatchStatus::Available).filter_map(|row| row.package_id).filter(|id| preview.selected.contains(id)).collect());
+                    close = true;
+                }
                 if ui.add_enabled(!preview.selected.is_empty() && self.list_actions_enabled(), colors.primary(format!("Добавить к выбору · {}", preview.selected.len()))).clicked() {
                     let current = preview.list.match_catalog(&self.document.catalog, &self.effective_state);
                     let ids: BTreeSet<_> = current.into_iter().filter(|row| row.status == MatchStatus::Available)
@@ -152,6 +158,7 @@ impl SoftDownloaderApp {
                     self.show_catalog(None);
                     self.imported_selection = Some(ImportedSelection { name: preview.name.clone(), ids });
                     self.message = None;
+                    self.save_preferences();
                     close = true;
                 }
                 if ui.button("Отмена").clicked() { close = true; }
@@ -159,6 +166,9 @@ impl SoftDownloaderApp {
         });
         if !close && !response.should_close() {
             self.import_preview = Some(preview);
+        }
+        if let Some(ids) = install_ids {
+            self.prepare_install(ids);
         }
     }
 }

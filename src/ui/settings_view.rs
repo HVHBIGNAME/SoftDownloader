@@ -10,18 +10,24 @@ pub(super) enum SettingsSection {
     Background,
     Sources,
     Updates,
+    Installation,
 }
 
 impl SoftDownloaderApp {
     pub(super) fn settings_page(&mut self, ui: &mut egui::Ui) {
-        theme::heading(ui, "Настройки", "Внешний вид, звуки и источники программ.");
-        ui.horizontal(|ui| {
+        theme::heading(
+            ui,
+            "Настройки",
+            "Установка, внешний вид и источники программ.",
+        );
+        ui.horizontal_wrapped(|ui| {
             for (section, name) in [
                 (SettingsSection::Appearance, "Оформление"),
                 (SettingsSection::Sound, "Звуки"),
                 (SettingsSection::Background, "Видеофон"),
                 (SettingsSection::Sources, "Источники и данные"),
                 (SettingsSection::Updates, "Обновления"),
+                (SettingsSection::Installation, "Установка"),
             ] {
                 ui.selectable_value(&mut self.settings_section, section, name);
             }
@@ -36,6 +42,7 @@ impl SoftDownloaderApp {
                 SettingsSection::Background => self.background_settings(ui),
                 SettingsSection::Sources => self.source_settings(ui),
                 SettingsSection::Updates => self.update_settings(ui),
+                SettingsSection::Installation => self.installation_settings(ui),
             });
     }
 

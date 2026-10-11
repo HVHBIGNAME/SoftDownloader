@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use eframe::egui::{self, Color32, CornerRadius, RichText, Stroke, Vec2};
 
+use super::{CARD_RADIUS, CONTROL_RADIUS};
 use crate::preferences::{Appearance, Season, Theme};
 
 #[derive(Clone, Copy, Debug)]
@@ -208,7 +209,7 @@ impl Palette {
         egui::Frame::new()
             .fill(self.surface_tint(self.surface))
             .stroke(Stroke::new(1.0_f32, self.border))
-            .corner_radius(10)
+            .corner_radius(CARD_RADIUS)
             .inner_margin(16)
     }
 
@@ -220,7 +221,7 @@ impl Palette {
         egui::Button::new(RichText::new(text.into()).color(self.on_accent).strong())
             .fill(self.accent_fill)
             .min_size(Vec2::new(0.0, 40.0))
-            .corner_radius(6)
+            .corner_radius(CONTROL_RADIUS)
     }
 }
 
@@ -348,6 +349,8 @@ fn apply(ctx: &egui::Context, colors: Palette, reduced: bool) {
         v.extreme_bg_color = colors.bg;
         v.faint_bg_color = colors.surface;
         v.window_stroke = Stroke::new(1.0_f32, colors.border);
+        v.window_corner_radius = CornerRadius::same(CARD_RADIUS);
+        v.menu_corner_radius = CornerRadius::same(CONTROL_RADIUS);
         v.selection.bg_fill = colors.surface.lerp_to_gamma(colors.accent, 0.18);
         v.selection.stroke = Stroke::new(1.4_f32, colors.accent);
         v.hyperlink_color = colors.accent;
@@ -363,7 +366,7 @@ fn apply(ctx: &egui::Context, colors: Palette, reduced: bool) {
             &mut v.widgets.open,
         ] {
             widget.fg_stroke = Stroke::new(1.2_f32, colors.text);
-            widget.corner_radius = CornerRadius::same(6);
+            widget.corner_radius = CornerRadius::same(CONTROL_RADIUS);
         }
         for widget in [&mut v.widgets.inactive, &mut v.widgets.open] {
             widget.bg_fill = colors.surface;

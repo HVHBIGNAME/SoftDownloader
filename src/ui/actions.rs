@@ -28,6 +28,7 @@ impl SoftDownloaderApp {
     }
 
     pub(super) fn save_preferences(&mut self) -> bool {
+        self.settings.restore_selection = self.selected.clone();
         match self.store.save_settings(&self.settings) {
             Ok(()) => true,
             Err(error) => {

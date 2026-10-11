@@ -10,10 +10,11 @@ use super::icons::IconLoader;
 use super::program_lists::{ImportPreview, ImportedSelection};
 use super::sounds::{Cue, SoundPlayer};
 use super::theme::{self, Icon};
-use crate::catalog::{CatalogDocument, Package, PackageKind};
+use crate::catalog::{CatalogDocument, PackageKind};
 use crate::catalog_filter::CatalogFilter;
 use crate::engine::{Engine, JobStatus, WorkerEvent};
-use crate::planner::create_plan;
+use crate::installation::InstallationSettings;
+use crate::planner::{InstallBatch, prepare_batch};
 use crate::storage::{Library, Settings, Store};
 use crate::uninstall::InstalledProgram;
 
@@ -22,6 +23,7 @@ pub(super) enum Page {
     Catalog,
     Installed,
     Queue,
+    Sets,
     Settings,
 }
 
@@ -34,12 +36,14 @@ pub(super) struct QueueItem {
     pub status: JobStatus,
     pub downloaded: u64,
     pub bytes_per_second: f64,
+    pub mode_label: String,
 }
 
 #[derive(Clone)]
 pub(super) struct InstallConfirmation {
-    packages: Vec<Package>,
-    requested: BTreeSet<String>,
+    pub batch: InstallBatch,
+    pub requested: BTreeSet<String>,
+    pub installation: InstallationSettings,
 }
 
 pub struct SoftDownloaderApp {
@@ -89,6 +93,8 @@ pub struct SoftDownloaderApp {
     pub(super) details: Option<String>,
     pub(super) queue: Vec<QueueItem>,
     pub(super) queue_active: bool,
+    pub(super) queue_already_installed: usize,
+    pub(super) sets_ui: super::sets_view::SetsUi,
     pub(super) confirm_plan: Option<InstallConfirmation>,
     pub(super) confirm_removal: Option<Vec<InstalledProgram>>,
     pub(super) error: Option<String>,
@@ -102,12 +108,22 @@ impl SoftDownloaderApp {
         store: Store,
         catalog_override: Option<String>,
     ) -> Result<Self> {
-        theme::initialize(&cc.egui_ctx);
+        let mut app = Self::from_context(&cc.egui_ctx, store, catalog_override)?;
+        app.start_catalog_load(app.source_input.clone(), false);
+        Ok(app)
+    }
+
+    pub(super) fn from_context(
+        ctx: &egui::Context,
+        store: Store,
+        catalog_override: Option<String>,
+    ) -> Result<Self> {
+        theme::initialize(ctx);
         let settings = store.load_settings()?;
         let selected = settings.restore_selection.clone();
         let updater = super::update_view::UpdateUi::new(&store);
         let appearance = theme::ThemeTransition::new(
-            &cc.egui_ctx,
+            ctx,
             settings.appearance,
             settings.appearance.current_season(),
             settings.reduced_motion,
@@ -122,7 +138,7 @@ impl SoftDownloaderApp {
                 settings.catalog_source.clone()
             }
         });
-        let mut app = Self {
+        let app = Self {
             document: CatalogDocument::builtin()?,
             store,
             engine,
@@ -133,7 +149,7 @@ impl SoftDownloaderApp {
             inventory_unverified: BTreeSet::new(),
             inventory_generation: 0,
             programs: Vec::new(),
-            icons: IconLoader::new(cc.egui_ctx.clone())?,
+            icons: IconLoader::new(ctx.clone())?,
             package_icons: BTreeMap::new(),
             programs_loading: false,
             installed_query: String::new(),
@@ -141,9 +157,9 @@ impl SoftDownloaderApp {
             settings,
             updater,
             appearance,
-            sounds: SoundPlayer::new(cc.egui_ctx.clone())?,
+            sounds: SoundPlayer::new(ctx.clone())?,
             settings_section: super::settings_view::SettingsSection::Appearance,
-            background: super::background::Background::new(&cc.egui_ctx)?,
+            background: super::background::Background::new(ctx)?,
             background_presets: crate::backgrounds::presets()?,
             background_busy: false,
             background_picking: false,
@@ -156,7 +172,7 @@ impl SoftDownloaderApp {
             import_preview: None,
             imported_selection: None,
             message: None,
-            source_input: source.clone(),
+            source_input: source,
             active_source: String::new(),
             pending_source: None,
             pending_setting: None,
@@ -169,13 +185,14 @@ impl SoftDownloaderApp {
             details: None,
             queue: Vec::new(),
             queue_active: false,
+            queue_already_installed: 0,
+            sets_ui: Default::default(),
             confirm_plan: None,
             confirm_removal: None,
             error: None,
             close_dialog: false,
             close_when_done: false,
         };
-        app.start_catalog_load(source, false);
         Ok(app)
     }
 
@@ -345,8 +362,7 @@ impl SoftDownloaderApp {
                 self.imported_selection = None;
                 self.details = None;
                 self.filter.category = None;
-                if !self.settings.restore_selection.is_empty() {
-                    self.settings.restore_selection.clear();
+                if self.settings.restore_selection != self.selected {
                     self.save_preferences();
                 }
             }
@@ -361,51 +377,98 @@ impl SoftDownloaderApp {
     }
 
     pub(super) fn prepare_install(&mut self, selected: BTreeSet<String>) {
+        self.request_install(selected, false);
+    }
+
+    pub(super) fn request_install(&mut self, selected: BTreeSet<String>, review: bool) {
+        self.request_install_with_options(selected, review, self.settings.installation.clone());
+    }
+
+    pub(super) fn request_install_with_options(
+        &mut self,
+        selected: BTreeSet<String>,
+        review: bool,
+        installation: InstallationSettings,
+    ) {
         if !self.list_actions_enabled() || self.has_modal() {
             return;
         }
-        match create_plan(&self.document.catalog, &selected, self.installation_state()) {
-            Ok(packages) if !packages.is_empty() => {
-                self.confirm_plan = Some(InstallConfirmation {
-                    packages,
-                    requested: selected,
-                });
-            }
-            Ok(_) => self.error = Some("Выбранные программы уже установлены".into()),
-            Err(error) => self.error = Some(format!("{error:#}")),
+        let batch = prepare_batch(&self.document.catalog, &selected, self.installation_state());
+        if batch.packages.is_empty() && batch.blocked.is_empty() {
+            self.notify("Всё из этого списка уже установлено".into());
+            return;
+        }
+        let plan = InstallConfirmation {
+            batch,
+            requested: selected,
+            installation,
+        };
+        if review || plan.installation.confirm_before_install {
+            self.confirm_plan = Some(plan);
+        } else {
+            self.start_plan(plan);
         }
     }
 
-    fn start_plan(&mut self, plan: Vec<Package>) {
-        match self.engine.start(
-            plan.clone(),
-            &self.document,
-            self.library.clone(),
-            self.store.clone(),
-        ) {
+    pub(super) fn start_plan(&mut self, plan: InstallConfirmation) {
+        let packages = plan.batch.packages;
+        let active = !packages.is_empty();
+        let result = if active {
+            self.engine.start(
+                packages.clone(),
+                &self.document,
+                self.library.clone(),
+                self.store.clone(),
+                plan.installation.clone(),
+            )
+        } else {
+            Ok(())
+        };
+        match result {
             Ok(()) => {
-                self.queue = plan
+                self.queue = packages
                     .into_iter()
-                    .map(|package| QueueItem {
-                        id: package.id,
-                        name: package.name,
-                        version: package.version,
-                        size: package
-                            .artifact
-                            .as_ref()
-                            .map(|a| a.size)
-                            .unwrap_or_default(),
-                        removal: false,
-                        status: JobStatus::Queued,
-                        downloaded: 0,
-                        bytes_per_second: 0.0,
+                    .map(|package| {
+                        let mode_label = plan.installation.label_for(&package).to_owned();
+                        QueueItem {
+                            id: package.id,
+                            name: package.name,
+                            version: package.version,
+                            size: package
+                                .artifact
+                                .as_ref()
+                                .map(|a| a.size)
+                                .unwrap_or_default(),
+                            removal: false,
+                            status: JobStatus::Queued,
+                            downloaded: 0,
+                            bytes_per_second: 0.0,
+                            mode_label,
+                        }
                     })
                     .collect();
-                self.queue_active = true;
-                self.selected.clear();
+                let blocked: BTreeSet<_> =
+                    plan.batch.blocked.iter().map(|p| p.id.clone()).collect();
+                self.queue
+                    .extend(plan.batch.blocked.into_iter().map(|package| QueueItem {
+                        id: package.id,
+                        name: package.name,
+                        version: String::new(),
+                        size: 0,
+                        removal: false,
+                        status: JobStatus::Skipped(package.reason),
+                        downloaded: 0,
+                        bytes_per_second: 0.0,
+                        mode_label: "Нужны действия".into(),
+                    }));
+                self.queue_already_installed = plan.batch.installed;
+                self.queue_active = active;
+                self.selected
+                    .retain(|id| !plan.requested.contains(id) || blocked.contains(id));
                 self.details = None;
                 self.page = Page::Queue;
                 self.error = None;
+                self.save_preferences();
             }
             Err(error) => self.error = Some(format!("{error:#}")),
         }
@@ -471,9 +534,11 @@ impl SoftDownloaderApp {
                         status: JobStatus::Queued,
                         downloaded: 0,
                         bytes_per_second: 0.0,
+                        mode_label: String::new(),
                     })
                     .collect();
                 self.queue_active = true;
+                self.queue_already_installed = 0;
                 self.selected_removals.clear();
                 self.page = Page::Queue;
                 self.details = None;
@@ -595,6 +660,16 @@ impl SoftDownloaderApp {
             self.page = Page::Queue;
             self.details = None;
         }
+        if theme::nav(
+            ui,
+            "Наборы программ",
+            Icon::Layers,
+            self.page == Page::Sets,
+            Some(self.settings.program_sets.len()),
+        ) {
+            self.page = Page::Sets;
+            self.details = None;
+        }
     }
 
     pub(super) fn show_catalog(&mut self, kind: Option<PackageKind>) {
@@ -632,39 +707,6 @@ impl SoftDownloaderApp {
         }
     }
 
-    fn confirmation(&mut self, ctx: &egui::Context) {
-        let colors = theme::colors(ctx);
-        let Some(confirmation) = self.confirm_plan.clone() else {
-            return;
-        };
-        let plan = confirmation.packages;
-        let response = egui::Modal::new(egui::Id::new("confirm-install")).frame(colors.dialog_frame().inner_margin(24)).show(ctx, |ui| {
-            ui.set_width(510.0);
-            theme::heading(ui, "Всё готово к установке", "Зависимости добавлены автоматически. Проверь список.");
-            egui::ScrollArea::vertical().max_height(270.0).show(ui, |ui| {
-                for (index, package) in plan.iter().enumerate() {
-                    ui.horizontal(|ui| {
-                        ui.label(RichText::new(format!("{:02}", index+1)).color(colors.dim));
-                        ui.label(RichText::new(&package.name).strong());
-                        ui.label(RichText::new(&package.version).color(colors.muted));
-                        if !confirmation.requested.contains(&package.id) { theme::pill(ui, "ЗАВИСИМОСТЬ", colors.violet); }
-                        if package.install.as_ref().is_some_and(|s| s.requires_admin()) { theme::pill(ui, "UAC", colors.orange); }
-                    });
-                }
-            });
-            ui.add_space(14.0);
-            ui.label(RichText::new("Будут запущены установщики из выбранного каталога с указанными в нём параметрами. Windows запросит права администратора там, где это необходимо.").color(colors.muted).size(12.0));
-            ui.add_space(14.0);
-            ui.horizontal(|ui| {
-                if ui.add(colors.primary(format!("Установить · {}", plan.len()))).clicked() { self.confirm_plan = None; self.start_plan(plan.clone()); }
-                if ui.button("Вернуться к выбору").clicked() { self.confirm_plan = None; }
-            });
-        });
-        if response.should_close() {
-            self.confirm_plan = None;
-        }
-    }
-
     pub(super) fn has_modal(&self) -> bool {
         self.confirm_plan.is_some()
             || self.confirm_removal.is_some()
@@ -697,8 +739,8 @@ impl SoftDownloaderApp {
     }
 }
 
-impl eframe::App for SoftDownloaderApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+impl SoftDownloaderApp {
+    pub(super) fn render(&mut self, ctx: &egui::Context) {
         self.poll_events();
         if self.updater.applying() {
             self.tick_app_update(ctx);
@@ -753,6 +795,7 @@ impl eframe::App for SoftDownloaderApp {
                     Page::Queue => self.queue_page(ui),
                     Page::Installed => self.installed_page(ui),
                     Page::Settings => self.settings_page(ui),
+                    Page::Sets => self.sets_page(ui),
                 }
             });
         self.toast(ctx);
@@ -766,8 +809,23 @@ impl eframe::App for SoftDownloaderApp {
         self.sounds
             .update(ctx, self.settings.sound, self.error.as_deref());
     }
+}
+
+impl eframe::App for SoftDownloaderApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.render(ctx);
+    }
 
     fn clear_color(&self, visuals: &egui::Visuals) -> [f32; 4] {
         visuals.panel_fill.to_normalized_gamma_f32()
+    }
+
+    fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+        if !self.save_preferences() {
+            eprintln!(
+                "Не удалось сохранить выбор перед закрытием: {:?}",
+                self.error
+            );
+        }
     }
 }

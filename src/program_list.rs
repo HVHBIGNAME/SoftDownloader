@@ -88,6 +88,22 @@ impl ProgramList {
         Self::from_entries(entries)
     }
 
+    pub fn from_ids(catalog: &Catalog, ids: &BTreeSet<String>) -> Self {
+        Self::from_entries(
+            ids.iter()
+                .map(|id| {
+                    let package = catalog.package(id);
+                    ProgramEntry {
+                        package_ids: vec![id.clone()],
+                        name: package.map_or_else(|| id.clone(), |p| single_line(&p.name)),
+                        version: package.map_or_else(String::new, |p| single_line(&p.version)),
+                        publisher: package.map_or_else(String::new, |p| single_line(&p.publisher)),
+                    }
+                })
+                .collect(),
+        )
+    }
+
     fn from_entries(mut entries: Vec<ProgramEntry>) -> Self {
         entries.sort_by_cached_key(|entry| entry.name.to_lowercase());
         Self {

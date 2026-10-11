@@ -46,7 +46,7 @@ cargo run --features catalog-tools --bin catalog-check -- --public "G:\Мой д
 | `depends_on` | ID зависимостей, в том числе встроенных программ |
 | `enabled` | По умолчанию `true`; `false` оставляет информационную карточку |
 | `artifact` | Закреплённый файл: размер, хеш и источник |
-| `source` | GitHub, сайт, WinGet или ручная ссылка с инструкцией |
+| `source` | GitHub, сайт, прямая подписанная загрузка, WinGet или ручная ссылка с инструкцией |
 | `install` | EXE, MSI, ZIP, portable EXE, мастер, WinGet или расширение VS Code |
 | `detect` | Алиасы, шаблон имени, WinGet ID, локальные пути/PATH и имена MSIX |
 
@@ -54,7 +54,7 @@ cargo run --features catalog-tools --bin catalog-check -- --public "G:\Мой д
 
 Встроенная коллекция объединяет `builtin.json` и `extended.json`. Подгруппы выводятся деревом; например, `development → runtimes → java`.
 
-В текущем каталоге **224 пакета и 26 групп**, включая:
+В текущем каталоге **240 пакетов и 26 групп**, включая:
 
 | Подгруппа | Содержимое |
 |---|---|
@@ -72,7 +72,7 @@ cargo run --features catalog-tools --bin catalog-check -- --public "G:\Мой д
 "install": { "type": "winget" }
 ```
 
-Пара обязательна; `artifact` не нужен. Используется `winget install --id ID --exact --source winget --silent --accept-source-agreements --accept-package-agreements --disable-interactivity`. Хеши и способ установки берутся из манифеста WinGet. Версия `"Последняя"` означает актуальную версию на момент установки, а не предварительно скачанный файл. При отсутствии WinGet карточка объясняет, как установить Microsoft App Installer.
+Пара обязательна; `artifact` не нужен. Используется `winget install --id ID --exact --source winget --silent --accept-source-agreements --accept-package-agreements --disable-interactivity`. При выборе режима **С мастером** флаг `--silent` заменяется на `--interactive`. Хеши и способ установки берутся из манифеста WinGet. Версия `"Последняя"` означает актуальную версию на момент установки, а не предварительно скачанный файл. При отсутствии WinGet карточка объясняет, как установить Microsoft App Installer.
 
 Проверка всех ID без установки: `catalog-check --check-winget`. Уже обнаруженный managed-пакет пропускается. Отдельные ветки Python/JDK имеют собственные ID и правила обнаружения.
 
@@ -101,9 +101,28 @@ Pylance и Python Debugger зависят от `ms-python-python`. При выб
 }
 ```
 
-У ручной карточки нет `install`/`artifact`: ссылка открывается по нажатию, карточка не попадает в очередь установки. Так оформлены AME, Hermes, AMD/NVIDIA, ESET Premium и временно недоступный 2IP StartGuard.
+У ручной карточки нет `install`/`artifact`: ссылка открывается по нажатию, карточка не попадает в очередь установки. Так оформлены AME, Hermes, AMD/NVIDIA и временно недоступный 2IP StartGuard.
 
 Если сам установщик уже известен и должен показывать свой интерфейс, задайте `"install": {"type":"interactive","requires_admin":true}`. Это EXE без тихих аргументов, например официальный мастер 3uTools. Его завершения ожидает очередь.
+
+## Прямая подписанная загрузка
+
+С версии 0.6.0 прямая официальная ссылка на изменяемый установщик поддерживается через `source.direct`:
+
+```json
+"source": {
+  "type": "direct",
+  "url": "https://download.eset.com/com/eset/tools/installers/live_essp/latest/eset_smart_security_premium_live_installer.exe",
+  "file_name": "eset_smart_security_premium_live_installer.exe"
+},
+"install": { "type": "interactive", "requires_admin": true }
+```
+
+Имя файла должно быть одним именем EXE/MSI без пути и совпадать с типом установки. Разрешены `exe`, `msi` и `interactive`. При загрузке каталога создаётся артефакт с размером 0 и пустым хешем; фактические размер и SHA-256 вычисляются при скачивании. Перед запуском обязательна успешная проверка Authenticode средствами Windows. ZIP и другие неподписываемые файлы для этого источника не подходят.
+
+ESET Premium теперь использует такой рецепт: загрузка и запуск входят в очередь, вход в ESET HOME и активация выполняются в мастере.
+
+Режим установки выбирается пользователем, а не меняет рецепт каталога: EXE использует `silent_args` только в тихом режиме, MSI получает `/qn` или `/qf`, обязательный `interactive` всегда показывает мастер. Подробности — [installation.md](installation.md).
 
 ## GitHub Releases
 

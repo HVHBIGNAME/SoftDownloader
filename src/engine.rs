@@ -1,5 +1,9 @@
 use std::collections::HashSet;
 use std::sync::mpsc::{self, Receiver, Sender};
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, ensure};
@@ -8,6 +12,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::catalog::{CatalogDocument, Package};
+use crate::installation::InstallationSettings;
 use crate::storage::{InstalledPackage, Library, Store};
 use crate::transfer::Progress;
 use crate::uninstall::InstalledProgram;
@@ -109,6 +114,7 @@ pub struct Engine {
     inventory_cancel: CancellationToken,
     background_cancel: CancellationToken,
     update_cancel: CancellationToken,
+    paused: Arc<AtomicBool>,
 }
 
 impl Engine {
@@ -130,6 +136,7 @@ impl Engine {
             inventory_cancel: CancellationToken::new(),
             background_cancel: CancellationToken::new(),
             update_cancel: CancellationToken::new(),
+            paused: Arc::new(AtomicBool::new(false)),
         };
         Ok((engine, receiver))
     }
@@ -269,6 +276,7 @@ impl Engine {
         document: &CatalogDocument,
         library: Library,
         store: Store,
+        installation: InstallationSettings,
     ) -> Result<()> {
         ensure!(
             self.queue_task
@@ -277,12 +285,15 @@ impl Engine {
             "Очередь уже запущена"
         );
         self.cancel = CancellationToken::new();
+        self.paused.store(false, Ordering::Relaxed);
         let runner = QueueRunner {
             client: self.client.clone(),
             sender: self.sender.clone(),
             cancel: self.cancel.clone(),
             local_root: document.local_root.clone(),
             store,
+            installation,
+            paused: self.paused.clone(),
         };
         self.queue_task = Some(self.runtime.spawn(async move {
             runner.run(packages, library).await;
@@ -292,6 +303,14 @@ impl Engine {
 
     pub fn cancel(&self) {
         self.cancel.cancel();
+    }
+
+    pub fn set_paused(&self, paused: bool) {
+        self.paused.store(paused, Ordering::Relaxed);
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Relaxed)
     }
 
     pub fn scan_programs(&mut self, library: Library, catalog: crate::catalog::Catalog) -> u64 {
@@ -327,12 +346,15 @@ impl Engine {
             "Очередь уже запущена"
         );
         self.cancel = CancellationToken::new();
+        self.paused.store(false, Ordering::Relaxed);
         let runner = QueueRunner {
             client: self.client.clone(),
             sender: self.sender.clone(),
             cancel: self.cancel.clone(),
             local_root: None,
             store,
+            installation: InstallationSettings::default(),
+            paused: self.paused.clone(),
         };
         self.queue_task = Some(self.runtime.spawn(async move {
             runner.remove(programs, library, catalog).await;
@@ -368,6 +390,8 @@ struct QueueRunner {
     cancel: CancellationToken,
     local_root: Option<std::path::PathBuf>,
     store: Store,
+    installation: InstallationSettings,
+    paused: Arc<AtomicBool>,
 }
 
 impl QueueRunner {
@@ -387,6 +411,7 @@ impl QueueRunner {
     async fn run(self, packages: Vec<Package>, mut library: Library) {
         let mut failed = HashSet::new();
         for package in packages {
+            wait_for_resume(&self.paused, &self.cancel).await;
             if self.cancel.is_cancelled() {
                 self.status(&package.id, JobStatus::Cancelled);
                 continue;
@@ -416,6 +441,7 @@ impl QueueRunner {
     }
 
     async fn run_package(&self, package: &Package) -> Result<(installer::InstallOutcome, String)> {
+        let mode = self.installation.mode_for(&package.id);
         if package.is_managed() {
             self.status(&package.id, JobStatus::Installing);
             let spec = package.install.clone();
@@ -428,6 +454,7 @@ impl QueueRunner {
                         .ok_or_else(|| anyhow::anyhow!("Нет ID WinGet"))?,
                     repository,
                     &log,
+                    mode,
                 ),
                 Some(crate::catalog::InstallSpec::VscodeExtension { extension_id }) => {
                     crate::system::vscode::install(&extension_id, &log)
@@ -461,7 +488,8 @@ impl QueueRunner {
         ensure!(!self.cancel.is_cancelled(), "Отменено");
         self.status(&package.id, JobStatus::Installing);
         let outcome =
-            installer::install(package, acquired.path, &self.store.logs, &self.cancel).await?;
+            installer::install(package, acquired.path, &self.store.logs, &self.cancel, mode)
+                .await?;
         Ok((outcome, acquired.sha256))
     }
 
@@ -517,6 +545,7 @@ impl QueueRunner {
     ) {
         let mut failed = HashSet::<String>::new();
         for program in programs {
+            wait_for_resume(&self.paused, &self.cancel).await;
             if self.cancel.is_cancelled() {
                 self.status(&program.id, JobStatus::Cancelled);
                 continue;
@@ -571,5 +600,43 @@ impl QueueRunner {
             }
         }
         self.emit(WorkerEvent::QueueFinished);
+    }
+}
+
+async fn wait_for_resume(paused: &AtomicBool, cancel: &CancellationToken) {
+    while paused.load(Ordering::Relaxed) && !cancel.is_cancelled() {
+        tokio::select! {
+            _ = cancel.cancelled() => break,
+            _ = tokio::time::sleep(std::time::Duration::from_millis(100)) => {}
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test(start_paused = true)]
+    async fn paused_queue_waits_and_cancel_never_stays_stuck() {
+        let paused = AtomicBool::new(true);
+        let cancel = CancellationToken::new();
+        assert!(
+            tokio::time::timeout(
+                std::time::Duration::from_secs(1),
+                wait_for_resume(&paused, &cancel)
+            )
+            .await
+            .is_err()
+        );
+        paused.store(false, Ordering::Relaxed);
+        wait_for_resume(&paused, &cancel).await;
+        paused.store(true, Ordering::Relaxed);
+        cancel.cancel();
+        tokio::time::timeout(
+            std::time::Duration::from_millis(1),
+            wait_for_resume(&paused, &cancel),
+        )
+        .await
+        .unwrap();
     }
 }

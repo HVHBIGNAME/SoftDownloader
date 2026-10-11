@@ -406,6 +406,19 @@ impl Package {
         if let Some(source) = &self.source {
             source.validate()?;
         }
+        if let Some(crate::discovery::Source::Direct { file_name, .. }) = &self.source {
+            ensure!(
+                self.install.as_ref().is_some_and(|spec| matches!(
+                    spec,
+                    InstallSpec::Exe { .. }
+                        | InstallSpec::Msi { .. }
+                        | InstallSpec::Interactive { .. }
+                ) && file_name
+                    .to_ascii_lowercase()
+                    .ends_with(spec.extension())),
+                "Прямая ссылка требует согласованный подписанный EXE/MSI и способ установки"
+            );
+        }
         ensure!(
             !self.requires_signature() || !matches!(self.install, Some(InstallSpec::Zip { .. })),
             "Источник без опубликованного SHA-256 поддерживает только подписанные EXE/MSI"
@@ -470,7 +483,12 @@ impl Package {
     }
 
     pub fn requires_signature(&self) -> bool {
-        matches!(self.source, Some(crate::discovery::Source::Website { .. }))
+        matches!(
+            self.source,
+            Some(
+                crate::discovery::Source::Website { .. } | crate::discovery::Source::Direct { .. }
+            )
+        )
     }
 
     pub fn winget_repository(&self) -> crate::discovery::WingetRepository {

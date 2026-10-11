@@ -52,7 +52,7 @@ impl SoftDownloaderApp {
                     if ui
                         .add_enabled(
                             self.list_actions_enabled() && has_set,
-                            egui::Button::new("Сохранить набор…").small(),
+                            egui::Button::new("Экспорт JSON…").small(),
                         )
                         .on_hover_text(if self.filter.favorites_only {
                             "Сохранить всё избранное, независимо от поиска"
@@ -216,6 +216,7 @@ impl SoftDownloaderApp {
         let stroke = colors.border.lerp_to_gamma(colors.accent, selection * 0.75);
         let card = colors
             .card_frame()
+            .fill(colors.surface_tint(colors.surface.lerp_to_gamma(colors.raised, selection * 0.7)))
             .stroke(Stroke::new(1.0_f32, stroke))
             .show(ui, |ui| {
                 ui.set_width((width - 34.0).max(180.0));
@@ -268,50 +269,7 @@ impl SoftDownloaderApp {
                 text.wrap.max_rows = 2;
                 ui.label(text);
                 ui.add_space((top + 155.0 - ui.cursor().top()).max(4.0));
-                ui.horizontal(|ui| {
-                    theme::pill(
-                        ui,
-                        if package.is_manual() {
-                            "Сайт"
-                        } else if package.kind == PackageKind::Addon {
-                            "Аддон"
-                        } else if package.winget_repository()
-                            == crate::discovery::WingetRepository::Msstore
-                        {
-                            "Store"
-                        } else if package.winget_id().is_some() {
-                            "WinGet"
-                        } else if matches!(
-                            package.install,
-                            Some(InstallSpec::Zip { .. } | InstallSpec::Portable { .. })
-                        ) {
-                            "Файлы"
-                        } else if matches!(package.install, Some(InstallSpec::Interactive { .. })) {
-                            "Мастер"
-                        } else {
-                            "Программа"
-                        },
-                        if package.kind == PackageKind::Addon {
-                            colors.violet
-                        } else {
-                            colors.muted
-                        },
-                    );
-                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        if ui
-                            .add(
-                                egui::Button::new(
-                                    RichText::new("Подробнее").size(12.0).color(colors.muted),
-                                )
-                                .frame(false)
-                                .small(),
-                            )
-                            .clicked()
-                        {
-                            self.details = Some(package.id.clone());
-                        }
-                    });
-                });
+                self.package_card_footer(ui, package, installed);
             });
         let hover = ui
             .ctx()
@@ -319,7 +277,7 @@ impl SoftDownloaderApp {
         if hover > 0.0 && !selected {
             ui.painter().rect_stroke(
                 card.response.rect,
-                10,
+                theme::CARD_RADIUS,
                 Stroke::new(
                     1.0_f32,
                     colors.border.lerp_to_gamma(colors.muted, hover * 0.45),
@@ -327,6 +285,69 @@ impl SoftDownloaderApp {
                 egui::StrokeKind::Inside,
             );
         }
+    }
+
+    fn package_card_footer(&mut self, ui: &mut egui::Ui, package: &Package, installed: bool) {
+        let colors = theme::colors(ui.ctx());
+        ui.horizontal(|ui| {
+            let label = if package.is_manual() {
+                "Сайт"
+            } else if package.kind == PackageKind::Addon {
+                "Аддон"
+            } else if package.winget_repository() == crate::discovery::WingetRepository::Msstore {
+                "Store"
+            } else if package.winget_id().is_some() {
+                "WinGet"
+            } else if matches!(
+                package.install,
+                Some(InstallSpec::Zip { .. } | InstallSpec::Portable { .. })
+            ) {
+                "Файлы"
+            } else if matches!(package.install, Some(InstallSpec::Interactive { .. })) {
+                "Мастер"
+            } else {
+                "Программа"
+            };
+            theme::pill(
+                ui,
+                label,
+                if package.kind == PackageKind::Addon {
+                    colors.violet
+                } else {
+                    colors.muted
+                },
+            );
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                let install = package.ready() && !installed;
+                if ui
+                    .add_enabled(
+                        !install || self.list_actions_enabled(),
+                        egui::Button::new(
+                            RichText::new(if install {
+                                "Установить"
+                            } else {
+                                "Подробнее"
+                            })
+                            .size(12.0)
+                            .color(colors.accent),
+                        )
+                        .fill(colors.surface_tint(colors.raised))
+                        .corner_radius(theme::CONTROL_RADIUS)
+                        .min_size(Vec2::new(88.0, 26.0))
+                        .small(),
+                    )
+                    .clicked()
+                {
+                    if install {
+                        self.prepare_install(std::collections::BTreeSet::from([package
+                            .id
+                            .clone()]));
+                    } else {
+                        self.details = Some(package.id.clone());
+                    }
+                }
+            });
+        });
     }
 
     /// Draws the real program icon when the package is already on this PC.
@@ -389,8 +410,8 @@ impl SoftDownloaderApp {
 
     fn package_list(&mut self, ui: &mut egui::Ui, packages: &[Package]) {
         let colors = theme::colors(ui.ctx());
-        colors.card_frame().inner_margin(0).show(ui, |ui| {
-            ui.spacing_mut().item_spacing.y = 0.0;
+        colors.card_frame().inner_margin(6).show(ui, |ui| {
+            ui.spacing_mut().item_spacing.y = 4.0;
             let (header, _) =
                 ui.allocate_exact_size(Vec2::new(ui.available_width(), 34.0), Sense::hover());
             let font = egui::FontId::proportional(12.0);
@@ -403,7 +424,7 @@ impl SoftDownloaderApp {
             );
             if header.width() > 640.0 {
                 ui.painter().text(
-                    header.right_center() - Vec2::new(222.0, 0.0),
+                    header.right_center() - Vec2::new(254.0, 0.0),
                     egui::Align2::LEFT_CENTER,
                     "Версия",
                     font.clone(),
@@ -451,10 +472,10 @@ impl SoftDownloaderApp {
                 colors.surface_tint(
                     colors
                         .surface
-                        .lerp_to_gamma(colors.raised, hover * 0.45)
-                        .lerp_to_gamma(colors.accent, selection * 0.07),
+                        .lerp_to_gamma(colors.raised, (hover * 0.45 + selection * 0.7).min(1.0)),
                 ),
             )
+            .corner_radius(theme::CONTROL_RADIUS)
             .inner_margin(Margin::symmetric(14, 13))
             .show(ui, |ui| {
                 ui.set_width((width - 28.0).max(150.0));
@@ -471,7 +492,7 @@ impl SoftDownloaderApp {
                         .to_owned();
                     let wide = width > 640.0;
                     let text_width =
-                        (ui.available_width() - 92.0 - if wide { 128.0 } else { 0.0 }).max(70.0);
+                        (ui.available_width() - 124.0 - if wide { 128.0 } else { 0.0 }).max(70.0);
                     ui.allocate_ui_with_layout(
                         Vec2::new(text_width, 42.0),
                         Layout::top_down(Align::Min),
@@ -522,16 +543,29 @@ impl SoftDownloaderApp {
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         self.package_control(ui, package, installed, selected);
                         self.favorite_control(ui, package);
+                        if ui
+                            .add_enabled(
+                                self.list_actions_enabled() && package.ready() && !installed,
+                                egui::Button::new("↓").min_size(Vec2::splat(26.0)),
+                            )
+                            .on_hover_text("Установить сейчас с выбранным режимом")
+                            .clicked()
+                        {
+                            self.prepare_install(std::collections::BTreeSet::from([package
+                                .id
+                                .clone()]));
+                        }
                     });
                 });
             });
-        ui.painter().line_segment(
-            [
-                row.response.rect.left_bottom() + Vec2::new(14.0, 0.0),
-                row.response.rect.right_bottom() - Vec2::new(14.0, 0.0),
-            ],
-            Stroke::new(1.0_f32, colors.border.gamma_multiply(0.55)),
-        );
+        if selection > 0.0 {
+            ui.painter().rect_stroke(
+                row.response.rect,
+                theme::CONTROL_RADIUS,
+                Stroke::new(1.0, colors.accent.gamma_multiply(selection * 0.75)),
+                egui::StrokeKind::Inside,
+            );
+        }
     }
 
     pub(super) fn details_panel(&mut self, ctx: &egui::Context) {
@@ -563,6 +597,8 @@ impl SoftDownloaderApp {
                 ui.label(RichText::new(&package.publisher).color(colors.muted));
                 ui.add_space(12.0);
                 ui.label(RichText::new(&package.description).size(13.0).color(colors.muted));
+                ui.add_space(12.0);
+                self.package_install_actions(ui, &package);
                 ui.add_space(12.0);
                 detail_line(ui, "Версия", &package.version);
                 detail_line(ui, "Группа", &self.document.catalog.category_path(&package.category));
@@ -653,9 +689,21 @@ impl SoftDownloaderApp {
                 InstallSpec::Portable { destination } => {
                     format!("Portable · {:?}/{}", destination.root, destination.path)
                 }
-                InstallSpec::Exe { silent_args, .. } => format!("EXE  {}", silent_args.join(" ")),
+                InstallSpec::Exe { silent_args, .. } => {
+                    if self.settings.installation.mode_for(&package.id)
+                        == crate::installation::InstallMode::Silent
+                    {
+                        format!("EXE  {}", silent_args.join(" "))
+                    } else {
+                        "EXE · штатный мастер".into()
+                    }
+                }
                 InstallSpec::Msi { arguments, .. } => {
-                    format!("MSI  /qn /norestart {}", arguments.join(" "))
+                    format!(
+                        "MSI · {} · {}",
+                        self.settings.installation.mode_for(&package.id).label(),
+                        arguments.join(" ")
+                    )
                 }
                 InstallSpec::Zip { destination, .. } => {
                     format!("ZIP  {:?}/{}", destination.root, destination.path)

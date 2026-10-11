@@ -85,6 +85,92 @@ impl SoftDownloaderApp {
         if self.queue_active {
             ui.label(RichText::new("Остановка отменяет загрузки и следующие задачи. Запущенный мастер завершит работу.").size(11.0).color(colors.dim));
         }
+        let completed = self
+            .queue
+            .iter()
+            .filter(|item| item.status.is_terminal())
+            .count();
+        ui.add(
+            egui::ProgressBar::new(completed as f32 / self.queue.len().max(1) as f32).text(
+                format!("Завершено задач: {completed} / {}", self.queue.len()),
+            ),
+        );
+        if self.queue_already_installed > 0 {
+            ui.label(
+                RichText::new(format!(
+                    "Уже установлено и пропущено: {}",
+                    self.queue_already_installed
+                ))
+                .size(12.0)
+                .color(colors.muted),
+            );
+        }
+        ui.horizontal_wrapped(|ui| {
+            if self.queue_active
+                && ui
+                    .add_enabled(
+                        !self.engine.is_cancelling(),
+                        egui::Button::new(if self.engine.is_paused() {
+                            "Продолжить"
+                        } else {
+                            "Пауза после текущей"
+                        }),
+                    )
+                    .clicked()
+            {
+                self.engine.set_paused(!self.engine.is_paused());
+            }
+            if !self.queue_active {
+                let failed: BTreeSet<_> = self
+                    .queue
+                    .iter()
+                    .filter(|item| {
+                        !item.removal
+                            && matches!(
+                                item.status,
+                                JobStatus::Failed(_) | JobStatus::Cancelled | JobStatus::Skipped(_)
+                            )
+                            && self
+                                .document
+                                .catalog
+                                .package(&item.id)
+                                .is_some_and(|package| package.ready())
+                    })
+                    .map(|item| item.id.clone())
+                    .collect();
+                if !failed.is_empty()
+                    && ui
+                        .add_enabled(
+                            self.list_actions_enabled(),
+                            egui::Button::new("Повторить с мастером"),
+                        )
+                        .clicked()
+                {
+                    let mut options = self.settings.installation.clone();
+                    for id in &failed {
+                        options
+                            .overrides
+                            .insert(id.clone(), crate::installation::InstallMode::Interactive);
+                    }
+                    self.request_install_with_options(failed, false, options);
+                }
+                if ui.button("Вернуться в каталог").clicked() {
+                    self.show_catalog(None);
+                }
+            }
+            if ui.button("Открыть логи").clicked()
+                && let Err(error) = crate::system::open_folder(&self.store.logs)
+            {
+                self.error = Some(format!("{error:#}"));
+            }
+        });
+        if self.queue_active && self.engine.is_paused() {
+            ui.label(
+                RichText::new("Текущая задача завершится. Следующие ждут нажатия «Продолжить».")
+                    .color(colors.orange)
+                    .size(12.0),
+            );
+        }
         ui.add_space(14.0);
         egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
             for item in &self.queue {
@@ -96,6 +182,7 @@ impl SoftDownloaderApp {
                         ui.vertical(|ui| {
                             ui.label(RichText::new(&item.name).strong());
                             ui.label(RichText::new(format!("{} · {}", if item.removal { "Удаление" } else { "Установка" }, item.version)).color(colors.dim).size(11.0));
+                            if !item.mode_label.is_empty() { ui.label(RichText::new(&item.mode_label).color(colors.muted).size(11.0)); }
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| { theme::pill(ui, item.status.label(), color); });
                     });
@@ -103,7 +190,7 @@ impl SoftDownloaderApp {
                         JobStatus::Done { .. } | JobStatus::Installing | JobStatus::Removing | JobStatus::Verifying => 1.0,
                         _ => if item.size > 0 { item.downloaded as f32 / item.size as f32 } else { 0.0 },
                     };
-                    if !matches!(item.status, JobStatus::Queued) {
+                    if !matches!(item.status, JobStatus::Queued | JobStatus::Installing | JobStatus::Removing) {
                         ui.add_space(4.0);
                         ui.add(egui::ProgressBar::new(progress).fill(color).desired_height(5.0).animate(matches!(item.status, JobStatus::Installing | JobStatus::Removing | JobStatus::Verifying)));
                     }
@@ -113,9 +200,14 @@ impl SoftDownloaderApp {
                             ui.label(RichText::new(format!("{} / {total}    ·    {}/с", theme::bytes(item.downloaded), theme::bytes(item.bytes_per_second as u64))).color(colors.dim).size(11.0));
                         }
                         JobStatus::Failed(message) | JobStatus::Skipped(message) => { ui.label(RichText::new(message).size(12.0).color(color)); }
-                        JobStatus::Installing | JobStatus::Removing => { ui.label(RichText::new("Если появилось окно UAC или штатный мастер, подтверди действие на панели задач.").color(colors.dim).size(11.0)); }
+                        JobStatus::Installing | JobStatus::Removing => { ui.horizontal(|ui| { ui.spinner(); ui.label(RichText::new("Установщик работает. Если появилось окно UAC или мастер, завершите его шаги.").color(colors.dim).size(11.0)); }); }
                         JobStatus::Done { reboot_required: true } => { ui.label(RichText::new("Windows требуется перезагрузка. Выполни её в удобное время.").color(colors.orange).size(11.0)); }
                         _ => {}
+                    }
+                    if let Some(package) = self.document.catalog.package(&item.id)
+                        && let Some(crate::discovery::Source::Manual { url, instructions }) = &package.source {
+                        ui.label(RichText::new(instructions).size(12.0).color(colors.muted));
+                        ui.hyperlink_to("Открыть официальный источник", url);
                     }
                 });
                 ui.add_space(5.0);

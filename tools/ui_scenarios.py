@@ -23,6 +23,7 @@ def silent_profile(profile: Path) -> None:
     sound["enabled"] = True
     sound["volume"] = 0
     settings["updates"] = {"enabled": False}
+    settings["installation"] = {"confirm_before_install": True}
     path.write_text(json.dumps(settings, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
@@ -159,7 +160,8 @@ def removal_preview(session: "Session") -> None:
 
 
 def selection_review(session: "Session") -> None:
-    session.click(1000, 797)
+    session.click(448, 174)
+    assert_modal(session, False)
     session.caption = "Весь выбор в одном месте: можно убрать лишнее и сохранить набор."
     session.capture("selection-review")
     saved = session.profile / f"selection-{time.time_ns()}.json"

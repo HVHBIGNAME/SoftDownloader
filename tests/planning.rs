@@ -40,6 +40,40 @@ fn category_tree_keeps_nested_groups_next_to_their_parent() {
 }
 
 #[test]
+fn batch_keeps_independent_apps_when_another_package_or_dependency_is_unavailable() {
+    let mut catalog = CatalogDocument::builtin().unwrap().catalog;
+    catalog
+        .packages
+        .iter_mut()
+        .find(|p| p.id == "go")
+        .unwrap()
+        .enabled = false;
+    let selected = BTreeSet::from([
+        "7zip".into(),
+        "golang-go".into(),
+        "eset-premium".into(),
+        "future-id".into(),
+    ]);
+    let batch = softdownloader::planner::prepare_batch(&catalog, &selected, &Library::new());
+    assert_eq!(
+        batch
+            .packages
+            .iter()
+            .map(|p| p.id.as_str())
+            .collect::<Vec<_>>(),
+        ["7zip"]
+    );
+    assert_eq!(batch.blocked.len(), 3);
+    assert!(
+        batch
+            .blocked
+            .iter()
+            .any(|p| p.id == "golang-go" && p.reason.contains("Go"))
+    );
+    assert_eq!(batch.installed, 0);
+}
+
+#[test]
 fn python_addons_share_dependencies_and_skip_the_installed_editor() {
     let catalog = CatalogDocument::builtin().unwrap().catalog;
     let selected = BTreeSet::from([

@@ -10,6 +10,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::{capture, run_logged, valid_tool_id};
 use crate::discovery::WingetRepository;
+use crate::installation::InstallMode;
 use crate::installer::InstallOutcome;
 
 pub fn executable() -> Result<PathBuf> {
@@ -53,8 +54,13 @@ pub fn verify(id: &str, repository: WingetRepository, cancel: &CancellationToken
     Ok(())
 }
 
-pub fn install(id: &str, repository: WingetRepository, log: &Path) -> Result<InstallOutcome> {
-    let arguments = install_arguments(id, repository)?;
+pub fn install(
+    id: &str,
+    repository: WingetRepository,
+    log: &Path,
+    mode: InstallMode,
+) -> Result<InstallOutcome> {
+    let arguments = install_arguments(id, repository, mode)?;
     let status = run_logged(Command::new(executable()?).args(arguments), log)?;
     let code = status.code().unwrap_or(-1) as u32;
     let reboot_required = matches!(code, 3010 | 1641 | 0x8A15_0109 | 0x8A15_010B);
@@ -67,7 +73,11 @@ pub fn install(id: &str, repository: WingetRepository, log: &Path) -> Result<Ins
     Ok(InstallOutcome { reboot_required })
 }
 
-fn install_arguments(id: &str, repository: WingetRepository) -> Result<Vec<String>> {
+fn install_arguments(
+    id: &str,
+    repository: WingetRepository,
+    mode: InstallMode,
+) -> Result<Vec<String>> {
     ensure!(valid_tool_id(id), "Некорректный ID WinGet");
     Ok([
         "install",
@@ -76,7 +86,11 @@ fn install_arguments(id: &str, repository: WingetRepository) -> Result<Vec<Strin
         "--exact",
         "--source",
         repository.as_str(),
-        "--silent",
+        if mode == InstallMode::Silent {
+            "--silent"
+        } else {
+            "--interactive"
+        },
         "--accept-source-agreements",
         "--accept-package-agreements",
         "--disable-interactivity",
@@ -189,16 +203,40 @@ mod tests {
 
     #[test]
     fn uses_exact_id_and_never_force_flags() {
-        let args =
-            install_arguments("Microsoft.VCRedist.2015+.x64", WingetRepository::Winget).unwrap();
+        let args = install_arguments(
+            "Microsoft.VCRedist.2015+.x64",
+            WingetRepository::Winget,
+            InstallMode::Silent,
+        )
+        .unwrap();
         assert!(args.iter().any(|a| a == "--exact"));
         assert!(
             !args
                 .iter()
                 .any(|a| a == "--force" || a == "--ignore-security-hash")
         );
-        assert!(install_arguments("--override=bad", WingetRepository::Winget).is_err());
-        let store = install_arguments("9PB7GBMCR7N0", WingetRepository::Msstore).unwrap();
+        assert!(
+            install_arguments(
+                "--override=bad",
+                WingetRepository::Winget,
+                InstallMode::Silent
+            )
+            .is_err()
+        );
+        let store = install_arguments(
+            "9PB7GBMCR7N0",
+            WingetRepository::Msstore,
+            InstallMode::Silent,
+        )
+        .unwrap();
         assert!(store.windows(2).any(|pair| pair == ["--source", "msstore"]));
+        let interactive = install_arguments(
+            "Microsoft.VisualStudioCode",
+            WingetRepository::Winget,
+            InstallMode::Interactive,
+        )
+        .unwrap();
+        assert!(interactive.iter().any(|a| a == "--interactive"));
+        assert!(!interactive.iter().any(|a| a == "--silent"));
     }
 }

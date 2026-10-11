@@ -22,28 +22,78 @@ use windows_sys::Win32::{
 
 use super::InstallOutcome;
 use crate::catalog::InstallSpec;
+use crate::installation::InstallMode;
 
-pub fn install(path: &Path, id: &str, spec: &InstallSpec, logs: &Path) -> Result<InstallOutcome> {
+pub fn install(
+    path: &Path,
+    id: &str,
+    spec: &InstallSpec,
+    logs: &Path,
+    mode: InstallMode,
+) -> Result<InstallOutcome> {
     let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis();
     let log_path = logs.join(format!("{id}-{timestamp}.log"));
-    let (executable, arguments) = match spec {
-        InstallSpec::Exe { silent_args, .. } => (path.to_owned(), silent_args.clone()),
-        InstallSpec::Interactive { .. } => (path.to_owned(), Vec::new()),
+    let executable = if matches!(spec, InstallSpec::Msi { .. }) {
+        system_directory()?.join("msiexec.exe")
+    } else {
+        path.to_owned()
+    };
+    let arguments = install_arguments(path, spec, &log_path, mode)?;
+    launch(&executable, &arguments, spec.requires_admin(), &log_path)
+}
+
+fn install_arguments(
+    path: &Path,
+    spec: &InstallSpec,
+    log_path: &Path,
+    mode: InstallMode,
+) -> Result<Vec<String>> {
+    match spec {
+        InstallSpec::Exe { silent_args, .. } => Ok(if mode == InstallMode::Silent {
+            silent_args.clone()
+        } else {
+            Vec::new()
+        }),
+        InstallSpec::Interactive { .. } => Ok(Vec::new()),
         InstallSpec::Msi { arguments, .. } => {
             let mut args = vec![
                 "/i".into(),
                 path.to_string_lossy().into_owned(),
-                "/qn".into(),
-                "/norestart".into(),
                 "/L*v".into(),
                 log_path.to_string_lossy().into_owned(),
             ];
-            args.extend(arguments.iter().cloned());
-            (system_directory()?.join("msiexec.exe"), args)
+            let mut extra = arguments.iter().peekable();
+            while let Some(argument) = extra.next() {
+                let lower = argument.to_ascii_lowercase();
+                if lower == "/q" || lower == "-q" {
+                    if extra.peek().is_some_and(|next| {
+                        matches!(
+                            next.to_ascii_lowercase().as_str(),
+                            "n" | "b" | "r" | "f" | "n+" | "b+" | "b!" | "b-" | "f+"
+                        )
+                    }) {
+                        extra.next();
+                    }
+                } else if !lower.starts_with("/q")
+                    && !lower.starts_with("-q")
+                    && !matches!(lower.as_str(), "/passive" | "-passive")
+                {
+                    args.push(argument.clone());
+                }
+            }
+            args.push(
+                if mode == InstallMode::Silent {
+                    "/qn"
+                } else {
+                    "/qf"
+                }
+                .into(),
+            );
+            args.push("/norestart".into());
+            Ok(args)
         }
         _ => bail!("Этот пакет использует отдельный способ установки"),
-    };
-    launch(&executable, &arguments, spec.requires_admin(), &log_path)
+    }
 }
 
 pub(crate) fn launch(
@@ -187,6 +237,49 @@ fn quote_argument(argument: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn installation_mode_changes_ui_flags_but_preserves_msi_properties() {
+        let file = Path::new(r"C:\path with space\setup.msi");
+        let spec = InstallSpec::Msi {
+            arguments: vec![
+                "/q".into(),
+                "n".into(),
+                "FEATURE=Tools".into(),
+                "/quiet".into(),
+            ],
+            requires_admin: false,
+        };
+        for mode in InstallMode::ALL {
+            let args = install_arguments(file, &spec, Path::new("setup.log"), mode).unwrap();
+            assert!(args.contains(&"FEATURE=Tools".to_string()));
+            assert!(args.contains(&"/norestart".to_string()));
+            assert!(!args.contains(&"n".to_string()) && !args.contains(&"/quiet".to_string()));
+            assert_eq!(
+                args.iter()
+                    .filter(|arg| arg.starts_with("/q"))
+                    .collect::<Vec<_>>(),
+                vec![&if mode == InstallMode::Silent {
+                    "/qn".to_string()
+                } else {
+                    "/qf".to_string()
+                }]
+            );
+        }
+        let exe = InstallSpec::Exe {
+            silent_args: vec!["/S".into()],
+            requires_admin: false,
+        };
+        assert_eq!(
+            install_arguments(file, &exe, Path::new("setup.log"), InstallMode::Silent).unwrap(),
+            ["/S"]
+        );
+        assert!(
+            install_arguments(file, &exe, Path::new("setup.log"), InstallMode::Interactive)
+                .unwrap()
+                .is_empty()
+        );
+    }
 
     #[test]
     fn elevated_arguments_round_trip_through_windows_parser() {

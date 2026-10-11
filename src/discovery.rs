@@ -54,11 +54,27 @@ pub enum Source {
         url: String,
         instructions: String,
     },
+    Direct {
+        url: String,
+        file_name: String,
+    },
 }
 
 impl Source {
     pub fn validate(&self) -> Result<()> {
         match self {
+            Self::Direct { url, file_name } => {
+                validate_https_url(url)?;
+                ensure!(
+                    crate::paths::safe_relative_path(file_name)?
+                        .components()
+                        .count()
+                        == 1
+                        && (file_name.to_ascii_lowercase().ends_with(".exe")
+                            || file_name.to_ascii_lowercase().ends_with(".msi")),
+                    "Прямая ссылка требует имя подписанного EXE/MSI"
+                );
+            }
             Self::Winget { package_id, .. } => ensure!(
                 crate::system::valid_tool_id(package_id),
                 "Некорректный ID WinGet"
@@ -165,7 +181,12 @@ where
             package
                 .source
                 .clone()
-                .filter(|s| matches!(s, Source::Github { .. } | Source::Website { .. }))
+                .filter(|s| {
+                    matches!(
+                        s,
+                        Source::Github { .. } | Source::Website { .. } | Source::Direct { .. }
+                    )
+                })
                 .map(|source| (index, source))
         })
         .collect();
@@ -227,6 +248,20 @@ pub fn apply_manager_availability(document: &mut CatalogDocument) {
 
 async fn resolve_source(client: &Client, source: &Source) -> Result<(String, Artifact)> {
     match source {
+        Source::Direct { url, file_name } => {
+            source.validate()?;
+            Ok((
+                "Последняя".into(),
+                Artifact {
+                    file_name: file_name.clone(),
+                    size: 0,
+                    sha256: String::new(),
+                    url: Some(url.clone()),
+                    local_path: None,
+                    drive_file_id: None,
+                },
+            ))
+        }
         Source::Winget { .. } | Source::Manual { .. } => {
             anyhow::bail!("Этот источник не использует загрузку артефакта")
         }
@@ -574,5 +609,29 @@ mod tests {
             )
             .is_err()
         );
+    }
+    #[tokio::test]
+    async fn direct_installer_is_resolved_without_disabling_signature_verification() {
+        let mut document = CatalogDocument::builtin().unwrap();
+        let index = document
+            .catalog
+            .packages
+            .iter()
+            .position(|p| p.id == "eset-premium")
+            .unwrap();
+        let mut source = document.catalog.packages[index].source.clone().unwrap();
+        let (_, artifact) = resolve_source(&crate::network::client().unwrap(), &source)
+            .await
+            .unwrap();
+        assert!(artifact.sha256.is_empty());
+        assert_eq!(artifact.size, 0);
+        document.catalog.packages[index].artifact = Some(artifact);
+        let package = &document.catalog.packages[index];
+        assert!(package.ready() && package.requires_signature() && !package.is_manual());
+        document.catalog.validate().unwrap();
+        if let Source::Direct { file_name, .. } = &mut source {
+            *file_name = "../setup.exe".into();
+        }
+        assert!(source.validate().is_err());
     }
 }

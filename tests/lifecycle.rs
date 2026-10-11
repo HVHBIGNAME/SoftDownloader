@@ -65,7 +65,7 @@ fn queue_skips_failed_dependencies_and_installs_then_removes_an_independent_addo
     };
     let (mut engine, events) = Engine::new().unwrap();
     engine
-        .start(plan, &document, library, store.clone())
+        .start(plan, &document, library, store.clone(), Default::default())
         .unwrap();
     let mut statuses = std::collections::HashMap::new();
     loop {

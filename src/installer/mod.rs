@@ -11,6 +11,7 @@ use anyhow::{Context, Result, ensure};
 use tokio_util::sync::CancellationToken;
 
 use crate::catalog::{InstallSpec, Package};
+use crate::installation::InstallMode;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct InstallOutcome {
@@ -22,6 +23,7 @@ pub async fn install(
     path: PathBuf,
     logs: &Path,
     cancel: &CancellationToken,
+    mode: InstallMode,
 ) -> Result<InstallOutcome> {
     ensure!(!cancel.is_cancelled(), "Отменено");
     let spec = package
@@ -48,7 +50,7 @@ pub async fn install(
             archive::install_portable(&path, &file_name, &id, &destination, &cancel)?;
             Ok(InstallOutcome::default())
         }
-        spec => install_native(&path, &id, &spec, &logs),
+        spec => install_native(&path, &id, &spec, &logs, mode),
     })
     .await
     .context("Поток установки завершился неожиданно")?
@@ -60,8 +62,9 @@ fn install_native(
     id: &str,
     spec: &InstallSpec,
     logs: &Path,
+    mode: InstallMode,
 ) -> Result<InstallOutcome> {
-    windows::install(path, id, spec, logs)
+    windows::install(path, id, spec, logs, mode)
 }
 
 #[cfg(not(windows))]
@@ -70,6 +73,7 @@ fn install_native(
     _id: &str,
     _spec: &InstallSpec,
     _logs: &Path,
+    _mode: InstallMode,
 ) -> Result<InstallOutcome> {
     anyhow::bail!("EXE/MSI-установка поддерживается только в Windows")
 }
