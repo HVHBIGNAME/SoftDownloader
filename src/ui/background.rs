@@ -44,41 +44,33 @@ impl Background {
             .update(ctx, settings.video.as_deref(), self.animate);
     }
 
-    pub fn paint(&self, ui: &egui::Ui, settings: &BackgroundSettings, season: Option<Season>) {
-        let rect = ui.max_rect();
-        let colors = theme::colors(ui.ctx());
-        let painter = ui.painter();
+    pub fn paint(
+        &self,
+        ctx: &egui::Context,
+        settings: &BackgroundSettings,
+        season: Option<Season>,
+    ) {
+        let rect = ctx.content_rect();
+        let colors = theme::colors(ctx);
+        let painter = ctx
+            .layer_painter(egui::LayerId::background())
+            .with_clip_rect(rect);
+        painter.rect_filled(rect, 0, colors.bg);
         if self.video.texture.is_some() {
-            let opacity = f32::from(100 - settings.dimming.clamp(45, 95)) / 100.0;
-            self.video
-                .paint(painter, rect, Color32::WHITE.gamma_multiply(opacity));
-            let top = Rect::from_min_max(rect.min, Pos2::new(rect.right(), rect.top() + 180.0));
-            painter.rect_filled(top, 0, colors.bg.gamma_multiply(0.94));
-            let fade = Rect::from_min_max(
-                top.left_bottom(),
-                Pos2::new(rect.right(), rect.top() + 340.0),
+            self.video.paint(
+                &painter,
+                rect,
+                Color32::WHITE.gamma_multiply(colors.video_opacity),
             );
-            let mut mesh = egui::Mesh::default();
-            for (position, color) in [
-                (fade.left_top(), colors.bg.gamma_multiply(0.94)),
-                (fade.right_top(), colors.bg.gamma_multiply(0.94)),
-                (fade.right_bottom(), Color32::TRANSPARENT),
-                (fade.left_bottom(), Color32::TRANSPARENT),
-            ] {
-                mesh.colored_vertex(position, color);
-            }
-            mesh.add_triangle(0, 1, 2);
-            mesh.add_triangle(0, 2, 3);
-            painter.add(egui::Shape::mesh(mesh));
         }
         if settings.effects {
             match season {
-                Some(Season::Winter) => self.snow(painter, rect, colors),
-                Some(Season::Halloween) => self.halloween(painter, rect, colors),
+                Some(Season::Winter) => self.snow(&painter, rect, colors),
+                Some(Season::Halloween) => self.halloween(&painter, rect, colors),
                 None => {}
             }
             if season == Some(Season::Winter) && self.animate {
-                ui.ctx().request_repaint_after(Duration::from_millis(33));
+                ctx.request_repaint_after(Duration::from_millis(33));
             }
         }
     }
@@ -121,5 +113,90 @@ impl Background {
             Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
             Color32::WHITE.gamma_multiply(if colors.dark { 0.36 } else { 0.24 }),
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::preferences::Appearance;
+
+    #[test]
+    fn wallpaper_covers_the_viewport_independently_of_panels_and_scroll() {
+        for size in [Vec2::new(1280.0, 840.0), Vec2::new(1024.0, 700.0)] {
+            for details in [false, true] {
+                for scroll in [0.0, 480.0] {
+                    let ctx = egui::Context::default();
+                    let screen = Rect::from_min_size(Pos2::ZERO, size);
+                    let mut background = Background::new(&ctx).unwrap();
+                    let texture = ctx.load_texture(
+                        "wallpaper-test",
+                        egui::ColorImage::filled([2, 2], Color32::WHITE),
+                        egui::TextureOptions::LINEAR,
+                    );
+                    let id = texture.id();
+                    background.video.texture = Some(texture);
+                    let settings = BackgroundSettings {
+                        effects: false,
+                        ..Default::default()
+                    };
+                    let mut theme =
+                        theme::ThemeTransition::new(&ctx, Appearance::default(), None, true);
+                    let output = ctx.run(
+                        egui::RawInput {
+                            screen_rect: Some(screen),
+                            ..Default::default()
+                        },
+                        |ctx| {
+                            theme.update(ctx, Appearance::default(), None, true, Some(72));
+                            background.paint(ctx, &settings, None);
+                            let colors = theme::colors(ctx);
+                            egui::SidePanel::left("nav")
+                                .exact_width(224.0)
+                                .frame(egui::Frame::new().fill(colors.panel_fill()))
+                                .show(ctx, |_| {});
+                            egui::TopBottomPanel::bottom("selection")
+                                .exact_height(76.0)
+                                .show(ctx, |_| {});
+                            if details {
+                                egui::SidePanel::right("details")
+                                    .exact_width(308.0)
+                                    .show(ctx, |_| {});
+                            }
+                            egui::CentralPanel::default().frame(egui::Frame::NONE).show(
+                                ctx,
+                                |ui| {
+                                    egui::ScrollArea::vertical()
+                                        .vertical_scroll_offset(scroll)
+                                        .show(ui, |ui| {
+                                            colors.card_frame().show(ui, |ui| {
+                                                ui.set_min_height(2000.0);
+                                            });
+                                        });
+                                },
+                            );
+                        },
+                    );
+                    let wallpaper: Vec<_> = output
+                        .shapes
+                        .iter()
+                        .filter_map(|shape| {
+                            if let egui::Shape::Mesh(mesh) = &shape.shape
+                                && mesh.texture_id == id
+                            {
+                                Some((shape.clip_rect, mesh.calc_bounds()))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+                    assert_eq!(
+                        wallpaper,
+                        vec![(screen, screen)],
+                        "size={size:?}, details={details}, scroll={scroll}"
+                    );
+                }
+            }
+        }
     }
 }

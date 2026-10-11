@@ -21,6 +21,8 @@ pub struct Palette {
     pub orange: Color32,
     pub red: Color32,
     pub dark: bool,
+    pub video_opacity: f32,
+    glass: f32,
 }
 
 impl Palette {
@@ -92,13 +94,26 @@ impl Palette {
             orange: rgb(238, 178, 117),
             red: rgb(242, 142, 142),
             dark,
+            video_opacity: 0.0,
+            glass: 0.0,
         };
         palette.ensure_contrast();
         palette
     }
 
     fn ensure_contrast(&mut self) {
-        let backgrounds = [self.bg, self.sidebar, self.surface, self.raised];
+        let requested = self.video_opacity;
+        for step in 0..=32 {
+            self.video_opacity = requested * (1.0 - step as f32 / 32.0);
+            if [Color32::BLACK, Color32::WHITE].into_iter().any(|text| {
+                self.backgrounds()
+                    .iter()
+                    .all(|&background| contrast(text, background) >= 4.5)
+            }) {
+                break;
+            }
+        }
+        let backgrounds = self.backgrounds();
         for color in [
             &mut self.text,
             &mut self.muted,
@@ -111,6 +126,34 @@ impl Palette {
             *color = readable(*color, backgrounds);
         }
         self.on_accent = on_color(self.accent_fill);
+    }
+
+    fn backgrounds(self) -> [Color32; 6] {
+        [
+            self.bg,
+            self.sidebar,
+            self.surface,
+            self.raised,
+            self.bg.lerp_to_gamma(Color32::BLACK, self.video_opacity),
+            self.bg.lerp_to_gamma(Color32::WHITE, self.video_opacity),
+        ]
+    }
+
+    pub fn with_video(mut self, dimming: Option<u8>) -> Self {
+        if let Some(dimming) = dimming {
+            self.video_opacity = f32::from(100 - dimming.clamp(45, 95)) / 100.0;
+            self.glass = 1.0;
+            self.ensure_contrast();
+        }
+        self
+    }
+
+    pub fn surface_tint(self, color: Color32) -> Color32 {
+        color.gamma_multiply(1.0 - 0.80 * self.glass)
+    }
+
+    pub fn panel_fill(self) -> Color32 {
+        self.sidebar.gamma_multiply(1.0 - 0.78 * self.glass)
     }
 
     fn mix(self, target: Self, t: f32) -> Self {
@@ -131,6 +174,8 @@ impl Palette {
             orange: mix(self.orange, target.orange),
             red: mix(self.red, target.red),
             dark: target.dark,
+            video_opacity: self.video_opacity + (target.video_opacity - self.video_opacity) * t,
+            glass: self.glass + (target.glass - self.glass) * t,
         };
         value.balance_backgrounds();
         value.ensure_contrast();
@@ -161,10 +206,14 @@ impl Palette {
 
     pub fn card_frame(self) -> egui::Frame {
         egui::Frame::new()
-            .fill(self.surface)
+            .fill(self.surface_tint(self.surface))
             .stroke(Stroke::new(1.0_f32, self.border))
             .corner_radius(10)
             .inner_margin(16)
+    }
+
+    pub fn dialog_frame(self) -> egui::Frame {
+        self.card_frame().fill(self.surface)
     }
 
     pub fn primary(self, text: impl Into<String>) -> egui::Button<'static> {
@@ -206,7 +255,7 @@ pub fn on_color(color: Color32) -> Color32 {
     }
 }
 
-fn readable(color: Color32, backgrounds: [Color32; 4]) -> Color32 {
+fn readable<const N: usize>(color: Color32, backgrounds: [Color32; N]) -> Color32 {
     let minimum = |candidate| {
         backgrounds
             .iter()
@@ -228,7 +277,7 @@ fn readable(color: Color32, backgrounds: [Color32; 4]) -> Color32 {
 }
 
 pub struct ThemeTransition {
-    key: (Appearance, Option<Season>, bool),
+    key: (Appearance, Option<Season>, bool, Option<u8>),
     current: Palette,
     from: Palette,
     target: Palette,
@@ -245,7 +294,7 @@ impl ThemeTransition {
         let current = Palette::new(appearance, season);
         apply(ctx, current, reduced);
         Self {
-            key: (appearance, season, reduced),
+            key: (appearance, season, reduced, None),
             current,
             from: current,
             target: current,
@@ -259,13 +308,14 @@ impl ThemeTransition {
         appearance: Appearance,
         season: Option<Season>,
         reduced: bool,
+        video_dimming: Option<u8>,
     ) {
-        let key = (appearance, season, reduced);
+        let key = (appearance, season, reduced, video_dimming);
         let changed = self.key != key;
         if changed {
             self.key = key;
             self.from = self.current;
-            self.target = Palette::new(appearance, season);
+            self.target = Palette::new(appearance, season).with_video(video_dimming);
             self.started = Some(Instant::now());
         }
         let Some(started) = self.started else {
@@ -340,6 +390,54 @@ mod tests {
     use super::*;
 
     #[test]
+    fn video_surfaces_reveal_the_wallpaper_but_dialogs_stay_opaque_and_text_readable() {
+        for theme in Theme::ALL {
+            let base = Palette::new(
+                Appearance {
+                    theme,
+                    ..Default::default()
+                },
+                None,
+            );
+            assert_eq!(base.card_frame().fill.a(), 255);
+            assert_eq!(base.panel_fill().a(), 255);
+            for dimming in [45, 72, 95] {
+                let video = base.with_video(Some(dimming));
+                assert!(video.video_opacity > 0.0);
+                assert!(video.card_frame().fill.a() < 100);
+                assert!(video.panel_fill().a() < 100);
+                assert_eq!(video.dialog_frame().fill.a(), 255);
+                for background in video.backgrounds() {
+                    for foreground in [video.text, video.muted, video.dim, video.accent] {
+                        assert!(
+                            contrast(foreground, background) >= 4.5,
+                            "{theme:?}, dimming={dimming}"
+                        );
+                    }
+                }
+            }
+        }
+        let light = Palette::new(
+            Appearance {
+                theme: Theme::Light,
+                ..Default::default()
+            },
+            None,
+        )
+        .with_video(Some(45));
+        let dark = Palette::new(Appearance::default(), None).with_video(Some(45));
+        for step in 0..=32 {
+            let frame = dark.mix(light, step as f32 / 32.0);
+            assert!(
+                frame
+                    .backgrounds()
+                    .iter()
+                    .all(|&bg| contrast(frame.text, bg) >= 4.5)
+            );
+        }
+    }
+
+    #[test]
     fn changing_between_light_and_dark_keeps_intermediate_frames_readable() {
         let light = Palette::new(
             Appearance {
@@ -382,7 +480,7 @@ mod tests {
             accent: [0, 0, 0],
             ..Default::default()
         };
-        transition.update(&ctx, appearance, Some(Season::Winter), true);
+        transition.update(&ctx, appearance, Some(Season::Winter), true, None);
         let expected = Palette::new(appearance, Some(Season::Winter));
         assert!(transition.started.is_none());
         assert_eq!(colors(&ctx).bg, expected.bg);
@@ -390,7 +488,7 @@ mod tests {
         assert_eq!(ctx.style().visuals.panel_fill, expected.bg);
         assert_eq!(ctx.style().visuals.override_text_color, Some(expected.text));
         assert_eq!(ctx.style().animation_time, 0.0);
-        transition.update(&ctx, appearance, Some(Season::Winter), false);
+        transition.update(&ctx, appearance, Some(Season::Winter), false, None);
         assert!(ctx.style().animation_time > 0.0);
     }
 

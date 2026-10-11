@@ -107,7 +107,7 @@ impl SoftDownloaderApp {
             return;
         };
         let mut close = false;
-        let response = egui::Modal::new(egui::Id::new("program-list-import")).frame(colors.card_frame().inner_margin(24)).show(ctx, |ui| {
+        let response = egui::Modal::new(egui::Id::new("program-list-import")).frame(colors.dialog_frame().inner_margin(24)).show(ctx, |ui| {
             ui.set_width(640.0);
             theme::heading(ui, "Восстановить программы", "Выберите, что добавить к установке на этом компьютере.");
             ui.add(egui::Label::new(RichText::new(&preview.name).size(12.0).color(colors.dim)).truncate());

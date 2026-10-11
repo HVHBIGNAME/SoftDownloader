@@ -37,13 +37,12 @@ impl VideoPlayer {
             self.worker = None;
             self.source = source.map(Path::to_owned);
             self.error = None;
+            self.texture = None;
             if let Some(path) = source {
                 match spawn(path.to_owned(), ctx.clone()) {
                     Ok(worker) => self.worker = Some(worker),
                     Err(error) => self.error = Some(format!("{error:#}")),
                 }
-            } else {
-                self.texture = None;
             }
         }
         if let Some(worker) = &self.worker {
@@ -94,9 +93,10 @@ fn spawn(path: PathBuf, ctx: egui::Context) -> Result<Worker> {
     std::thread::Builder::new()
         .name("video-background".into())
         .spawn(move || {
-            if let Err(error) = play(&path, &stop, &pause, &sender, &ctx) {
+            if let Err(error) = play(&path, &stop, &pause, &sender, &ctx)
+                && sender.send(Err(format!("{error:#}"))).is_ok()
+            {
                 ctx.request_repaint();
-                let _ = sender.send(Err(format!("{error:#}")));
             }
         })?;
     Ok(Worker {

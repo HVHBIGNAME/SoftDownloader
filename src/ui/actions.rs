@@ -140,7 +140,7 @@ impl SoftDownloaderApp {
             .order(egui::Order::Foreground)
             .anchor(egui::Align2::RIGHT_BOTTOM, Vec2::new(-24.0, -90.0))
             .show(ctx, |ui| {
-                colors.card_frame().show(ui, |ui| {
+                colors.dialog_frame().show(ui, |ui| {
                     ui.set_max_width(520.0);
                     ui.horizontal(|ui| {
                         theme::icon(ui, Icon::Check, colors.accent);

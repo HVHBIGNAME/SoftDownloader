@@ -54,6 +54,17 @@ cargo run --features catalog-tools --bin catalog-check -- --public "G:\Мой д
 
 Встроенная коллекция объединяет `builtin.json` и `extended.json`. Подгруппы выводятся деревом; например, `development → runtimes → java`.
 
+В текущем каталоге **224 пакета и 26 групп**, включая:
+
+| Подгруппа | Содержимое |
+|---|---|
+| `gaming → game-mods` | WeMod, r2modman, Vortex, Mod Organizer 2 |
+| `development → editors → editor-extensions` | 31 расширение VS Code; Cline также доступен в группе ИИ |
+| `development → cli-tools` | Терминалы, инструменты сборки, поиск, Git-инструменты и обработка медиа |
+| `development → databases` | DB Browser for SQLite, DBeaver Community, HeidiSQL |
+
+Менеджеры модов устанавливаются как приложения. Игры и сборки выбираются внутри них; установка менеджера не добавляет моды в игровые папки.
+
 ## WinGet
 
 ```json
@@ -75,6 +86,10 @@ cargo run --features catalog-tools --bin catalog-check -- --public "G:\Мой д
 ```
 
 У такого пакета нет `source` и `artifact`. Сначала устанавливается VS Code, затем вызывается его CLI в режиме `ELECTRON_RUN_AS_NODE`. Обнаружение читает метаданные стандартного каталога `%USERPROFILE%/.vscode/extensions`, не запуская редактор. Пользовательские профили/каталоги расширений и другие редакторы отдельно не обходятся.
+
+У расширений указан `kind: "addon"`, а название заканчивается на `· VS Code`, чтобы не совпадать с отдельными программами при обнаружении через реестр. `ms-dotnettools.csharp` — расширение **C#**; C# Dev Kit имеет другой ID.
+
+Pylance и Python Debugger зависят от `ms-python-python`. При выборе обоих план содержит один VS Code и одно расширение Python перед дополнениями. Уже установленное пропускается. GitLens, Git Graph и lazygit требуют `git`, расширение Go — `go`. Выбор Python/JDK для проекта, .NET SDK, WSL, доступ к ИИ-моделям и подключение удалённых серверов выполняются отдельно.
 
 ## Ручная карточка и штатный мастер
 

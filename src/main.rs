@@ -26,8 +26,21 @@ fn run() -> Result<()> {
     let mut arguments = std::env::args_os().skip(1);
     let mut catalog = None;
     let mut data_dir = None;
+    let mut update_health = None;
     while let Some(argument) = arguments.next() {
         match argument.to_str() {
+            Some("--apply-update") => {
+                let directory = PathBuf::from(arguments.next().context("Нет папки обновления")?);
+                anyhow::ensure!(arguments.next().is_none(), "Лишние параметры обновления");
+                // This is the temporary copy of the old EXE, not the application window.
+                let result = softdownloader::updater::apply_update(&directory);
+                std::process::exit(if result.is_ok() { 0 } else { 1 });
+            }
+            Some("--update-health") => {
+                update_health = Some(PathBuf::from(
+                    arguments.next().context("Нет папки проверки запуска")?,
+                ));
+            }
             Some("--catalog") => {
                 catalog = Some(
                     arguments
@@ -69,7 +82,13 @@ fn run() -> Result<()> {
     eframe::run_native(
         "SoftDownloader",
         native_options,
-        Box::new(move |cc| Ok(Box::new(SoftDownloaderApp::new(cc, store, catalog)?))),
+        Box::new(move |cc| {
+            let app = SoftDownloaderApp::new(cc, store, catalog)?;
+            if let Some(directory) = update_health {
+                softdownloader::updater::acknowledge(&directory)?;
+            }
+            Ok(Box::new(app))
+        }),
     )
     .map_err(|error| anyhow::anyhow!("{error}"))
 }

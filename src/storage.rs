@@ -20,6 +20,8 @@ pub struct Settings {
     pub favorites: BTreeSet<String>,
     pub catalog_layout: CatalogLayout,
     pub sort_by_name: bool,
+    pub updates: crate::updater::UpdateSettings,
+    pub restore_selection: BTreeSet<String>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -148,8 +150,11 @@ mod tests {
         assert_eq!(settings.catalog_layout, CatalogLayout::List);
         assert!(settings.favorites.is_empty());
         assert!(settings.reduced_motion);
+        assert!(settings.updates.enabled);
         assert_eq!(settings.appearance, Appearance::default());
         settings.favorites = BTreeSet::from(["vscode".into(), "future-drive-addon".into()]);
+        settings.restore_selection = BTreeSet::from(["git".into(), "vscode".into()]);
+        settings.updates.enabled = false;
         settings.catalog_layout = CatalogLayout::List;
         settings.sort_by_name = true;
         settings.appearance = Appearance {
@@ -164,6 +169,8 @@ mod tests {
         assert!(restored.sort_by_name);
         assert_eq!(restored.catalog_layout, CatalogLayout::List);
         assert_eq!(restored.appearance, settings.appearance);
+        assert_eq!(restored.restore_selection, settings.restore_selection);
+        assert!(!restored.updates.enabled);
     }
 
     #[test]

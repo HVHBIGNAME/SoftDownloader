@@ -59,6 +59,7 @@ pub struct SoftDownloaderApp {
     pub(super) installed_query: String,
     pub(super) selected_removals: BTreeSet<String>,
     pub(super) settings: Settings,
+    pub(super) updater: super::update_view::UpdateUi,
     appearance: theme::ThemeTransition,
     pub(super) sounds: SoundPlayer,
     pub(super) settings_section: super::settings_view::SettingsSection,
@@ -103,6 +104,8 @@ impl SoftDownloaderApp {
     ) -> Result<Self> {
         theme::initialize(&cc.egui_ctx);
         let settings = store.load_settings()?;
+        let selected = settings.restore_selection.clone();
+        let updater = super::update_view::UpdateUi::new(&store);
         let appearance = theme::ThemeTransition::new(
             &cc.egui_ctx,
             settings.appearance,
@@ -136,6 +139,7 @@ impl SoftDownloaderApp {
             installed_query: String::new(),
             selected_removals: BTreeSet::new(),
             settings,
+            updater,
             appearance,
             sounds: SoundPlayer::new(cc.egui_ctx.clone())?,
             settings_section: super::settings_view::SettingsSection::Appearance,
@@ -161,7 +165,7 @@ impl SoftDownloaderApp {
             page: Page::Catalog,
             filter: CatalogFilter::default(),
             focus_search: false,
-            selected: BTreeSet::new(),
+            selected,
             details: None,
             queue: Vec::new(),
             queue_active: false,
@@ -284,6 +288,8 @@ impl SoftDownloaderApp {
                 WorkerEvent::BackgroundProgress(progress) => {
                     self.background_progress = Some(progress)
                 }
+                WorkerEvent::AppUpdate(result) => self.receive_app_update(result),
+                WorkerEvent::AppUpdateProgress(progress) => self.updater.progress = Some(progress),
                 WorkerEvent::QueueFinished => {
                     self.queue_active = false;
                     let cue = if self
@@ -339,6 +345,10 @@ impl SoftDownloaderApp {
                 self.imported_selection = None;
                 self.details = None;
                 self.filter.category = None;
+                if !self.settings.restore_selection.is_empty() {
+                    self.settings.restore_selection.clear();
+                    self.save_preferences();
+                }
             }
             Err(error) => {
                 self.catalog_status = "Обновление не удалось".into();
@@ -480,7 +490,7 @@ impl SoftDownloaderApp {
             .resizable(false)
             .frame(
                 egui::Frame::new()
-                    .fill(colors.sidebar)
+                    .fill(colors.panel_fill())
                     .inner_margin(Margin::symmetric(14, 22)),
             )
             .show(ctx, |ui| {
@@ -628,7 +638,7 @@ impl SoftDownloaderApp {
             return;
         };
         let plan = confirmation.packages;
-        let response = egui::Modal::new(egui::Id::new("confirm-install")).frame(colors.card_frame().inner_margin(24)).show(ctx, |ui| {
+        let response = egui::Modal::new(egui::Id::new("confirm-install")).frame(colors.dialog_frame().inner_margin(24)).show(ctx, |ui| {
             ui.set_width(510.0);
             theme::heading(ui, "Всё готово к установке", "Зависимости добавлены автоматически. Проверь список.");
             egui::ScrollArea::vertical().max_height(270.0).show(ui, |ui| {
@@ -661,6 +671,7 @@ impl SoftDownloaderApp {
             || self.import_preview.is_some()
             || self.close_dialog
             || self.background_picking
+            || self.updater.applying()
     }
 
     fn handle_close(&mut self, ctx: &egui::Context) {
@@ -688,28 +699,43 @@ impl SoftDownloaderApp {
 
 impl eframe::App for SoftDownloaderApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.poll_events();
+        if self.updater.applying() {
+            self.tick_app_update(ctx);
+            return;
+        }
+        self.background
+            .update(ctx, &self.settings.background, self.settings.reduced_motion);
         self.appearance.update(
             ctx,
             self.settings.appearance,
             self.settings.appearance.current_season(),
             self.settings.reduced_motion,
+            self.background
+                .video
+                .texture
+                .as_ref()
+                .map(|_| self.settings.background.dimming),
         );
         ctx.request_repaint_after(Duration::from_secs(60));
-        let colors = theme::colors(ctx);
-        self.poll_events();
-        self.background
-            .update(ctx, &self.settings.background, self.settings.reduced_motion);
         self.icons.collect(ctx);
         if self.loading
             || self.queue_active
             || self.programs_loading
             || self.list_busy
             || self.background_busy
+            || self.updater.busy
         {
             ctx.request_repaint_after(Duration::from_millis(100));
         }
         self.handle_shortcuts(ctx);
+        self.background.paint(
+            ctx,
+            &self.settings.background,
+            self.settings.appearance.current_season(),
+        );
         self.sidebar(ctx);
+        self.update_banner(ctx);
         self.selection_bar(ctx);
         if self.page == Page::Catalog {
             self.details_panel(ctx);
@@ -717,15 +743,10 @@ impl eframe::App for SoftDownloaderApp {
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
-                    .fill(colors.bg)
+                    .fill(egui::Color32::TRANSPARENT)
                     .inner_margin(Margin::symmetric(28, 26)),
             )
             .show(ctx, |ui| {
-                self.background.paint(
-                    ui,
-                    &self.settings.background,
-                    self.settings.appearance.current_season(),
-                );
                 self.notice(ui);
                 match self.page {
                     Page::Catalog => self.catalog_page(ui),
@@ -741,6 +762,7 @@ impl eframe::App for SoftDownloaderApp {
         }
         self.import_dialog(ctx);
         self.handle_close(ctx);
+        self.tick_app_update(ctx);
         self.sounds
             .update(ctx, self.settings.sound, self.error.as_deref());
     }

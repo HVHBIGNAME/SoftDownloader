@@ -12,7 +12,7 @@ pub(super) fn removal(
     let mut approved = false;
     let mut cancelled = false;
     let response = egui::Modal::new(egui::Id::new("confirm-removal"))
-        .frame(colors.card_frame().inner_margin(24))
+        .frame(colors.dialog_frame().inner_margin(24))
         .show(ctx, |ui| {
             ui.set_width(510.0);
             theme::heading(ui, "Удалить программы?", "Проверьте список. Зависимые пакеты удаляются первыми.");

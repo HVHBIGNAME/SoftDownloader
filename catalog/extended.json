@@ -6,6 +6,9 @@
     { "id": "communication", "name": "Общение и почта" },
     { "id": "ai", "name": "ИИ и ассистенты" },
     { "id": "editors", "name": "Редакторы и IDE", "parent": "development" },
+    { "id": "editor-extensions", "name": "Расширения VS Code", "parent": "editors" },
+    { "id": "cli-tools", "name": "Командная строка", "parent": "development" },
+    { "id": "databases", "name": "Базы данных", "parent": "development" },
     { "id": "runtimes", "name": "Языки и среды", "parent": "development" },
     { "id": "java", "name": "Java · JDK", "parent": "runtimes" },
     { "id": "archives", "name": "Архиваторы", "parent": "utilities" },
@@ -13,6 +16,7 @@
     { "id": "devices", "name": "Устройства", "parent": "utilities" },
     { "id": "security", "name": "Защита и пароли" },
     { "id": "gaming", "name": "Игры" },
+    { "id": "game-mods", "name": "Менеджеры модов", "parent": "gaming" },
     { "id": "minecraft", "name": "Minecraft", "parent": "gaming" },
     { "id": "video-tools", "name": "Запись и монтаж", "parent": "media" },
     { "id": "productivity", "name": "Документы и заметки" }
@@ -137,7 +141,7 @@
     },
     {
       "id": "db-browser", "name": "DB Browser for SQLite", "version": "Последняя", "publisher": "DB Browser for SQLite",
-      "description": "Просмотр и редактирование SQLite: таблицы, запросы, импорт и экспорт данных.", "category": "development",
+      "description": "Просмотр и редактирование SQLite: таблицы, запросы, импорт и экспорт данных.", "category": "databases",
       "tags": ["db browser", "sqlite", "sql", "базы данных"], "homepage": "https://sqlitebrowser.org/",
       "source": { "type": "winget", "package_id": "DBBrowserForSQLite.DBBrowserForSQLite" }, "install": { "type": "winget" },
       "detect": { "paths": ["%ProgramFiles%/DB Browser for SQLite/DB Browser for SQLite.exe"] }
@@ -326,7 +330,7 @@
     },
     {
       "id": "wemod", "name": "WeMod", "version": "Последняя", "publisher": "WeMod",
-      "description": "Менеджер модификаций и трейнеров для поддерживаемых одиночных игр.", "category": "gaming",
+      "description": "Менеджер модификаций и трейнеров для поддерживаемых одиночных игр.", "category": "game-mods",
       "tags": ["wemod", "игры", "трейнер"], "homepage": "https://www.wemod.com/",
       "source": { "type": "winget", "package_id": "WeMod.WeMod" }, "install": { "type": "winget" },
       "detect": { "paths": ["%LOCALAPPDATA%/WeMod/WeMod.exe"] }
@@ -463,7 +467,7 @@
       "id": "eset-premium", "name": "ESET HOME Security Premium", "version": "Последняя", "publisher": "ESET",
       "description": "ESET Premium / Smart Security Premium. Редакция и доступные функции определяются подпиской ESET.", "category": "security",
       "tags": ["eset", "nod32 premium", "smart security premium", "антивирус"], "homepage": "https://www.eset.com/int/home/protection-plans/",
-      "source": { "type": "manual", "url": "https://www.eset.com/int/home/download/", "instructions": "Скачайте официальный Live Installer для Premium либо откройте свой eset_smart_security_premium_live_installer.exe. В мастере войдите в ESET HOME или укажите действующую лицензию. NOD32 Antivirus и Premium — разные редакции." },
+      "source": { "type": "manual", "url": "https://download.eset.com/com/eset/tools/installers/live_essp/latest/eset_smart_security_premium_live_installer.exe", "instructions": "По ссылке скачивается официальный ESET Smart Security Premium Live Installer. Сохраните и запустите eset_smart_security_premium_live_installer.exe, затем войдите в ESET HOME или укажите действующую лицензию. NOD32 Antivirus и Premium — разные редакции." },
       "detect": { "names": ["ESET Security", "ESET Smart Security Premium", "ESET HOME Security Premium"], "paths": ["%ProgramFiles%/ESET/ESET Security/egui.exe"] }
     },
     {
@@ -630,7 +634,7 @@
     },
     {
       "id": "windows-terminal", "name": "Windows Terminal", "version": "Последняя", "publisher": "Microsoft",
-      "description": "Терминал Windows с вкладками и профилями PowerShell, CMD и WSL.", "category": "development",
+      "description": "Терминал Windows с вкладками и профилями PowerShell, CMD и WSL.", "category": "cli-tools",
       "tags": ["terminal", "терминал", "powershell", "wsl"], "homepage": "https://github.com/microsoft/terminal",
       "source": { "type": "winget", "package_id": "Microsoft.WindowsTerminal" }, "install": { "type": "winget" },
       "detect": { "appx_names": ["Microsoft.WindowsTerminal"] }
@@ -669,6 +673,864 @@
       "tags": ["obsidian", "markdown", "заметки"], "homepage": "https://obsidian.md/",
       "source": { "type": "winget", "package_id": "Obsidian.Obsidian" }, "install": { "type": "winget" },
       "detect": { "paths": ["%LOCALAPPDATA%/Obsidian/Obsidian.exe", "%LOCALAPPDATA%/Programs/Obsidian/Obsidian.exe"] }
+    },
+    {
+      "id": "r2modman", "name": "r2modman", "version": "Последняя", "publisher": "ebkr",
+      "description": "Менеджер модов для Risk of Rain 2, Valheim и других игр с профилями сборок.", "category": "game-mods",
+      "tags": ["моды", "менеджер модов", "Valheim"], "homepage": "https://github.com/ebkr/r2modmanPlus",
+      "source": { "type": "winget", "package_id": "ebkr.r2modman" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/r2modman/r2modman.exe"] }
+    },
+    {
+      "id": "vortex", "name": "Vortex", "version": "Последняя", "publisher": "Nexus Mods",
+      "description": "Менеджер модов Nexus Mods для Skyrim, Fallout, Cyberpunk и других игр.", "category": "game-mods",
+      "tags": ["моды", "Nexus", "менеджер модов"], "homepage": "https://www.nexusmods.com/about/vortex/",
+      "source": { "type": "winget", "package_id": "NexusMods.Vortex" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Black Tree Gaming Ltd/Vortex/Vortex.exe"] }
+    },
+    {
+      "id": "mod-organizer-2", "name": "Mod Organizer 2", "version": "Последняя", "publisher": "MO2 Team",
+      "description": "Менеджер модов с виртуальной файловой системой, профилями и порядком загрузки.", "category": "game-mods",
+      "tags": ["моды", "Skyrim", "Fallout", "профили"], "homepage": "https://www.modorganizer.org/",
+      "source": { "type": "winget", "package_id": "ModOrganizer2.modorganizer" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Mod Organizer(?: 2)?(?: (?:version |версия )?[0-9.]+)?)$", "paths": ["%ProgramFiles%/Mod Organizer 2/ModOrganizer.exe"] }
+    },
+    {
+      "id": "atlauncher", "name": "ATLauncher", "version": "Последняя", "publisher": "ATLauncher",
+      "description": "Лаунчер Minecraft с модпаками, сборками и управлением модами.", "category": "minecraft",
+      "tags": ["Minecraft", "модпаки", "лаунчер"], "homepage": "https://atlauncher.com/",
+      "source": { "type": "winget", "package_id": "ATLauncher.ATLauncher" }, "install": { "type": "winget" },
+      "detect": { "commands": ["ATLauncher.exe"] }
+    },
+    {
+      "id": "curseforge", "name": "CurseForge", "version": "Последняя", "publisher": "Overwolf",
+      "description": "Клиент CurseForge для установки модов и модпаков Minecraft и других игр.", "category": "minecraft",
+      "tags": ["Minecraft", "моды", "CurseForge"], "homepage": "https://www.curseforge.com/",
+      "source": { "type": "winget", "package_id": "Overwolf.CurseForge" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/CurseForge/CurseForge.exe"] }
+    },
+    {
+      "id": "geforcenow", "name": "GeForce NOW", "version": "Последняя", "publisher": "NVIDIA",
+      "description": "Облачный игровой сервис NVIDIA. Доступность игр и сеансов зависит от региона и плана.", "category": "gaming",
+      "tags": ["облако", "игры", "стриминг"], "homepage": "https://www.nvidia.com/geforce-now/",
+      "source": { "type": "winget", "package_id": "Nvidia.GeForceNow" }, "install": { "type": "winget" },
+      "detect": { "names": ["NVIDIA GeForce NOW"], "paths": ["%LOCALAPPDATA%/NVIDIA Corporation/GeForceNOW/CEF/GeForceNOW.exe"] }
+    },
+    {
+      "id": "epic-games", "name": "Epic Games Launcher", "version": "Последняя", "publisher": "Epic Games",
+      "description": "Магазин и лаунчер Epic Games Store.", "category": "gaming",
+      "tags": ["игры", "магазин", "Epic"], "homepage": "https://store.epicgames.com/download",
+      "source": { "type": "winget", "package_id": "EpicGames.EpicGamesLauncher" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles(x86)%/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"] }
+    },
+    {
+      "id": "gog-galaxy", "name": "GOG Galaxy", "version": "Последняя", "publisher": "GOG.com",
+      "description": "Лаунчер GOG с библиотекой игр и обновлениями.", "category": "gaming",
+      "tags": ["игры", "GOG", "лаунчер"], "homepage": "https://www.gog.com/galaxy",
+      "source": { "type": "winget", "package_id": "GOG.Galaxy" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles(x86)%/GOG Galaxy/GalaxyClient.exe"] }
+    },
+    {
+      "id": "heroic", "name": "Heroic Games Launcher", "version": "Последняя", "publisher": "Heroic Launcher",
+      "description": "Открытый лаунчер для библиотек Epic Games, GOG и Amazon Games.", "category": "gaming",
+      "tags": ["игры", "Epic", "GOG"], "homepage": "https://heroicgameslauncher.com/",
+      "source": { "type": "winget", "package_id": "HeroicGamesLauncher.HeroicGamesLauncher" }, "install": { "type": "winget" },
+      "detect": { "names": ["Heroic"], "paths": ["%LOCALAPPDATA%/Programs/heroic/Heroic.exe"] }
+    },
+    {
+      "id": "playnite", "name": "Playnite", "version": "Последняя", "publisher": "Playnite",
+      "description": "Единая библиотека игр из разных магазинов с плагинами и темами.", "category": "gaming",
+      "tags": ["библиотека игр", "лаунчер"], "homepage": "https://playnite.link/",
+      "source": { "type": "winget", "package_id": "Playnite.Playnite" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Playnite/Playnite.DesktopApp.exe"] }
+    },
+    {
+      "id": "moonlight", "name": "Moonlight", "version": "Последняя", "publisher": "Moonlight Game Streaming",
+      "description": "Клиент потоковой передачи игр с ПК. На компьютере-источнике нужен совместимый сервер, например Sunshine.", "category": "gaming",
+      "tags": ["стриминг", "игры"], "homepage": "https://moonlight-stream.org/",
+      "source": { "type": "winget", "package_id": "MoonlightGameStreamingProject.Moonlight" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Moonlight(?: Game Streaming)?(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/Moonlight Game Streaming/Moonlight.exe"] }
+    },
+    {
+      "id": "parsec", "name": "Parsec", "version": "Последняя", "publisher": "Parsec Cloud",
+      "description": "Удалённый доступ к ПК с низкой задержкой для игр и совместной работы.", "category": "gaming",
+      "tags": ["удалённый доступ", "игры"], "homepage": "https://parsec.app/",
+      "source": { "type": "winget", "package_id": "Parsec.Parsec" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Parsec/parsecd.exe", "%APPDATA%/Parsec/parsecd.exe"] }
+    },
+    {
+      "id": "ubisoft-connect", "name": "Ubisoft Connect", "version": "Последняя", "publisher": "Ubisoft",
+      "description": "Лаунчер и магазин Ubisoft.", "category": "gaming",
+      "tags": ["игры", "Ubisoft"], "homepage": "https://ubisoftconnect.com/",
+      "source": { "type": "winget", "package_id": "Ubisoft.Connect" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles(x86)%/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"] }
+    },
+    {
+      "id": "unity-hub", "name": "Unity Hub", "version": "Последняя", "publisher": "Unity Technologies",
+      "description": "Управление версиями Unity Editor и проектами. Редактор и модули выбираются в Hub.", "category": "development",
+      "tags": ["Unity", "игры", "разработка"], "homepage": "https://unity.com/download",
+      "source": { "type": "winget", "package_id": "Unity.UnityHub" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Unity Hub/Unity Hub.exe"] }
+    },
+    {
+      "id": "godot", "name": "Godot Engine", "version": "Последняя", "publisher": "Godot",
+      "description": "Открытый игровой движок с 2D- и 3D-редактором. Стандартная сборка с GDScript.", "category": "development",
+      "tags": ["игры", "движок"], "homepage": "https://godotengine.org/",
+      "source": { "type": "winget", "package_id": "GodotEngine.GodotEngine" }, "install": { "type": "winget" },
+      "detect": { "commands": ["godot.exe"] }
+    },
+    {
+      "id": "joplin", "name": "Joplin", "version": "Последняя", "publisher": "Laurent Cozic",
+      "description": "Открытое приложение для заметок с шифрованием и синхронизацией через Nextcloud, WebDAV или Dropbox.", "category": "productivity",
+      "tags": ["заметки", "синхронизация"], "homepage": "https://joplinapp.org/",
+      "source": { "type": "winget", "package_id": "Joplin.Joplin" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/Joplin/Joplin.exe"] }
+    },
+    {
+      "id": "anki", "name": "Anki", "version": "Последняя", "publisher": "Ankitects",
+      "description": "Карточки для запоминания с интервальными повторениями.", "category": "productivity",
+      "tags": ["обучение", "карточки"], "homepage": "https://apps.ankiweb.net/",
+      "source": { "type": "winget", "package_id": "Anki.Anki" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/Anki/anki.exe"], "commands": ["anki.exe"] }
+    },
+    {
+      "id": "libreoffice", "name": "LibreOffice", "version": "Последняя", "publisher": "The Document Foundation",
+      "description": "Офисный пакет: документы, таблицы, презентации и формулы.", "category": "productivity",
+      "tags": ["офис", "документы", "таблицы"], "homepage": "https://www.libreoffice.org/",
+      "source": { "type": "winget", "package_id": "TheDocumentFoundation.LibreOffice" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:LibreOffice(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/LibreOffice/program/soffice.exe"] }
+    },
+    {
+      "id": "onlyoffice", "name": "ONLYOFFICE Desktop Editors", "version": "Последняя", "publisher": "ONLYOFFICE",
+      "description": "Редакторы документов, таблиц и презентаций с поддержкой форматов Office.", "category": "productivity",
+      "tags": ["офис", "документы"], "homepage": "https://www.onlyoffice.com/desktop.aspx",
+      "source": { "type": "winget", "package_id": "ONLYOFFICE.DesktopEditors" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/ONLYOFFICE/DesktopEditors/DesktopEditors.exe"] }
+    },
+    {
+      "id": "calibre", "name": "calibre", "version": "Последняя", "publisher": "Kovid Goyal",
+      "description": "Управление электронной библиотекой, конвертация книг и синхронизация с читалками.", "category": "productivity",
+      "tags": ["книги", "электронные книги"], "homepage": "https://calibre-ebook.com/",
+      "source": { "type": "winget", "package_id": "calibre.calibre" }, "install": { "type": "winget" },
+      "detect": { "names": ["calibre 64bit"], "paths": ["%ProgramFiles%/Calibre2/calibre.exe"], "commands": ["calibre.exe"] }
+    },
+    {
+      "id": "total-commander", "name": "Total Commander", "version": "Последняя", "publisher": "Ghisler",
+      "description": "Двухпанельный файловый менеджер с архиватором и FTP-клиентом. Пробная версия.", "category": "utilities",
+      "tags": ["файлы", "менеджер файлов"], "homepage": "https://www.ghisler.com/",
+      "source": { "type": "winget", "package_id": "Ghisler.TotalCommander" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Total Commander(?: [0-9.]+)?(?: [(](?:64|32|64[+]32) bit[)])?)$", "paths": ["C:/totalcmd/TOTALCMD64.EXE", "%ProgramFiles%/totalcmd/TOTALCMD64.EXE"], "commands": ["TOTALCMD64.EXE", "TOTALCMD.EXE"] }
+    },
+    {
+      "id": "wiztree", "name": "WizTree", "version": "Последняя", "publisher": "Antibody Software",
+      "description": "Быстрый анализ занятого места на дисках с картой файлов.", "category": "system-tools",
+      "tags": ["диск", "место", "анализ"], "homepage": "https://diskanalyzer.com/",
+      "source": { "type": "winget", "package_id": "AntibodySoftware.WizTree" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:WizTree(?: v?[0-9.]+)?)$", "paths": ["%ProgramFiles%/WizTree/WizTree64.exe"] }
+    },
+    {
+      "id": "treesize-free", "name": "TreeSize Free", "version": "Последняя", "publisher": "JAM Software",
+      "description": "Анализ размеров папок с визуальным деревом.", "category": "system-tools",
+      "tags": ["диск", "место", "анализ"], "homepage": "https://www.jam-software.com/treesize_free",
+      "source": { "type": "winget", "package_id": "JAMSoftware.TreeSize.Free" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:TreeSize Free(?: V?[0-9.]+)?)$", "paths": ["%ProgramFiles%/JAM Software/TreeSize Free/TreeSizeFree.exe"] }
+    },
+    {
+      "id": "windirstat", "name": "WinDirStat", "version": "Последняя", "publisher": "WinDirStat Team",
+      "description": "Визуальный отчёт о занятом месте на дисках.", "category": "system-tools",
+      "tags": ["диск", "место"], "homepage": "https://windirstat.net/",
+      "source": { "type": "winget", "package_id": "WinDirStat.WinDirStat" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/WinDirStat/WinDirStat.exe", "%ProgramFiles(x86)%/WinDirStat/WinDirStat.exe"] }
+    },
+    {
+      "id": "revo-uninstaller", "name": "Revo Uninstaller", "version": "Последняя", "publisher": "VS Revo Group",
+      "description": "Удаление программ с поиском остатков в реестре и папках.", "category": "utilities",
+      "tags": ["удаление", "очистка"], "homepage": "https://www.revouninstaller.com/",
+      "source": { "type": "winget", "package_id": "RevoUninstaller.RevoUninstaller" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Revo Uninstaller(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/VS Revo Group/Revo Uninstaller/RevoUnin.exe", "%ProgramFiles(x86)%/VS Revo Group/Revo Uninstaller/RevoUnin.exe"] }
+    },
+    {
+      "id": "bleachbit", "name": "BleachBit", "version": "Последняя", "publisher": "Andrew Ziem",
+      "description": "Очистка временных файлов и кэшей с предпросмотром перед удалением.", "category": "utilities",
+      "tags": ["очистка", "кэш"], "homepage": "https://www.bleachbit.org/",
+      "source": { "type": "winget", "package_id": "BleachBit.BleachBit" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles(x86)%/BleachBit/bleachbit.exe", "%LOCALAPPDATA%/BleachBit/bleachbit.exe"] }
+    },
+    {
+      "id": "ventoy", "name": "Ventoy", "version": "Последняя", "publisher": "Ventoy",
+      "description": "Загрузка нескольких ISO-образов с одной флешки. Целевой накопитель выбирается вручную в Ventoy.", "category": "system-tools",
+      "tags": ["USB", "ISO", "флешка"], "homepage": "https://www.ventoy.net/",
+      "source": { "type": "winget", "package_id": "Ventoy.Ventoy" }, "install": { "type": "winget" },
+      "detect": { "commands": ["Ventoy2Disk.exe"] }
+    },
+    {
+      "id": "flameshot", "name": "Flameshot", "version": "Последняя", "publisher": "Flameshot",
+      "description": "Снимки экрана с аннотациями и быстрым редактированием.", "category": "video-tools",
+      "tags": ["скриншоты", "экран"], "homepage": "https://flameshot.org/",
+      "source": { "type": "winget", "package_id": "Flameshot.Flameshot" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Flameshot/bin/flameshot.exe"], "commands": ["flameshot.exe"] }
+    },
+    {
+      "id": "greenshot", "name": "Greenshot", "version": "Последняя", "publisher": "Greenshot",
+      "description": "Скриншоты области или окна с правкой и экспортом.", "category": "video-tools",
+      "tags": ["скриншоты", "экран"], "homepage": "https://getgreenshot.org/",
+      "source": { "type": "winget", "package_id": "Greenshot.Greenshot" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Greenshot(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/Greenshot/Greenshot.exe"] }
+    },
+    {
+      "id": "qbittorrent", "name": "qBittorrent", "version": "Последняя", "publisher": "qBittorrent",
+      "description": "Торрент-клиент без рекламы с поиском и планировщиком.", "category": "utilities",
+      "tags": ["торренты", "загрузки"], "homepage": "https://www.qbittorrent.org/",
+      "source": { "type": "winget", "package_id": "qBittorrent.qBittorrent" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/qBittorrent/qbittorrent.exe"] }
+    },
+    {
+      "id": "nanazip", "name": "NanaZip", "version": "Последняя", "publisher": "M2Team",
+      "description": "Архиватор на базе 7-Zip с интеграцией в меню Windows 11.", "category": "archives",
+      "tags": ["архив", "ZIP", "7z"], "homepage": "https://github.com/M2Team/NanaZip",
+      "source": { "type": "winget", "package_id": "M2Team.NanaZip" }, "install": { "type": "winget" },
+      "detect": { "appx_names": ["M2Team.NanaZip"] }
+    },
+    {
+      "id": "hwinfo", "name": "HWiNFO", "version": "Последняя", "publisher": "REALiX",
+      "description": "Датчики температур и напряжений, подробные характеристики оборудования.", "category": "system-tools",
+      "tags": ["железо", "датчики", "температура"], "homepage": "https://www.hwinfo.com/",
+      "source": { "type": "winget", "package_id": "REALiX.HWiNFO" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:HWiNFO(?:64|32)?(?: v?[0-9.]+)?)$", "paths": ["%ProgramFiles%/HWiNFO64/HWiNFO64.exe"] }
+    },
+    {
+      "id": "cpu-z", "name": "CPU-Z", "version": "Последняя", "publisher": "CPUID",
+      "description": "Сведения о процессоре, памяти и материнской плате.", "category": "system-tools",
+      "tags": ["железо", "процессор"], "homepage": "https://www.cpuid.com/softwares/cpu-z.html",
+      "source": { "type": "winget", "package_id": "CPUID.CPU-Z" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:(?:CPUID )?CPU-Z(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/CPUID/CPU-Z/cpuz.exe"] }
+    },
+    {
+      "id": "gpu-z", "name": "GPU-Z", "version": "Последняя", "publisher": "TechPowerUp",
+      "description": "Характеристики видеокарты и показатели в реальном времени.", "category": "system-tools",
+      "tags": ["видеокарта", "железо"], "homepage": "https://www.techpowerup.com/gpuz/",
+      "source": { "type": "winget", "package_id": "TechPowerUp.GPU-Z" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:(?:TechPowerUp )?GPU-Z(?: [0-9.]+)?)$", "paths": ["%ProgramFiles(x86)%/GPU-Z/GPU-Z.exe"], "commands": ["GPU-Z.exe"] }
+    },
+    {
+      "id": "process-explorer", "name": "Process Explorer", "version": "Последняя", "publisher": "Microsoft Sysinternals",
+      "description": "Подробный менеджер процессов с деревом и дескрипторами.", "category": "system-tools",
+      "tags": ["процессы", "Sysinternals"], "homepage": "https://learn.microsoft.com/sysinternals/downloads/process-explorer",
+      "source": { "type": "winget", "package_id": "Microsoft.Sysinternals.ProcessExplorer" }, "install": { "type": "winget" },
+      "detect": { "commands": ["procexp64.exe", "procexp.exe"] }
+    },
+    {
+      "id": "autoruns", "name": "Autoruns", "version": "Последняя", "publisher": "Microsoft Sysinternals",
+      "description": "Просмотр программ, служб и задач, запускаемых вместе с Windows.", "category": "system-tools",
+      "tags": ["автозагрузка", "Sysinternals"], "homepage": "https://learn.microsoft.com/sysinternals/downloads/autoruns",
+      "source": { "type": "winget", "package_id": "Microsoft.Sysinternals.Autoruns" }, "install": { "type": "winget" },
+      "detect": { "commands": ["Autoruns64.exe", "Autoruns.exe"] }
+    },
+    {
+      "id": "powershell", "name": "PowerShell 7", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Кроссплатформенная оболочка PowerShell 7. Устанавливается рядом с Windows PowerShell 5.1.", "category": "cli-tools",
+      "tags": ["PowerShell", "скрипты"], "homepage": "https://github.com/PowerShell/PowerShell",
+      "source": { "type": "winget", "package_id": "Microsoft.PowerShell" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:PowerShell 7(?:[.][0-9]+)*(?:-[0-9]+)?(?:-x64| [(]x64[)])?)$", "paths": ["%ProgramFiles%/PowerShell/7/pwsh.exe"], "commands": ["pwsh.exe"] }
+    },
+    {
+      "id": "malwarebytes", "name": "Malwarebytes", "version": "Последняя", "publisher": "Malwarebytes",
+      "description": "Проверка на вредоносное ПО и нежелательные программы. Часть функций требует подписки.", "category": "security",
+      "tags": ["антивирус", "защита"], "homepage": "https://www.malwarebytes.com/",
+      "source": { "type": "winget", "package_id": "Malwarebytes.Malwarebytes" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Malwarebytes(?: (?:version |версия )?[0-9.]+)?)$", "paths": ["%ProgramFiles%/Malwarebytes/Anti-Malware/MBAM.exe"] }
+    },
+    {
+      "id": "cryptomator", "name": "Cryptomator", "version": "Последняя", "publisher": "Skymatic",
+      "description": "Шифрование файлов в облачных папках на вашем устройстве.", "category": "security",
+      "tags": ["шифрование", "облако"], "homepage": "https://cryptomator.org/",
+      "source": { "type": "winget", "package_id": "Cryptomator.Cryptomator" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Cryptomator/Cryptomator.exe"] }
+    },
+    {
+      "id": "zoom", "name": "Zoom Workplace", "version": "Последняя", "publisher": "Zoom",
+      "description": "Видеоконференции и демонстрация экрана.", "category": "communication",
+      "tags": ["Zoom", "видеозвонки", "конференции"], "homepage": "https://zoom.us/download",
+      "source": { "type": "winget", "package_id": "Zoom.Zoom" }, "install": { "type": "winget" },
+      "detect": { "names": ["Zoom", "Zoom Workplace (64-bit)", "Zoom (64-bit)"], "paths": ["%APPDATA%/Zoom/bin/Zoom.exe", "%ProgramFiles%/Zoom/bin/Zoom.exe"] }
+    },
+    {
+      "id": "slack", "name": "Slack", "version": "Последняя", "publisher": "Salesforce",
+      "description": "Рабочие чаты и каналы команды.", "category": "communication",
+      "tags": ["чат", "команда"], "homepage": "https://slack.com/",
+      "source": { "type": "winget", "package_id": "SlackTechnologies.Slack" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/slack/slack.exe"], "appx_names": ["91750D7E.Slack"] }
+    },
+    {
+      "id": "element", "name": "Element", "version": "Последняя", "publisher": "Element",
+      "description": "Мессенджер на протоколе Matrix с шифрованием.", "category": "communication",
+      "tags": ["чат", "Matrix"], "homepage": "https://element.io/",
+      "source": { "type": "winget", "package_id": "Element.Element" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/element-desktop/Element.exe"] }
+    },
+    {
+      "id": "signal", "name": "Signal", "version": "Последняя", "publisher": "Signal Messenger",
+      "description": "Защищённые сообщения и звонки. Настольный клиент привязывается к Signal на телефоне.", "category": "communication",
+      "tags": ["мессенджер", "шифрование"], "homepage": "https://signal.org/",
+      "source": { "type": "winget", "package_id": "OpenWhisperSystems.Signal" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/signal-desktop/Signal.exe"] }
+    },
+    {
+      "id": "handbrake", "name": "HandBrake", "version": "Последняя", "publisher": "HandBrake Team",
+      "description": "Конвертация видео и сжатие под устройства.", "category": "video-tools",
+      "tags": ["видео", "конвертация"], "homepage": "https://handbrake.fr/",
+      "source": { "type": "winget", "package_id": "HandBrake.HandBrake" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:HandBrake(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/HandBrake/HandBrake.exe"] }
+    },
+    {
+      "id": "shotcut", "name": "Shotcut", "version": "Последняя", "publisher": "Meltytech",
+      "description": "Бесплатный видеоредактор с нелинейным монтажом.", "category": "video-tools",
+      "tags": ["монтаж", "видео"], "homepage": "https://shotcut.org/",
+      "source": { "type": "winget", "package_id": "Meltytech.Shotcut" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Shotcut/shotcut.exe"] }
+    },
+    {
+      "id": "kdenlive", "name": "Kdenlive", "version": "Последняя", "publisher": "KDE",
+      "description": "Нелинейный видеоредактор с многодорожечным монтажом.", "category": "video-tools",
+      "tags": ["монтаж", "видео"], "homepage": "https://kdenlive.org/",
+      "source": { "type": "winget", "package_id": "KDE.Kdenlive" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/kdenlive/bin/kdenlive.exe"] }
+    },
+    {
+      "id": "mpv", "name": "mpv", "version": "Последняя", "publisher": "shinchiro / mpv.io",
+      "description": "Минималистичный видеоплеер. Сборки для Windows от shinchiro.", "category": "media",
+      "tags": ["видеоплеер", "медиа"], "homepage": "https://mpv.io/",
+      "source": { "type": "winget", "package_id": "shinchiro.mpv" }, "install": { "type": "winget" },
+      "detect": { "commands": ["mpv.exe"] }
+    },
+    {
+      "id": "mpc-hc", "name": "MPC-HC", "version": "Последняя", "publisher": "clsid2",
+      "description": "Лёгкий видеоплеер в классическом стиле.", "category": "media",
+      "tags": ["видеоплеер", "медиа"], "homepage": "https://github.com/clsid2/mpc-hc",
+      "source": { "type": "winget", "package_id": "clsid2.mpc-hc" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:MPC-HC(?: [0-9.]+)?(?: [(]x64[)])?)$", "paths": ["%ProgramFiles%/MPC-HC/mpc-hc64.exe"], "commands": ["mpc-hc64.exe"] }
+    },
+    {
+      "id": "aimp", "name": "AIMP", "version": "Последняя", "publisher": "AIMP",
+      "description": "Аудиоплеер с библиотекой и эквалайзером.", "category": "media",
+      "tags": ["музыка", "плеер"], "homepage": "https://www.aimp.ru/",
+      "source": { "type": "winget", "package_id": "AIMP.AIMP" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/AIMP/AIMP.exe", "%ProgramFiles(x86)%/AIMP/AIMP.exe"] }
+    },
+    {
+      "id": "irfanview", "name": "IrfanView", "version": "Последняя", "publisher": "Irfan Skiljan",
+      "description": "Быстрый просмотр изображений и пакетная обработка.", "category": "media",
+      "tags": ["изображения", "просмотр"], "homepage": "https://www.irfanview.com/",
+      "source": { "type": "winget", "package_id": "IrfanSkiljan.IrfanView" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:IrfanView(?: [0-9.]+)?(?: [(](?:64|32)-bit[)])?)$", "paths": ["%ProgramFiles%/IrfanView/i_view64.exe", "%ProgramFiles(x86)%/IrfanView/i_view32.exe"] }
+    },
+    {
+      "id": "reaper", "name": "REAPER", "version": "Последняя", "publisher": "Cockos",
+      "description": "Музыкальная DAW для записи и монтажа аудио. Пробная версия.", "category": "media",
+      "tags": ["DAW", "музыка", "запись"], "homepage": "https://www.reaper.fm/",
+      "source": { "type": "winget", "package_id": "Cockos.REAPER" }, "install": { "type": "winget" },
+      "detect": { "names": ["REAPER (x64)"], "paths": ["%ProgramFiles%/REAPER (x64)/reaper.exe"] }
+    },
+    {
+      "id": "lmms", "name": "LMMS", "version": "Последняя", "publisher": "LMMS Team",
+      "description": "Бесплатная музыкальная студия с секвенсером.", "category": "media",
+      "tags": ["DAW", "музыка"], "homepage": "https://lmms.io/",
+      "source": { "type": "winget", "package_id": "LMMS.LMMS" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/LMMS/lmms.exe"] }
+    },
+    {
+      "id": "figma", "name": "Figma", "version": "Последняя", "publisher": "Figma",
+      "description": "Дизайн интерфейсов и совместная работа в настольном приложении Figma.", "category": "design",
+      "tags": ["дизайн", "UI"], "homepage": "https://www.figma.com/",
+      "source": { "type": "winget", "package_id": "Figma.Figma" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Figma/Figma.exe"] }
+    },
+    {
+      "id": "paint-net", "name": "Paint.NET", "version": "Последняя", "publisher": "dotPDN LLC",
+      "description": "Редактор изображений со слоями и эффектами.", "category": "design",
+      "tags": ["изображения", "редактор"], "homepage": "https://www.getpaint.net/",
+      "source": { "type": "winget", "package_id": "dotPDN.PaintDotNet" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/paint.net/paintdotnet.exe"], "appx_names": ["dotPDNLLC.paint.net"] }
+    },
+    {
+      "id": "darktable", "name": "darktable", "version": "Последняя", "publisher": "darktable developers",
+      "description": "Обработка RAW-фотографий без изменения исходного снимка.", "category": "design",
+      "tags": ["фото", "RAW"], "homepage": "https://www.darktable.org/",
+      "source": { "type": "winget", "package_id": "darktable.darktable" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/darktable/bin/darktable.exe"] }
+    },
+    {
+      "id": "github-desktop", "name": "GitHub Desktop", "version": "Последняя", "publisher": "GitHub",
+      "description": "Графический клиент Git и GitHub.", "category": "development",
+      "tags": ["Git", "GitHub"], "homepage": "https://desktop.github.com/",
+      "source": { "type": "winget", "package_id": "GitHub.GitHubDesktop" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/GitHubDesktop/GitHubDesktop.exe"] }
+    },
+    {
+      "id": "gitkraken", "name": "GitKraken", "version": "Последняя", "publisher": "Axosoft",
+      "description": "Графический Git-клиент с визуализацией веток. Возможности зависят от плана.", "category": "development",
+      "tags": ["Git"], "homepage": "https://www.gitkraken.com/",
+      "source": { "type": "winget", "package_id": "Axosoft.GitKraken" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/gitkraken/gitkraken.exe"] }
+    },
+    {
+      "id": "fork", "name": "Fork", "version": "Последняя", "publisher": "Fork Dev",
+      "description": "Git-клиент для Windows с просмотром истории и разрешением конфликтов. Пробная версия.", "category": "development",
+      "tags": ["Git"], "homepage": "https://git-fork.com/",
+      "source": { "type": "winget", "package_id": "Fork.Fork" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Fork/Fork.exe"] }
+    },
+    {
+      "id": "jetbrains-toolbox", "name": "JetBrains Toolbox", "version": "Последняя", "publisher": "JetBrains",
+      "description": "Установка и обновление IDE JetBrains.", "category": "editors",
+      "tags": ["IDE", "JetBrains"], "homepage": "https://www.jetbrains.com/toolbox-app/",
+      "source": { "type": "winget", "package_id": "JetBrains.Toolbox" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/JetBrains/Toolbox/bin/jetbrains-toolbox.exe"] }
+    },
+    {
+      "id": "intellij-idea-ce", "name": "IntelliJ IDEA Community", "version": "Последняя", "publisher": "JetBrains",
+      "description": "Community-редакция IDE для Java и Kotlin из WinGet. Для актуальной единой редакции используйте Toolbox.", "category": "editors",
+      "tags": ["IDE", "Java", "Kotlin"], "homepage": "https://www.jetbrains.com/idea/",
+      "source": { "type": "winget", "package_id": "JetBrains.IntelliJIDEA.Community" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:(?:JetBrains )?IntelliJ IDEA Community(?: Edition)?(?: [0-9.]+)?)$" }
+    },
+    {
+      "id": "pycharm-ce", "name": "PyCharm Community", "version": "Последняя", "publisher": "JetBrains",
+      "description": "Community-редакция IDE для Python из WinGet. Для актуальной единой редакции используйте Toolbox.", "category": "editors",
+      "tags": ["IDE", "Python"], "homepage": "https://www.jetbrains.com/pycharm/",
+      "source": { "type": "winget", "package_id": "JetBrains.PyCharm.Community" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:(?:JetBrains )?PyCharm Community(?: Edition)?(?: [0-9.]+)?)$" }
+    },
+    {
+      "id": "android-studio", "name": "Android Studio", "version": "Последняя", "publisher": "Google",
+      "description": "Официальная IDE для Android. SDK и эмуляторы настраиваются при первом запуске.", "category": "editors",
+      "tags": ["IDE", "Android"], "homepage": "https://developer.android.com/studio",
+      "source": { "type": "winget", "package_id": "Google.AndroidStudio" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Android/Android Studio/bin/studio64.exe"] }
+    },
+    {
+      "id": "neovim", "name": "Neovim", "version": "Последняя", "publisher": "Neovim",
+      "description": "Современный редактор на основе Vim с Lua-настройкой.", "category": "editors",
+      "tags": ["редактор", "Vim"], "homepage": "https://neovim.io/",
+      "source": { "type": "winget", "package_id": "Neovim.Neovim" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/Neovim/bin/nvim.exe"], "commands": ["nvim.exe"] }
+    },
+    {
+      "id": "vim", "name": "Vim", "version": "Последняя", "publisher": "Vim",
+      "description": "Классический модальный текстовый редактор.", "category": "editors",
+      "tags": ["редактор", "Vim"], "homepage": "https://www.vim.org/",
+      "source": { "type": "winget", "package_id": "vim.vim" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Vim(?: [0-9.]+)?(?: [(](?:x64|x86)[)])?)$", "commands": ["gvim.exe", "vim.exe"] }
+    },
+    {
+      "id": "bun", "name": "Bun", "version": "Последняя", "publisher": "Oven",
+      "description": "JavaScript-рантайм, сборщик и менеджер пакетов.", "category": "runtimes",
+      "tags": ["JavaScript", "рантайм"], "homepage": "https://bun.sh/",
+      "source": { "type": "winget", "package_id": "Oven-sh.Bun" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%USERPROFILE%/.bun/bin/bun.exe"], "commands": ["bun.exe"] }
+    },
+    {
+      "id": "deno", "name": "Deno", "version": "Последняя", "publisher": "Deno Land",
+      "description": "Рантайм JavaScript и TypeScript со встроенными инструментами разработки.", "category": "runtimes",
+      "tags": ["JavaScript", "TypeScript"], "homepage": "https://deno.com/",
+      "source": { "type": "winget", "package_id": "DenoLand.Deno" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%USERPROFILE%/.deno/bin/deno.exe"], "commands": ["deno.exe"] }
+    },
+    {
+      "id": "zig", "name": "Zig", "version": "Последняя", "publisher": "Zig Software Foundation",
+      "description": "Язык системного программирования и компилятор.", "category": "runtimes",
+      "tags": ["язык", "компилятор"], "homepage": "https://ziglang.org/",
+      "source": { "type": "winget", "package_id": "zig.zig" }, "install": { "type": "winget" },
+      "detect": { "commands": ["zig.exe"] }
+    },
+    {
+      "id": "julia", "name": "Julia", "version": "Последняя", "publisher": "Julia Developers",
+      "description": "Язык для научных и численных вычислений.", "category": "runtimes",
+      "tags": ["язык", "наука"], "homepage": "https://julialang.org/",
+      "source": { "type": "winget", "package_id": "Julialang.Julia" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Julia(?: [0-9.]+)?(?: [(](?:64|32)-bit[)])?)$", "commands": ["julia.exe"] }
+    },
+    {
+      "id": "cmake", "name": "CMake", "version": "Последняя", "publisher": "Kitware",
+      "description": "Генератор систем сборки для C и C++ проектов.", "category": "cli-tools",
+      "tags": ["сборка", "C++"], "homepage": "https://cmake.org/",
+      "source": { "type": "winget", "package_id": "Kitware.CMake" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/CMake/bin/cmake.exe"], "commands": ["cmake.exe"] }
+    },
+    {
+      "id": "ninja", "name": "Ninja", "version": "Последняя", "publisher": "Ninja-build",
+      "description": "Быстрая система сборки.", "category": "cli-tools",
+      "tags": ["сборка"], "homepage": "https://ninja-build.org/",
+      "source": { "type": "winget", "package_id": "Ninja-build.Ninja" }, "install": { "type": "winget" },
+      "detect": { "commands": ["ninja.exe"] }
+    },
+    {
+      "id": "llvm", "name": "LLVM", "version": "Последняя", "publisher": "LLVM",
+      "description": "Компилятор Clang и инструменты LLVM.", "category": "cli-tools",
+      "tags": ["компилятор", "Clang"], "homepage": "https://llvm.org/",
+      "source": { "type": "winget", "package_id": "LLVM.LLVM" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/LLVM/bin/clang.exe"], "commands": ["clang.exe"] }
+    },
+    {
+      "id": "github-cli", "name": "GitHub CLI", "version": "Последняя", "publisher": "GitHub",
+      "description": "Работа с репозиториями, PR и релизами из командной строки.", "category": "cli-tools",
+      "tags": ["GitHub", "CLI"], "homepage": "https://cli.github.com/",
+      "source": { "type": "winget", "package_id": "GitHub.cli" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%ProgramFiles%/GitHub CLI/gh.exe"], "commands": ["gh.exe"] }
+    },
+    {
+      "id": "ripgrep", "name": "ripgrep", "version": "Последняя", "publisher": "BurntSushi",
+      "description": "Быстрый поиск текста в файлах.", "category": "cli-tools",
+      "tags": ["поиск", "CLI"], "homepage": "https://github.com/BurntSushi/ripgrep",
+      "source": { "type": "winget", "package_id": "BurntSushi.ripgrep.MSVC" }, "install": { "type": "winget" },
+      "detect": { "commands": ["rg.exe"] }
+    },
+    {
+      "id": "fd", "name": "fd", "version": "Последняя", "publisher": "sharkdp",
+      "description": "Поиск файлов по имени с удобным синтаксисом.", "category": "cli-tools",
+      "tags": ["поиск файлов", "CLI"], "homepage": "https://github.com/sharkdp/fd",
+      "source": { "type": "winget", "package_id": "sharkdp.fd" }, "install": { "type": "winget" },
+      "detect": { "commands": ["fd.exe"] }
+    },
+    {
+      "id": "bat", "name": "bat", "version": "Последняя", "publisher": "sharkdp",
+      "description": "Просмотр файлов в терминале с подсветкой синтаксиса и номерами строк.", "category": "cli-tools",
+      "tags": ["просмотр", "CLI"], "homepage": "https://github.com/sharkdp/bat",
+      "source": { "type": "winget", "package_id": "sharkdp.bat" }, "install": { "type": "winget" },
+      "detect": { "commands": ["bat.exe"] }
+    },
+    {
+      "id": "fzf", "name": "fzf", "version": "Последняя", "publisher": "junegunn",
+      "description": "Интерактивный нечёткий поиск для терминала.", "category": "cli-tools",
+      "tags": ["поиск", "CLI"], "homepage": "https://github.com/junegunn/fzf",
+      "source": { "type": "winget", "package_id": "junegunn.fzf" }, "install": { "type": "winget" },
+      "detect": { "commands": ["fzf.exe"] }
+    },
+    {
+      "id": "lazygit", "name": "lazygit", "version": "Последняя", "publisher": "Jesse Duffield",
+      "description": "Терминальный интерфейс для Git.", "category": "cli-tools", "depends_on": ["git"],
+      "tags": ["Git", "CLI"], "homepage": "https://github.com/jesseduffield/lazygit",
+      "source": { "type": "winget", "package_id": "JesseDuffield.lazygit" }, "install": { "type": "winget" },
+      "detect": { "commands": ["lazygit.exe"] }
+    },
+    {
+      "id": "delta", "name": "delta", "version": "Последняя", "publisher": "Dan Davison",
+      "description": "Подсветка различий для git diff и других команд сравнения.", "category": "cli-tools",
+      "tags": ["Git", "CLI"], "homepage": "https://github.com/dandavison/delta",
+      "source": { "type": "winget", "package_id": "dandavison.delta" }, "install": { "type": "winget" },
+      "detect": { "commands": ["delta.exe"] }
+    },
+    {
+      "id": "eza", "name": "eza", "version": "Последняя", "publisher": "eza community",
+      "description": "Список файлов в терминале с цветами и иконками.", "category": "cli-tools",
+      "tags": ["файлы", "CLI"], "homepage": "https://eza.rocks/",
+      "source": { "type": "winget", "package_id": "eza-community.eza" }, "install": { "type": "winget" },
+      "detect": { "commands": ["eza.exe"] }
+    },
+    {
+      "id": "zoxide", "name": "zoxide", "version": "Последняя", "publisher": "Ajeet D'Souza",
+      "description": "Умная замена cd, которая запоминает часто используемые папки.", "category": "cli-tools",
+      "tags": ["навигация", "CLI"], "homepage": "https://github.com/ajeetdsouza/zoxide",
+      "source": { "type": "winget", "package_id": "ajeetdsouza.zoxide" }, "install": { "type": "winget" },
+      "detect": { "commands": ["zoxide.exe"] }
+    },
+    {
+      "id": "starship", "name": "Starship", "version": "Последняя", "publisher": "Starship",
+      "description": "Настраиваемая строка приглашения для разных оболочек. Подключается в профиле терминала.", "category": "cli-tools",
+      "tags": ["терминал", "prompt"], "homepage": "https://starship.rs/",
+      "source": { "type": "winget", "package_id": "Starship.Starship" }, "install": { "type": "winget" },
+      "detect": { "commands": ["starship.exe"] }
+    },
+    {
+      "id": "oh-my-posh", "name": "Oh My Posh", "version": "Последняя", "publisher": "Jan De Dobbeleer",
+      "description": "Темы строки приглашения для PowerShell и других оболочек. Настраивается в профиле терминала.", "category": "cli-tools",
+      "tags": ["терминал", "PowerShell"], "homepage": "https://ohmyposh.dev/",
+      "source": { "type": "winget", "package_id": "JanDeDobbeleer.OhMyPosh" }, "install": { "type": "winget" },
+      "detect": { "commands": ["oh-my-posh.exe"] }
+    },
+    {
+      "id": "yazi", "name": "Yazi", "version": "Последняя", "publisher": "sxyazi",
+      "description": "Быстрый файловый менеджер для терминала.", "category": "cli-tools",
+      "tags": ["файлы", "CLI"], "homepage": "https://yazi-rs.github.io/",
+      "source": { "type": "winget", "package_id": "sxyazi.yazi" }, "install": { "type": "winget" },
+      "detect": { "commands": ["yazi.exe"] }
+    },
+    {
+      "id": "nushell", "name": "Nushell", "version": "Последняя", "publisher": "Nushell",
+      "description": "Оболочка для работы со структурированными данными.", "category": "cli-tools",
+      "tags": ["оболочка", "CLI"], "homepage": "https://www.nushell.sh/",
+      "source": { "type": "winget", "package_id": "Nushell.Nushell" }, "install": { "type": "winget" },
+      "detect": { "commands": ["nu.exe"] }
+    },
+    {
+      "id": "imagemagick", "name": "ImageMagick", "version": "Последняя", "publisher": "ImageMagick Studio",
+      "description": "Пакетная конвертация и обработка изображений в командной строке.", "category": "cli-tools",
+      "tags": ["изображения", "CLI"], "homepage": "https://imagemagick.org/",
+      "source": { "type": "winget", "package_id": "ImageMagick.ImageMagick" }, "install": { "type": "winget" },
+      "detect": { "commands": ["magick.exe"] }
+    },
+    {
+      "id": "ffmpeg", "name": "FFmpeg", "version": "Последняя", "publisher": "Gyan Doshi / FFmpeg",
+      "description": "Обработка аудио и видео в командной строке. Сборки Windows от Gyan Doshi.", "category": "cli-tools",
+      "tags": ["видео", "аудио", "CLI"], "homepage": "https://www.gyan.dev/ffmpeg/builds/",
+      "source": { "type": "winget", "package_id": "Gyan.FFmpeg" }, "install": { "type": "winget" },
+      "detect": { "commands": ["ffmpeg.exe"] }
+    },
+    {
+      "id": "dbeaver", "name": "DBeaver Community", "version": "Последняя", "publisher": "DBeaver Corp",
+      "description": "Универсальный клиент баз данных: SQL, таблицы и диаграммы.", "category": "databases",
+      "tags": ["SQL", "база данных"], "homepage": "https://dbeaver.io/",
+      "source": { "type": "winget", "package_id": "DBeaver.DBeaver.Community" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:DBeaver(?: Community)?(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/DBeaver/dbeaver.exe", "%LOCALAPPDATA%/DBeaver/dbeaver.exe"] }
+    },
+    {
+      "id": "heidisql", "name": "HeidiSQL", "version": "Последняя", "publisher": "Ansgar Becker",
+      "description": "Клиент MySQL, MariaDB, PostgreSQL и SQLite.", "category": "databases",
+      "tags": ["SQL", "база данных"], "homepage": "https://www.heidisql.com/",
+      "source": { "type": "winget", "package_id": "HeidiSQL.HeidiSQL" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:HeidiSQL(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/HeidiSQL/heidisql.exe"] }
+    },
+    {
+      "id": "postman", "name": "Postman", "version": "Последняя", "publisher": "Postman",
+      "description": "Тестирование и документирование HTTP API.", "category": "network-tools",
+      "tags": ["API", "HTTP"], "homepage": "https://www.postman.com/",
+      "source": { "type": "winget", "package_id": "Postman.Postman" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Postman/Postman.exe"] }
+    },
+    {
+      "id": "winscp", "name": "WinSCP", "version": "Последняя", "publisher": "Martin Prikryl",
+      "description": "Передача файлов по SFTP, SCP, FTP и WebDAV.", "category": "network-tools",
+      "tags": ["SFTP", "файлы"], "homepage": "https://winscp.net/",
+      "source": { "type": "winget", "package_id": "WinSCP.WinSCP" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:WinSCP(?: [0-9.]+)?)$", "paths": ["%ProgramFiles(x86)%/WinSCP/WinSCP.exe", "%LOCALAPPDATA%/Programs/WinSCP/WinSCP.exe"], "commands": ["WinSCP.exe"] }
+    },
+    {
+      "id": "putty", "name": "PuTTY", "version": "Последняя", "publisher": "Simon Tatham",
+      "description": "Клиент SSH, Telnet и последовательных портов.", "category": "network-tools",
+      "tags": ["SSH", "терминал"], "homepage": "https://www.chiark.greenend.org.uk/~sgtatham/putty/",
+      "source": { "type": "winget", "package_id": "PuTTY.PuTTY" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:PuTTY(?: release)?(?: [0-9.]+)?(?: [(](?:64|32)-bit[)])?)$", "paths": ["%ProgramFiles%/PuTTY/putty.exe"], "commands": ["putty.exe"] }
+    },
+    {
+      "id": "syncthing", "name": "Syncthing", "version": "Последняя", "publisher": "Syncthing Foundation",
+      "description": "Синхронизация папок между устройствами без облака. Устройства и папки связываются после запуска.", "category": "utilities",
+      "tags": ["синхронизация", "файлы"], "homepage": "https://syncthing.net/",
+      "source": { "type": "winget", "package_id": "Syncthing.Syncthing" }, "install": { "type": "winget" },
+      "detect": { "commands": ["syncthing.exe"] }
+    },
+    {
+      "id": "nextcloud", "name": "Nextcloud Desktop", "version": "Последняя", "publisher": "Nextcloud GmbH",
+      "description": "Клиент личного облака Nextcloud. Требуется адрес своего сервера и аккаунт.", "category": "utilities",
+      "tags": ["облако", "синхронизация"], "homepage": "https://nextcloud.com/",
+      "source": { "type": "winget", "package_id": "Nextcloud.NextcloudDesktop" }, "install": { "type": "winget" },
+      "detect": { "names": ["Nextcloud"], "paths": ["%ProgramFiles%/Nextcloud/nextcloud.exe"] }
+    },
+    {
+      "id": "winmerge", "name": "WinMerge", "version": "Последняя", "publisher": "WinMerge Team",
+      "description": "Сравнение и объединение файлов и папок.", "category": "development",
+      "tags": ["сравнение", "diff"], "homepage": "https://winmerge.org/",
+      "source": { "type": "winget", "package_id": "WinMerge.WinMerge" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:WinMerge(?: [0-9.]+)?)$", "paths": ["%ProgramFiles%/WinMerge/WinMergeU.exe"] }
+    },
+    {
+      "id": "ollama", "name": "Ollama", "version": "Последняя", "publisher": "Ollama",
+      "description": "Локальный запуск языковых моделей. Модели скачиваются отдельно после установки.", "category": "ai",
+      "tags": ["ИИ", "локальные модели"], "homepage": "https://ollama.com/",
+      "source": { "type": "winget", "package_id": "Ollama.Ollama" }, "install": { "type": "winget" },
+      "detect": { "name_pattern": "^(?i:Ollama(?: (?:version |версия )?[0-9.]+)?)$", "paths": ["%LOCALAPPDATA%/Programs/Ollama/ollama.exe"], "commands": ["ollama.exe"] }
+    },
+    {
+      "id": "lm-studio", "name": "LM Studio", "version": "Последняя", "publisher": "LM Studio",
+      "description": "Графическая среда для запуска локальных языковых моделей. Модели выбираются и скачиваются в приложении.", "category": "ai",
+      "tags": ["ИИ", "локальные модели"], "homepage": "https://lmstudio.ai/",
+      "source": { "type": "winget", "package_id": "ElementLabs.LMStudio" }, "install": { "type": "winget" },
+      "detect": { "paths": ["%LOCALAPPDATA%/Programs/LM Studio/LM Studio.exe"] }
+    },
+    {
+      "id": "ms-python-python", "name": "Python · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Поддержка Python: запуск, отладка, среды и тесты. Интерпретатор выбирается отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Python", "отладка"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-python.python",
+      "install": { "type": "vscode_extension", "extension_id": "ms-python.python" }
+    },
+    {
+      "id": "ms-python-vscode-pylance", "name": "Pylance · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Подсказки и проверка типов для Python.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode", "ms-python-python"],
+      "tags": ["Python", "анализ кода"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance",
+      "install": { "type": "vscode_extension", "extension_id": "ms-python.vscode-pylance" }
+    },
+    {
+      "id": "ms-python-debugpy", "name": "Python Debugger · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Отладчик Python для VS Code.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode", "ms-python-python"],
+      "tags": ["Python", "отладка"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy",
+      "install": { "type": "vscode_extension", "extension_id": "ms-python.debugpy" }
+    },
+    {
+      "id": "rust-lang-rust-analyzer", "name": "rust-analyzer · VS Code", "version": "Последняя", "publisher": "The Rust Programming Language",
+      "description": "Подсказки, переходы и автодополнение для Rust. Набор инструментов Rust устанавливается отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Rust", "анализ кода"], "homepage": "https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer",
+      "install": { "type": "vscode_extension", "extension_id": "rust-lang.rust-analyzer" }
+    },
+    {
+      "id": "ms-azuretools-vscode-docker", "name": "Docker · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Набор расширений для контейнеров, образов и Compose. Среда Docker настраивается отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Docker", "контейнеры"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker",
+      "install": { "type": "vscode_extension", "extension_id": "ms-azuretools.vscode-docker" }
+    },
+    {
+      "id": "eamodio-gitlens", "name": "GitLens · VS Code", "version": "Последняя", "publisher": "GitKraken",
+      "description": "История строк, авторство и сравнение веток в редакторе.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode", "git"],
+      "tags": ["Git", "история"], "homepage": "https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens",
+      "install": { "type": "vscode_extension", "extension_id": "eamodio.gitlens" }
+    },
+    {
+      "id": "esbenp-prettier-vscode", "name": "Prettier · VS Code", "version": "Последняя", "publisher": "Prettier",
+      "description": "Форматирование JavaScript, TypeScript, CSS и других файлов.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["форматирование"], "homepage": "https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode",
+      "install": { "type": "vscode_extension", "extension_id": "esbenp.prettier-vscode" }
+    },
+    {
+      "id": "dbaeumer-vscode-eslint", "name": "ESLint · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Проверка JavaScript и TypeScript по правилам ESLint, настроенным в проекте.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["JavaScript", "линтер"], "homepage": "https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint",
+      "install": { "type": "vscode_extension", "extension_id": "dbaeumer.vscode-eslint" }
+    },
+    {
+      "id": "ms-vscode-cpptools", "name": "C/C++ · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "IntelliSense и отладка C/C++. Компилятор и инструменты сборки устанавливаются отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["C++", "отладка"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools",
+      "install": { "type": "vscode_extension", "extension_id": "ms-vscode.cpptools" }
+    },
+    {
+      "id": "ms-toolsai-jupyter", "name": "Jupyter · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Блокноты Jupyter с ячейками кода и графиками. Ядро выполнения выбирается в редакторе.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Jupyter", "наука", "Python"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter",
+      "install": { "type": "vscode_extension", "extension_id": "ms-toolsai.jupyter" }
+    },
+    {
+      "id": "ms-vscode-remote-remote-ssh", "name": "Remote - SSH · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Работа с проектами на удалённом сервере по SSH.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["SSH", "удалённая разработка"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh",
+      "install": { "type": "vscode_extension", "extension_id": "ms-vscode-remote.remote-ssh" }
+    },
+    {
+      "id": "ms-vscode-remote-remote-wsl", "name": "WSL · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Разработка внутри WSL. Дистрибутив Linux устанавливается и настраивается отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["WSL", "Linux"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl",
+      "install": { "type": "vscode_extension", "extension_id": "ms-vscode-remote.remote-wsl" }
+    },
+    {
+      "id": "ms-ceintl-vscode-language-pack-ru", "name": "Русский язык · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Русский интерфейс VS Code. Язык выбирается в редакторе после установки.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["русский язык", "локализация"], "homepage": "https://marketplace.visualstudio.com/items?itemName=MS-CEINTL.vscode-language-pack-ru",
+      "install": { "type": "vscode_extension", "extension_id": "MS-CEINTL.vscode-language-pack-ru" }
+    },
+    {
+      "id": "continue-continue", "name": "Continue · VS Code", "version": "Последняя", "publisher": "Continue",
+      "description": "ИИ-ассистент в редакторе с выбором моделей и контекста проекта. Доступ к моделям настраивается в расширении.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["ИИ", "ассистент"], "homepage": "https://marketplace.visualstudio.com/items?itemName=Continue.continue",
+      "install": { "type": "vscode_extension", "extension_id": "Continue.continue" }
+    },
+    {
+      "id": "rooveterinaryinc-roo-cline", "name": "Roo Code · VS Code", "version": "Последняя", "publisher": "Roo Code",
+      "description": "ИИ-агент для написания и изменения кода в VS Code. Провайдер и доступ к моделям настраиваются отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["ИИ", "агент"], "homepage": "https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline",
+      "install": { "type": "vscode_extension", "extension_id": "RooVeterinaryInc.roo-cline" }
+    },
+    {
+      "id": "github-copilot", "name": "GitHub Copilot · VS Code", "version": "Последняя", "publisher": "GitHub",
+      "description": "Подсказки кода с ИИ. Требуется аккаунт GitHub; лимиты и функции зависят от плана Copilot.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["ИИ", "подсказки"], "homepage": "https://marketplace.visualstudio.com/items?itemName=GitHub.copilot",
+      "install": { "type": "vscode_extension", "extension_id": "GitHub.copilot" }
+    },
+    {
+      "id": "usernamehw-errorlens", "name": "Error Lens · VS Code", "version": "Последняя", "publisher": "Alexander",
+      "description": "Показывает ошибки и предупреждения прямо в строке кода.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["ошибки", "линтер"], "homepage": "https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens",
+      "install": { "type": "vscode_extension", "extension_id": "usernamehw.errorlens" }
+    },
+    {
+      "id": "pkief-material-icon-theme", "name": "Material Icon Theme · VS Code", "version": "Последняя", "publisher": "Philipp Kief",
+      "description": "Иконки файлов и папок в стиле Material Design.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["оформление", "иконки"], "homepage": "https://marketplace.visualstudio.com/items?itemName=PKief.material-icon-theme",
+      "install": { "type": "vscode_extension", "extension_id": "PKief.material-icon-theme" }
+    },
+    {
+      "id": "bradlc-vscode-tailwindcss", "name": "Tailwind CSS IntelliSense · VS Code", "version": "Последняя", "publisher": "Tailwind Labs",
+      "description": "Подсказки классов Tailwind CSS.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["CSS", "Tailwind"], "homepage": "https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss",
+      "install": { "type": "vscode_extension", "extension_id": "bradlc.vscode-tailwindcss" }
+    },
+    {
+      "id": "golang-go", "name": "Go · VS Code", "version": "Последняя", "publisher": "Go Team at Google",
+      "description": "Поддержка Go: отладка, тесты и подсказки.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode", "go"],
+      "tags": ["Go", "отладка"], "homepage": "https://marketplace.visualstudio.com/items?itemName=golang.go",
+      "install": { "type": "vscode_extension", "extension_id": "golang.go" }
+    },
+    {
+      "id": "redhat-java", "name": "Language Support for Java · VS Code", "version": "Последняя", "publisher": "Red Hat",
+      "description": "Подсказки, навигация и работа с Java-проектами. JDK проекта выбирается отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Java", "анализ кода"], "homepage": "https://marketplace.visualstudio.com/items?itemName=redhat.java",
+      "install": { "type": "vscode_extension", "extension_id": "redhat.java" }
+    },
+    {
+      "id": "vue-volar", "name": "Vue (Official) · VS Code", "version": "Последняя", "publisher": "Vue",
+      "description": "Поддержка Vue и TypeScript.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Vue", "TypeScript"], "homepage": "https://marketplace.visualstudio.com/items?itemName=Vue.volar",
+      "install": { "type": "vscode_extension", "extension_id": "Vue.volar" }
+    },
+    {
+      "id": "svelte-svelte-vscode", "name": "Svelte · VS Code", "version": "Последняя", "publisher": "Svelte",
+      "description": "Поддержка Svelte и SvelteKit.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Svelte"], "homepage": "https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode",
+      "install": { "type": "vscode_extension", "extension_id": "svelte.svelte-vscode" }
+    },
+    {
+      "id": "tamasfe-even-better-toml", "name": "Even Better TOML · VS Code", "version": "Последняя", "publisher": "tamasfe",
+      "description": "Подсветка и проверка TOML-файлов, включая Cargo.toml.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["TOML", "конфигурация"], "homepage": "https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml",
+      "install": { "type": "vscode_extension", "extension_id": "tamasfe.even-better-toml" }
+    },
+    {
+      "id": "charliermarsh-ruff", "name": "Ruff · VS Code", "version": "Последняя", "publisher": "Astral Software",
+      "description": "Быстрый линтер и форматировщик Python.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["Python", "линтер"], "homepage": "https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff",
+      "install": { "type": "vscode_extension", "extension_id": "charliermarsh.ruff" }
+    },
+    {
+      "id": "ms-dotnettools-csharp", "name": "C# · VS Code", "version": "Последняя", "publisher": "Microsoft",
+      "description": "Поддержка C# с языковым сервером и отладкой. .NET SDK устанавливается отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": [".NET", "C#"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp",
+      "install": { "type": "vscode_extension", "extension_id": "ms-dotnettools.csharp" }
+    },
+    {
+      "id": "formulahendry-code-runner", "name": "Code Runner · VS Code", "version": "Последняя", "publisher": "Jun Han",
+      "description": "Запуск фрагмента кода одной командой. Нужный интерпретатор или компилятор устанавливается отдельно.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["запуск", "скрипты"], "homepage": "https://marketplace.visualstudio.com/items?itemName=formulahendry.code-runner",
+      "install": { "type": "vscode_extension", "extension_id": "formulahendry.code-runner" }
+    },
+    {
+      "id": "gruntfuggly-todo-tree", "name": "Todo Tree · VS Code", "version": "Последняя", "publisher": "Gruntfuggly",
+      "description": "Список TODO и FIXME по всему проекту.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["TODO", "проект"], "homepage": "https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.todo-tree",
+      "install": { "type": "vscode_extension", "extension_id": "Gruntfuggly.todo-tree" }
+    },
+    {
+      "id": "mhutchie-git-graph", "name": "Git Graph · VS Code", "version": "Последняя", "publisher": "mhutchie",
+      "description": "Визуальная история ветвей и коммитов.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode", "git"],
+      "tags": ["Git", "история"], "homepage": "https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph",
+      "install": { "type": "vscode_extension", "extension_id": "mhutchie.git-graph" }
+    },
+    {
+      "id": "streetsidesoftware-code-spell-checker", "name": "Code Spell Checker · VS Code", "version": "Последняя", "publisher": "Street Side Software",
+      "description": "Проверка орфографии в коде и комментариях. Дополнительные словари устанавливаются в редакторе.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["орфография"], "homepage": "https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker",
+      "install": { "type": "vscode_extension", "extension_id": "streetsidesoftware.code-spell-checker" }
+    },
+    {
+      "id": "ritwickdey-liveserver", "name": "Live Server · VS Code", "version": "Последняя", "publisher": "Ritwick Dey",
+      "description": "Локальный сервер с автообновлением страницы.", "category": "editor-extensions", "kind": "addon", "depends_on": ["vscode"],
+      "tags": ["веб", "сервер"], "homepage": "https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer",
+      "install": { "type": "vscode_extension", "extension_id": "ritwickdey.LiveServer" }
     }
   ]
 }

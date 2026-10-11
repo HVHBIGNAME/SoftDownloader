@@ -1,5 +1,7 @@
+use std::collections::BTreeSet;
+
 use softdownloader::catalog::{ArchiveDestination, ArchiveRoot, Catalog, CatalogDocument};
-use softdownloader::planner::removal_plan;
+use softdownloader::planner::{create_plan, removal_plan};
 use softdownloader::storage::{InstalledPackage, Library};
 use softdownloader::uninstall::{InstalledProgram, UninstallTarget};
 
@@ -35,6 +37,47 @@ fn category_tree_keeps_nested_groups_next_to_their_parent() {
     assert_eq!(child, parent + 1);
     assert_eq!(tree[child].1, tree[parent].1 + 1);
     assert_eq!(tree.len(), catalog.categories.len());
+}
+
+#[test]
+fn python_addons_share_dependencies_and_skip_the_installed_editor() {
+    let catalog = CatalogDocument::builtin().unwrap().catalog;
+    let selected = BTreeSet::from([
+        "ms-python-debugpy".into(),
+        "ms-python-vscode-pylance".into(),
+    ]);
+    let plan = create_plan(&catalog, &selected, &Library::new()).unwrap();
+    assert_eq!(
+        plan.iter().map(|p| p.id.as_str()).collect::<Vec<_>>(),
+        [
+            "vscode",
+            "ms-python-python",
+            "ms-python-debugpy",
+            "ms-python-vscode-pylance"
+        ]
+    );
+    let library = Library::from([(
+        "vscode".into(),
+        InstalledPackage {
+            id: "vscode".into(),
+            name: "Visual Studio Code".into(),
+            version: "1.105.0".into(),
+            sha256: String::new(),
+            installed_at: 0,
+            reboot_required: false,
+            uninstall: None,
+            externally_detected: true,
+        },
+    )]);
+    let plan = create_plan(&catalog, &selected, &library).unwrap();
+    assert_eq!(
+        plan.iter().map(|p| p.id.as_str()).collect::<Vec<_>>(),
+        [
+            "ms-python-python",
+            "ms-python-debugpy",
+            "ms-python-vscode-pylance"
+        ]
+    );
 }
 
 #[test]

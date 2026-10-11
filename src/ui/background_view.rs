@@ -32,7 +32,7 @@ impl SoftDownloaderApp {
         colors.card_frame().show(ui, |ui| {
             ui.set_width((ui.available_width() - 2.0).max(150.0));
             ui.label(RichText::new("Видеофон").size(20.0).strong());
-            ui.label(RichText::new("Настоящее видео из файла. Воспроизводится по кругу, без звука, средствами Windows.").size(12.0).color(colors.muted));
+            ui.label(RichText::new("Единый фон всего окна, включая боковую панель. Воспроизводится по кругу, без звука.").size(12.0).color(colors.muted));
             ui.horizontal_wrapped(|ui| {
                 let enabled = !self.background_busy && !self.list_busy && !self.has_modal();
                 if ui.add_enabled(enabled, egui::Button::new("Выбрать свой MP4…")).clicked() {
@@ -50,15 +50,17 @@ impl SoftDownloaderApp {
                 ui.add(egui::Label::new(RichText::new(path.file_name().unwrap_or_default().to_string_lossy()).size(12.0).color(colors.muted)).truncate()).on_hover_text(path.display().to_string());
             }
             if self.background.video.texture.is_some() {
-                let width = ui.available_width().min(620.0);
-                let (preview, _) = ui.allocate_exact_size(Vec2::new(width, width * 9.0 / 16.0), egui::Sense::hover());
-                self.background.video.paint(ui.painter(), preview, egui::Color32::WHITE);
+                egui::CollapsingHeader::new("Предпросмотр исходного видео").show(ui, |ui| {
+                    let width = ui.available_width().min(480.0);
+                    let (preview, _) = ui.allocate_exact_size(Vec2::new(width, width * 9.0 / 16.0), egui::Sense::hover());
+                    self.background.video.paint(ui.painter(), preview, egui::Color32::WHITE);
+                });
             }
             ui.horizontal_wrapped(|ui| {
                 theme::percent_slider(ui, &mut self.settings.background.dimming, 45..=95, "Приглушение");
                 ui.checkbox(&mut self.settings.background.paused, "Пауза фона и эффектов");
             });
-            ui.label(RichText::new("Видео и эффекты приостанавливаются в неактивном окне и при уменьшении анимации. Ваши файлы остаются на компьютере.").size(12.0).color(colors.muted));
+            ui.label(RichText::new("Текст автоматически подстраивается под фон. Видео и эффекты приостанавливаются в неактивном окне и при уменьшении анимации.").size(12.0).color(colors.muted));
         });
         ui.add_space(16.0);
         self.background_downloads(ui);

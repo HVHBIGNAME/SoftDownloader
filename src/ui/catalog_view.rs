@@ -448,10 +448,12 @@ impl SoftDownloaderApp {
             .animate_bool_responsive(ui.id().with("row-hover"), ui.rect_contains_pointer(bounds));
         let row = egui::Frame::new()
             .fill(
-                colors
-                    .surface
-                    .lerp_to_gamma(colors.raised, hover * 0.45)
-                    .lerp_to_gamma(colors.accent, selection * 0.07),
+                colors.surface_tint(
+                    colors
+                        .surface
+                        .lerp_to_gamma(colors.raised, hover * 0.45)
+                        .lerp_to_gamma(colors.accent, selection * 0.07),
+                ),
             )
             .inner_margin(Margin::symmetric(14, 13))
             .show(ui, |ui| {
@@ -542,7 +544,7 @@ impl SoftDownloaderApp {
         else {
             return;
         };
-        egui::SidePanel::right("package-details").exact_width(308.0).resizable(false).frame(egui::Frame::new().fill(colors.sidebar).inner_margin(Margin::symmetric(22, 26))).show(ctx, |ui| {
+        egui::SidePanel::right("package-details").exact_width(308.0).resizable(false).frame(egui::Frame::new().fill(colors.panel_fill()).inner_margin(Margin::symmetric(22, 26))).show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.label(RichText::new("О программе").size(12.0).color(colors.dim));
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| { if ui.small_button("×").clicked() { self.details = None; } });

@@ -89,7 +89,7 @@ impl SoftDownloaderApp {
     pub(super) fn search_and_filters(&mut self, ui: &mut egui::Ui) {
         let colors = theme::colors(ui.ctx());
         egui::Frame::new()
-            .fill(colors.surface)
+            .fill(colors.surface_tint(colors.surface))
             .stroke(Stroke::new(1.0_f32, colors.border))
             .corner_radius(9)
             .inner_margin(Margin::symmetric(14, 7))

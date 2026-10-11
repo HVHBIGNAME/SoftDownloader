@@ -301,9 +301,11 @@ pub fn nav(
         ui.painter().rect_filled(
             rect,
             8,
-            colors
-                .sidebar
-                .lerp_to_gamma(colors.raised, hovered * 0.55 + selected * 0.30),
+            colors.surface_tint(
+                colors
+                    .sidebar
+                    .lerp_to_gamma(colors.raised, hovered * 0.55 + selected * 0.30),
+            ),
         );
     }
     if selected > 0.0 {
@@ -370,8 +372,11 @@ pub fn favorite_button(ui: &mut egui::Ui, selected: bool, name: &str) -> egui::R
     let hover = ui
         .ctx()
         .animate_bool_responsive(response.id.with("hover"), response.hovered());
-    ui.painter()
-        .rect_filled(rect, 7, colors.surface.lerp_to_gamma(colors.raised, hover));
+    ui.painter().rect_filled(
+        rect,
+        7,
+        colors.surface_tint(colors.surface.lerp_to_gamma(colors.raised, hover)),
+    );
     if response.has_focus() {
         ui.painter().rect_stroke(
             rect,

@@ -11,7 +11,7 @@ use softdownloader::{
 };
 use tokio_util::sync::CancellationToken;
 
-const USAGE: &str = "catalog-check [catalog.json] [--public] [--resolve] [--check-winget] [--inventory [--data-dir DIR]] [--download-only ID --cache DIR] [--video FILE --frame PNG]";
+const USAGE: &str = "catalog-check [catalog.json] [--public] [--resolve] [--check-winget] [--inventory [--data-dir DIR]] [--app-update --data-dir DIR] [--download-only ID --cache DIR] [--video FILE --frame PNG]";
 
 #[derive(Default)]
 struct Options {
@@ -19,6 +19,7 @@ struct Options {
     resolve: bool,
     check_winget: bool,
     inventory: bool,
+    app_update: bool,
     source: Option<String>,
     download: Option<String>,
     cache: Option<PathBuf>,
@@ -41,6 +42,7 @@ impl Options {
                 "--resolve" => options.resolve = true,
                 "--check-winget" => options.check_winget = true,
                 "--inventory" => options.inventory = true,
+                "--app-update" => options.app_update = true,
                 "--video" => {
                     options.video = Some(PathBuf::from(args.next().context("Missing video path")?))
                 }
@@ -84,6 +86,27 @@ async fn main() -> Result<()> {
     let Some(options) = Options::parse()? else {
         return Ok(());
     };
+    if options.app_update {
+        let store = Store::at(
+            options
+                .data_dir
+                .context("Use --data-dir with --app-update")?,
+        )?;
+        let result =
+            softdownloader::updater::check_and_download(&store, &CancellationToken::new(), |_| {})
+                .await?;
+        match result {
+            Some(update) => println!(
+                "Update {} downloaded and verified; EXE replacement not requested",
+                update.version
+            ),
+            None => println!(
+                "GitHub Releases checked: no newer stable version than {}",
+                env!("CARGO_PKG_VERSION")
+            ),
+        }
+        return Ok(());
+    }
     if let Some(video) = &options.video {
         return inspect_video(video, options.frame.as_deref());
     }

@@ -80,6 +80,8 @@ pub enum WorkerEvent {
     ProgramList(Result<Option<ProgramListAction>, String>),
     Background(Result<Option<std::path::PathBuf>, String>),
     BackgroundProgress(Progress),
+    AppUpdate(Result<Option<crate::updater::ReadyUpdate>, String>),
+    AppUpdateProgress(Progress),
     QueueFinished,
 }
 
@@ -106,6 +108,7 @@ pub struct Engine {
     inventory_generation: u64,
     inventory_cancel: CancellationToken,
     background_cancel: CancellationToken,
+    update_cancel: CancellationToken,
 }
 
 impl Engine {
@@ -126,6 +129,7 @@ impl Engine {
             inventory_generation: 0,
             inventory_cancel: CancellationToken::new(),
             background_cancel: CancellationToken::new(),
+            update_cancel: CancellationToken::new(),
         };
         Ok((engine, receiver))
     }
@@ -167,6 +171,25 @@ impl Engine {
                 .transpose();
             let _ = sender.send(WorkerEvent::ProgramList(result));
         });
+    }
+
+    pub fn check_app_update(&mut self, store: Store) {
+        self.update_cancel.cancel();
+        self.update_cancel = self.shutdown.child_token();
+        let cancel = self.update_cancel.clone();
+        let sender = self.sender.clone();
+        self.runtime.spawn(async move {
+            let result = crate::updater::check_and_download(&store, &cancel, |progress| {
+                let _ = sender.send(WorkerEvent::AppUpdateProgress(progress));
+            })
+            .await
+            .map_err(|error| format!("{error:#}"));
+            let _ = sender.send(WorkerEvent::AppUpdate(result));
+        });
+    }
+
+    pub fn cancel_app_update(&self) {
+        self.update_cancel.cancel();
     }
 
     pub fn export_program_list(&self, list: crate::program_list::ProgramList) {

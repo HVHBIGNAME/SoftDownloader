@@ -13,7 +13,7 @@ impl SoftDownloaderApp {
             .exact_height(76.0)
             .frame(
                 egui::Frame::new()
-                    .fill(colors.sidebar)
+                    .fill(colors.panel_fill())
                     .inner_margin(Margin::symmetric(28, 16))
                     .stroke(Stroke::new(1.0_f32, colors.border)),
             )

@@ -22,6 +22,7 @@ def silent_profile(profile: Path) -> None:
     sound = settings.setdefault("sound", {})
     sound["enabled"] = True
     sound["volume"] = 0
+    settings["updates"] = {"enabled": False}
     path.write_text(json.dumps(settings, ensure_ascii=False, indent=2), encoding="utf-8")
 
 

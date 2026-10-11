@@ -14,6 +14,7 @@ mod settings_view;
 mod sound_view;
 mod sounds;
 pub mod theme;
+mod update_view;
 mod video_player;
 
 pub use app::SoftDownloaderApp;

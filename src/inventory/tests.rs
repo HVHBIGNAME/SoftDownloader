@@ -137,6 +137,39 @@ fn observed_managed_install_keeps_hash_checks_and_drops_stale_history() {
 }
 
 #[test]
+fn language_extensions_are_distinct_from_installed_runtimes() {
+    let catalog = CatalogDocument::builtin().unwrap().catalog;
+    let mut programs = vec![
+        registered("Go", "1.25.0", "go"),
+        registered("Python 3.14.0 (64-bit)", "3.14.0", "python"),
+        registered("PowerShell 7.5.3.0-x64", "7.5.3", "pwsh"),
+    ];
+    bind_names(&catalog, &mut programs).unwrap();
+    assert_eq!(programs[0].package_ids, ["go"]);
+    assert_eq!(programs[1].package_ids, ["python"]);
+    assert_eq!(programs[2].package_ids, ["powershell"]);
+    assert!(!matches_name(
+        catalog.package("powershell").unwrap(),
+        "Windows PowerShell 5.1"
+    ));
+
+    let extensions = BTreeMap::from([
+        ("golang.go".into(), "0.50.0".into()),
+        ("ms-python.python".into(), "2026.1.0".into()),
+    ]);
+    merge_extensions(&catalog, &mut programs, &extensions);
+    merge_extensions(&catalog, &mut programs, &extensions);
+    assert_eq!(programs.len(), 5);
+    let state = installation_state(&catalog, &Library::new(), &programs);
+    assert_eq!(state["golang-go"].version, "0.50.0");
+    assert_eq!(state["ms-python-python"].version, "2026.1.0");
+    assert!(matches!(
+        state["golang-go"].uninstall,
+        Some(UninstallTarget::VscodeExtension { .. })
+    ));
+}
+
+#[test]
 fn unavailable_source_preserves_only_its_unverified_install_records() {
     let mut programs = [
         registered("Chrome", "1", "chrome"),

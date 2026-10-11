@@ -99,6 +99,23 @@ class CatalogToolTests(unittest.TestCase):
         self.assertEqual([package["install"]["type"] for package in public["packages"]], ["portable", "interactive"])
         self.assertNotIn("arguments", public["packages"][1]["install"])
 
+    def test_bundled_manager_ids_are_unique_and_extensions_require_vscode(self):
+        packages = catalog.builtin_catalog()["packages"]
+        manager_ids = set()
+        for package in packages:
+            source = package.get("source", {})
+            install = package.get("install", {})
+            if source.get("type") == "winget":
+                key = ("winget", source.get("repository", "winget"), source["package_id"].lower())
+            elif install.get("type") == "vscode_extension":
+                key = ("vscode", install["extension_id"].lower())
+                self.assertEqual(package["kind"], "addon", package["id"])
+                self.assertIn("vscode", package["depends_on"], package["id"])
+            else:
+                continue
+            self.assertNotIn(key, manager_ids, package["id"])
+            manager_ids.add(key)
+
     def test_manager_pairing_and_detection_validation_reject_unsafe_input(self):
         document = {"schema_version": 1, "title": "Test", "categories": [], "packages": [{
             "id": "tool", "name": "Tool", "version": "Последняя", "publisher": "Test", "description": "Test", "category": "utilities",

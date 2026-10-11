@@ -17,4 +17,5 @@ pub mod system;
 pub mod transfer;
 pub mod ui;
 pub mod uninstall;
+pub mod updater;
 pub mod video;

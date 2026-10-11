@@ -30,6 +30,8 @@
 
 Само приложение поставляется одним файлом, работает с системными библиотеками Windows и хранит настройки/кэш в AppData. Установка Rust, Python или отдельного runtime для его запуска не требуется. Файл `.sha256` в релизе — необязательная проверка скачивания; видео и документация доступны отдельно.
 
+**Автообновление с 0.5.2:** приложение само проверяет GitHub Releases, скачивает новую стабильную версию, проверяет SHA-256, заменяет EXE и перезапускается после завершения текущих операций. Настройки и выбор сохраняются; при неудачном запуске возвращается прежний EXE. Управление — **Настройки → Обновления**. Для перехода с 0.5.1 и старше скачайте новый файл один раз. **[Как работает обновление](docs/updates.md)**.
+
 ## Каталог под себя
 
 - **Список или карточки** — переключаются в меню **Вид**. Выбор, статус установки и избранное занимают одинаковые фиксированные места.
@@ -41,14 +43,14 @@
 
 ## Темы, звуки и видеофон
 
-Настройки разделены на **Оформление**, **Звуки**, **Видеофон** и **Источники и данные**.
+Настройки разделены на **Оформление**, **Звуки**, **Видеофон**, **Источники и данные** и **Обновления**.
 
 | Настройка | Что доступно |
 |---|---|
 | **Четыре темы** | Тёмная, светлая, серая и ночная. Пять готовых акцентов и свой цвет; контраст текста сохраняется при переключении. |
 | **Мягкие звуки** | Три набора коротких приглушённых касаний, громкость и отдельное прослушивание. Пики ограничены, громкость по умолчанию — 18%. |
 | **Праздники** | Падающий снег в декабре и январе, тыква с мягким свечением в октябре. Можно выбрать сезон вручную или отключить эффекты. |
-| **Настоящее видео** | Свой MP4 либо четыре готовых фона: заснеженный лес, ночные горы, северное сияние и морской закат. Предпросмотр, приглушение, пауза и воспроизведение по кругу без звука. |
+| **Настоящее видео** | Свой MP4 либо четыре готовых пейзажа на всё окно, включая боковую панель и карточки. Сворачиваемый предпросмотр, приглушение, пауза и воспроизведение по кругу без звука. |
 
 Видео скачивается только по вашему выбору и хранится отдельно от EXE. Фон и эффекты приостанавливаются в неактивном окне и при включённом **Уменьшить анимацию**.
 
@@ -89,7 +91,8 @@
 | | |
 |---|---|
 | **Один файл** | `SoftDownloader.exe` со встроенными каталогом, шрифтами и иконками. Сборка оптимизирована по размеру: full LTO, `opt-level=z`, статический CRT. |
-| **97 пакетов · 22 группы** | Браузеры, общение, разработка, ИИ, VPN, медиа, игры и системные утилиты. |
+| **Автообновление** | GitHub Releases, проверка SHA-256, автоматическая замена EXE и перезапуск. Ожидание очереди и откат при ошибке запуска. |
+| **224 пакета · 26 групп** | Браузеры, общение, разработка, ИИ, VPN, медиа, игры, менеджеры модов, расширения VS Code и системные утилиты. |
 | **Одна очередь** | WinGet, Microsoft Store, EXE/MSI, ZIP, portable EXE и расширения VS Code. Повтор незавершённых задач и отмена загрузок. |
 | **Учёт установленного** | Реестр Windows, Store, WinGet, VS Code, известные папки и PATH. Удаление по одной программе или списком. |
 | **Компактный интерфейс** | Segoe UI, ровные строки и карточки, фиксированные статусы, четыре темы. Виртуализированные списки, короткие переходы и уведомления без сдвига содержимого. |
@@ -104,15 +107,24 @@
 | Группа | Примеры |
 |---|---|
 | Общение и браузеры | Discord, Telegram, AyuGram, Thunderbird, Brave, Chrome, Firefox |
-| ИИ | Cursor, Trae, Antigravity, Claude Desktop, Claude Code/CLI, Cline, Hermes |
-| Разработка | VS Code, Visual Studio Community 2026, Sublime Text, Notepad++, Git, Docker, DB Browser |
-| Языки и среды | Python 3.13/3.14, Node.js LTS, Go, Rust, Visual C++ x64/x86, Temurin JDK 8/11/17/21/25 |
+| ИИ | Cursor, Trae, Antigravity, Claude Desktop, Claude Code/CLI, Cline, Hermes, Ollama, LM Studio |
+| Разработка | VS Code, Visual Studio Community 2026, JetBrains Toolbox, Android Studio, Neovim, Git, Docker, Unity Hub, Godot |
+| Командная строка | PowerShell 7, Windows Terminal, GitHub CLI, CMake, Ninja, LLVM, ripgrep, fd, bat, fzf, lazygit, Yazi, FFmpeg |
+| Базы данных | DB Browser for SQLite, DBeaver Community, HeidiSQL |
+| Расширения VS Code | Python, Pylance, Rust, Go, C/C++, C#, Jupyter, GitLens, Prettier, ESLint, Ruff, Remote SSH, WSL, Continue, Roo Code, Copilot |
+| Языки и среды | Python 3.13/3.14, Node.js LTS, Go, Rust, Bun, Deno, Zig, Julia, Visual C++ x64/x86, Temurin JDK 8/11/17/21/25 |
 | VPN и сеть | Amnezia, FlClash, Happ, Proton, Mullvad, Windscribe, WireGuard, WARP, Hiddify, Tailscale, Proxifier, TgWsProxy, zapret |
-| Медиа и творчество | Spotify, VLC, OBS, Audacity, Blender, GIMP, Inkscape, CapCut, DroidCam |
-| Игры и устройства | Steam, WeMod, LabyMod, Modrinth, Prism, LiquidLauncher, Minecraft, Meta Horizon Link, Sideloadly, 3uTools, iTunes |
-| Утилиты | WinRAR, Bandizip, 7-Zip, CrystalDiskInfo/Mark, System Informer, ShareX, Twinkle Tray, Wireshark, OP Auto Clicker, таймеры выключения |
+| Медиа и творчество | Spotify, VLC, OBS, Audacity, Blender, GIMP, Inkscape, CapCut, HandBrake, Shotcut, Kdenlive, REAPER, Figma, darktable |
+| Игры и устройства | Steam, Epic, GOG, Heroic, Playnite, GeForce NOW, Moonlight, LabyMod, Modrinth, Prism, ATLauncher, CurseForge, Meta Horizon Link |
+| Менеджеры модов | WeMod, r2modman, Vortex, Mod Organizer 2 |
+| Документы и заметки | Obsidian, Joplin, Anki, LibreOffice, ONLYOFFICE, SumatraPDF, calibre |
+| Утилиты | WinRAR, Bandizip, 7-Zip, NanaZip, CrystalDiskInfo/Mark, HWiNFO, CPU-Z, GPU-Z, System Informer, Process Explorer, ShareX, WizTree |
 
-81 пакет использует WinGet: 80 из `winget`, один из `msstore`. Ещё 9 — прямые загрузки, Cline — Marketplace. У шести ручных карточек есть ссылка и инструкция: Hermes, AME Wizard Beta, AMD Software, NVIDIA App, ESET Premium и 2IP StartGuard.
+177 пакетов используют WinGet: 176 из `winget`, один из `msstore`. Ещё 9 — прямые загрузки, 32 расширения — Marketplace. У шести ручных карточек есть ссылка и инструкция: Hermes, AME Wizard Beta, AMD Software, NVIDIA App, ESET Premium и 2IP StartGuard.
+
+Карточка ESET Premium ведёт прямо на официальный Live Installer; вход в ESET HOME и активация выполняются в мастере ESET.
+
+Расширения устанавливаются после VS Code и обнаруживаются по своим Marketplace ID. Pylance и Python Debugger добавляют зависимость от расширения Python; GitLens и Git Graph — от Git. Интерпретаторы, игровые профили, моды и языковые модели настраиваются в соответствующих программах.
 
 Полные записи и правила обнаружения: [`catalog/extended.json`](catalog/extended.json). Claude Code и Claude CLI объединены; System Informer — продолжение Process Hacker. TgWsProxy и zapret требуют настройки после распаковки. Подробности установки и удаления — в [документации](docs/catalog.md).
 
@@ -152,7 +164,7 @@ python tools/verify_standalone.py --file dist/SoftDownloader.exe
 
 Обычный `cargo build --release` собирает только приложение: `target/release/softdownloader.exe`. Скрипт выпуска копирует его в `dist/SoftDownloader.exe` и записывает контрольную сумму.
 
-Служебный CLI собирается отдельно: `cargo run --features catalog-tools --bin catalog-check -- --resolve`. Флаги `--check-winget` и `--inventory` проверяют ID и обнаружение программ, `--video clip.mp4 --frame frame.png` — нативное декодирование и перемотку видео. CLI предназначен разработчику и в пользовательский релиз не входит. Интеграционные тесты установки/удаления используют изолированные фиктивные пакеты. **[Результаты проверок 0.5.0](docs/verification.md)**.
+Служебный CLI собирается отдельно: `cargo run --features catalog-tools --bin catalog-check -- --resolve`. Флаги `--check-winget` и `--inventory` проверяют ID и обнаружение программ, `--video clip.mp4 --frame frame.png` — нативное декодирование и перемотку видео. CLI предназначен разработчику и в пользовательский релиз не входит. Интеграционные тесты установки/удаления используют изолированные фиктивные пакеты. **[Результаты проверок 0.5.x](docs/verification.md)**.
 
 Скриншоты и видео воспроизводятся через [`tools/capture_ui.py`](tools/capture_ui.py), медиа README — через [`tools/prepare_docs_media.py`](tools/prepare_docs_media.py), иконка — через [`tools/make_branding.py`](tools/make_branding.py). Этим инструментам нужен Pillow; видео также использует FFmpeg. GUI-прогоны принудительно устанавливают нулевую громкость в отдельном тестовом профиле. Исходные звуки и графика подготавливаются [`tools/prepare_ui_assets.py`](tools/prepare_ui_assets.py).
 
@@ -166,6 +178,8 @@ src/backgrounds.rs     каталог и проверка скачиваемых
 src/video/             нативный Windows Media Foundation decoder
 src/catalog_cache.rs   кэш, обновление и восстановление метаданных
 src/config.rs          встроенный канал дополнений
+src/updater.rs         проверка релизов и загрузка обновления приложения
+src/updater/           замена EXE, проверка запуска и откат
 src/catalog.rs         каталог, категории и зависимости
 src/discovery.rs       GitHub Releases и официальные сайты
 src/inventory.rs       обнаружение и сопоставление программ

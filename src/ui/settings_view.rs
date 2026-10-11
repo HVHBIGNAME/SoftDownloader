@@ -9,6 +9,7 @@ pub(super) enum SettingsSection {
     Sound,
     Background,
     Sources,
+    Updates,
 }
 
 impl SoftDownloaderApp {
@@ -20,6 +21,7 @@ impl SoftDownloaderApp {
                 (SettingsSection::Sound, "Звуки"),
                 (SettingsSection::Background, "Видеофон"),
                 (SettingsSection::Sources, "Источники и данные"),
+                (SettingsSection::Updates, "Обновления"),
             ] {
                 ui.selectable_value(&mut self.settings_section, section, name);
             }
@@ -33,6 +35,7 @@ impl SoftDownloaderApp {
                 SettingsSection::Sound => self.sound_settings(ui),
                 SettingsSection::Background => self.background_settings(ui),
                 SettingsSection::Sources => self.source_settings(ui),
+                SettingsSection::Updates => self.update_settings(ui),
             });
     }
 
