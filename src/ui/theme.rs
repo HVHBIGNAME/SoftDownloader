@@ -324,7 +324,7 @@ pub fn nav(
         ui.painter().rect_stroke(
             rect,
             CONTROL_RADIUS,
-            Stroke::new(1.0, colors.accent),
+            Stroke::new(1.0_f32, colors.accent),
             egui::StrokeKind::Inside,
         );
     }

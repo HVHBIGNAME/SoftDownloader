@@ -125,7 +125,7 @@ impl SoftDownloaderApp {
             ui.painter().rect_stroke(
                 search.response.rect,
                 theme::CARD_RADIUS,
-                Stroke::new(1.5, colors.accent),
+                Stroke::new(1.5_f32, colors.accent),
                 egui::StrokeKind::Inside,
             );
         }

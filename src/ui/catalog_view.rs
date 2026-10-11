@@ -562,7 +562,7 @@ impl SoftDownloaderApp {
             ui.painter().rect_stroke(
                 row.response.rect,
                 theme::CONTROL_RADIUS,
-                Stroke::new(1.0, colors.accent.gamma_multiply(selection * 0.75)),
+                Stroke::new(1.0_f32, colors.accent.gamma_multiply(selection * 0.75)),
                 egui::StrokeKind::Inside,
             );
         }

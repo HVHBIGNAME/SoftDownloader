@@ -16,7 +16,7 @@ impl SoftDownloaderApp {
                 colors
                     .card_frame()
                     .stroke(Stroke::new(
-                        1.0,
+                        1.0_f32,
                         colors.border.lerp_to_gamma(colors.accent, 0.35),
                     ))
                     .inner_margin(Margin::symmetric(14, 10))
