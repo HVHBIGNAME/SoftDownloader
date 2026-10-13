@@ -13,11 +13,17 @@ impl SoftDownloaderApp {
         self.background_progress = None;
         match result {
             Ok(Some(path)) => {
-                let previous = self.settings.background.clone();
+                let previous = (
+                    self.settings.background.clone(),
+                    self.settings.weather.clone(),
+                );
                 self.settings.background.video = Some(path);
                 self.settings.background.paused = false;
+                self.settings.weather.enabled = false;
                 if !self.save_preferences() {
-                    self.settings.background = previous;
+                    (self.settings.background, self.settings.weather) = previous;
+                } else {
+                    self.weather.preview = None;
                 }
                 self.background_error = None;
             }
@@ -33,6 +39,7 @@ impl SoftDownloaderApp {
             ui.set_width((ui.available_width() - 2.0).max(150.0));
             ui.label(RichText::new("Видеофон").size(20.0).strong());
             ui.label(RichText::new("Единый фон всего окна, включая боковую панель. Воспроизводится по кругу, без звука.").size(12.0).color(colors.muted));
+            if self.settings.weather.enabled { ui.label("Выбор своего видео выключит погодный фон. Город и настройки погоды сохранятся."); }
             ui.horizontal_wrapped(|ui| {
                 let enabled = !self.background_busy && !self.list_busy && !self.has_modal();
                 if ui.add_enabled(enabled, egui::Button::new("Выбрать свой MP4…")).clicked() {

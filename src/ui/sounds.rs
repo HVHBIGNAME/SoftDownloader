@@ -103,7 +103,7 @@ impl SoundPlayer {
                 egui::WidgetType::Button | egui::WidgetType::Checkbox | egui::WidgetType::SelectableLabel |
                 egui::WidgetType::RadioButton | egui::WidgetType::ComboBox | egui::WidgetType::CollapsingHeader))
         }));
-        if clicked {
+        if clicked && settings.clicks {
             self.play(settings, Cue::Click);
         }
     }
@@ -117,6 +117,16 @@ impl Drop for SoundPlayer {
 
 fn clip(style: SoundStyle, cue: Cue) -> &'static [u8] {
     match (style, cue) {
+        (SoundStyle::Aurora, Cue::Click) => include_bytes!("../../assets/sounds/aurora-click.pcm"),
+        (SoundStyle::Aurora, Cue::Success) => {
+            include_bytes!("../../assets/sounds/aurora-success.pcm")
+        }
+        (SoundStyle::Aurora, Cue::Error) => include_bytes!("../../assets/sounds/aurora-error.pcm"),
+        (SoundStyle::Cinema, Cue::Click) => include_bytes!("../../assets/sounds/cinema-click.pcm"),
+        (SoundStyle::Cinema, Cue::Success) => {
+            include_bytes!("../../assets/sounds/cinema-success.pcm")
+        }
+        (SoundStyle::Cinema, Cue::Error) => include_bytes!("../../assets/sounds/cinema-error.pcm"),
         (SoundStyle::Glass, Cue::Click) => include_bytes!("../../assets/sounds/glass-click.pcm"),
         (SoundStyle::Glass, Cue::Success) => {
             include_bytes!("../../assets/sounds/glass-success.pcm")
@@ -141,13 +151,13 @@ fn wave(pcm: &[u8], volume: u8) -> Vec<u8> {
     let mut wave = Vec::with_capacity(44 + pcm.len());
     wave.extend_from_slice(b"RIFF");
     wave.extend_from_slice(&(36 + pcm.len() as u32).to_le_bytes());
-    wave.extend_from_slice(b"WAVEfmt \x10\0\0\0\x01\0\x01\0");
-    wave.extend_from_slice(&22050_u32.to_le_bytes());
+    wave.extend_from_slice(b"WAVEfmt \x10\0\0\0\x01\0\x02\0");
     wave.extend_from_slice(&44100_u32.to_le_bytes());
-    wave.extend_from_slice(b"\x02\0\x10\0data");
+    wave.extend_from_slice(&176400_u32.to_le_bytes());
+    wave.extend_from_slice(b"\x04\0\x10\0data");
     wave.extend_from_slice(&(pcm.len() as u32).to_le_bytes());
     for &sample in pcm.as_chunks::<2>().0 {
-        let value = i32::from(i16::from_le_bytes(sample)).clamp(-2800, 2800)
+        let value = i32::from(i16::from_le_bytes(sample)).clamp(-14000, 14000)
             * i32::from(volume.min(100))
             / 100;
         wave.extend_from_slice(&(value as i16).to_le_bytes());
@@ -182,13 +192,13 @@ mod tests {
         for style in SoundStyle::ALL {
             for cue in [Cue::Click, Cue::Success, Cue::Error] {
                 let pcm = clip(style, cue);
-                assert!(!pcm.is_empty() && pcm.len() <= 13230 && pcm.len().is_multiple_of(2));
+                assert!(!pcm.is_empty() && pcm.len() <= 176400 && pcm.len().is_multiple_of(4));
                 assert!(pcm.iter().any(|&byte| byte != 0));
                 assert!(
                     pcm.as_chunks::<2>()
                         .0
                         .iter()
-                        .all(|&sample| i16::from_le_bytes(sample).unsigned_abs() <= 2400)
+                        .all(|&sample| i16::from_le_bytes(sample).unsigned_abs() <= 14000)
                 );
                 assert_eq!(pcm[..2], [0, 0]);
                 assert_eq!(pcm[pcm.len() - 2..], [0, 0]);
@@ -200,7 +210,7 @@ mod tests {
                     .sum::<f64>()
                     / (pcm.len() / 2) as f64;
                 assert!(
-                    mean_square.sqrt() < 1100.0,
+                    mean_square.sqrt() < 6500.0,
                     "Recording is too loud on average"
                 );
                 let full = wave(pcm, 100);
@@ -229,7 +239,7 @@ mod tests {
                     .as_chunks::<2>()
                     .0
                     .iter()
-                    .all(|&sample| i16::from_le_bytes(sample).unsigned_abs() <= 2800)
+                    .all(|&sample| i16::from_le_bytes(sample).unsigned_abs() <= 14000)
             );
         }
         assert_eq!(wave(&pcm, 100), wave(&pcm, u8::MAX));

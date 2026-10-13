@@ -24,6 +24,8 @@ pub struct Settings {
     pub restore_selection: BTreeSet<String>,
     pub installation: crate::installation::InstallationSettings,
     pub program_sets: Vec<crate::program_sets::ProgramSet>,
+    pub weather: crate::weather::WeatherSettings,
+    pub experience: crate::preferences::ExperienceSettings,
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -97,6 +99,10 @@ impl Store {
         let mut settings: Settings = read_or_default(&self.root.join("settings.json"))?;
         settings.sound.volume = settings.sound.volume.min(100);
         settings.background.dimming = settings.background.dimming.clamp(45, 95);
+        settings.weather.dimming = settings.weather.dimming.clamp(45, 95);
+        if let Some(city) = &settings.weather.city {
+            city.validate()?;
+        }
         crate::program_sets::validate_sets(&settings.program_sets)?;
         Ok(settings)
     }

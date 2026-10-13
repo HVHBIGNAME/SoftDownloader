@@ -23,8 +23,18 @@ def silent_profile(profile: Path) -> None:
     sound["enabled"] = True
     sound["volume"] = 0
     settings["updates"] = {"enabled": False}
+    import tomllib
+
+    version = tomllib.loads(
+        (Path(__file__).resolve().parents[1] / "Cargo.toml").read_text(encoding="utf-8")
+    )["package"]["version"]
+    settings.setdefault(
+        "experience", {"guide_seen": True, "last_seen_version": version}
+    )
     settings["installation"] = {"confirm_before_install": True}
-    path.write_text(json.dumps(settings, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(
+        json.dumps(settings, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def transfer(session: "Session", example: Path, review: bool) -> None:
@@ -38,14 +48,18 @@ def transfer(session: "Session", example: Path, review: bool) -> None:
     session.capture("export")
     document = json.loads(exported.read_text(encoding="utf-8"))
     exported_ids(exported)
-    LOGGER.info("Exported %d programs without machine-specific data", len(document["programs"]))
+    LOGGER.info(
+        "Exported %d programs without machine-specific data", len(document["programs"])
+    )
     session.caption = "Импорт: выберите сохранённый JSON на новом компьютере."
     session.key(ord("O"), control=True)
     session.choose_file(example)
     session.capture("restore")
     time.sleep(3)
     session.click_primary()
-    session.caption = "Доступные программы добавлены к выбору. Уже установленное пропускается."
+    session.caption = (
+        "Доступные программы добавлены к выбору. Уже установленное пропускается."
+    )
     time.sleep(1)
     session.capture("selection")
     time.sleep(2)
@@ -64,7 +78,12 @@ def preferences(session: "Session") -> dict:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
 
-def wait_preferences(session: "Session", matches: Callable[[dict], bool], message: str, timeout: float = 5) -> dict:
+def wait_preferences(
+    session: "Session",
+    matches: Callable[[dict], bool],
+    message: str,
+    timeout: float = 5,
+) -> dict:
     deadline = time.monotonic() + timeout
     while True:
         settings = preferences(session)
@@ -85,11 +104,19 @@ def layout(session: "Session", mode: str) -> None:
 
 def exported_ids(path: Path) -> set[str]:
     document = json.loads(path.read_text(encoding="utf-8"))
-    if document.get("format") != "softdownloader.program-list" or not document["programs"]:
+    if (
+        document.get("format") != "softdownloader.program-list"
+        or not document["programs"]
+    ):
         raise RuntimeError("The exported program set is invalid")
-    if any(set(entry) != {"name", "version", "publisher", "package_ids"} for entry in document["programs"]):
+    if any(
+        set(entry) != {"name", "version", "publisher", "package_ids"}
+        for entry in document["programs"]
+    ):
         raise RuntimeError("A program set contains unexpected fields")
-    return {package for entry in document["programs"] for package in entry["package_ids"]}
+    return {
+        package for entry in document["programs"] for package in entry["package_ids"]
+    }
 
 
 def features(session: "Session") -> None:
@@ -131,7 +158,9 @@ def features(session: "Session") -> None:
     session.key(0x1B)
     if not preferences(session).get("sort_by_name"):
         raise RuntimeError("Sorting preference did not persist")
-    LOGGER.info("Favorites, both layouts, alphabetic sorting and unfiltered set export verified")
+    LOGGER.info(
+        "Favorites, both layouts, alphabetic sorting and unfiltered set export verified"
+    )
 
 
 def assert_modal(session: "Session", expected: bool) -> None:
@@ -146,7 +175,9 @@ def assert_modal(session: "Session", expected: bool) -> None:
 
 def removal_preview(session: "Session") -> None:
     session.click(100, 252)
-    session.caption = "Удаление тоже начинается с проверки списка. Этот предпросмотр будет отменён."
+    session.caption = (
+        "Удаление тоже начинается с проверки списка. Этот предпросмотр будет отменён."
+    )
     session.click(282, 262)
     session.click(1125, 797)
     assert_modal(session, True)
@@ -170,7 +201,9 @@ def selection_review(session: "Session") -> None:
     before = exported_ids(saved)
     session.click(1010, 261)
     session.capture("selection-cleared")
-    session.caption = "Случайно очистили выбор? «Вернуть» или Ctrl+Z восстанавливает его."
+    session.caption = (
+        "Случайно очистили выбор? «Вернуть» или Ctrl+Z восстанавливает его."
+    )
     session.key(ord("Z"), control=True)
     restored = session.profile / f"restored-selection-{time.time_ns()}.json"
     session.click(1170, 261)
@@ -195,4 +228,6 @@ def narrow_window(session: "Session") -> None:
     session.capture("narrow-catalog")
     USER.SetWindowPos(session.window, None, 50, 40, 1296, 879, 0x54)
     time.sleep(0.5)
-    LOGGER.info("Minimum-size window and Escape from details captured for visual review")
+    LOGGER.info(
+        "Minimum-size window and Escape from details captured for visual review"
+    )

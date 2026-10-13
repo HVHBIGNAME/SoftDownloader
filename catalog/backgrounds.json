@@ -34,5 +34,47 @@
     "url": "https://assets.mixkit.co/videos/44373/44373-720.mp4",
     "size": 6093857,
     "sha256": "62677a99693f02f06296558f0c4ecf1d180714812c8181036c69e73a7c0b9ca6"
+  },
+  {
+    "id": "weather-rain", "name": "Дождь за стеклом", "description": "Настоящие капли и отражения огней за мокрым стеклом.",
+    "source": "https://mixkit.co/free-stock-video/window-on-a-rainy-day-2846/",
+    "url": "https://assets.mixkit.co/videos/2846/2846-720.mp4", "size": 7865775,
+    "sha256": "50c6a4e9ea79e77cc1752842a2f626046374d375fc0002eb8f411ac77f998e14"
+  },
+  {
+    "id": "weather-fog", "name": "Туман в осеннем лесу", "description": "Медленное движение тумана между деревьями.",
+    "source": "https://mixkit.co/free-stock-video/foggy-autumn-forest-in-the-morning-35013/",
+    "url": "https://assets.mixkit.co/videos/35013/35013-720.mp4", "size": 4330327,
+    "sha256": "40d080a33231428daa699f4dc8f084d2524c9a1aaca8f0a720fde8bf210fc926"
+  },
+  {
+    "id": "weather-blizzard", "name": "Снежный лес", "description": "Снегопад в лесу, дополненный порывами ветра для режима метели.",
+    "source": "https://mixkit.co/free-stock-video/snowing-in-a-foggy-forest-slow-motion-35040/",
+    "url": "https://assets.mixkit.co/videos/35040/35040-720.mp4", "size": 9225800,
+    "sha256": "c200bc5e55e737f570498410bb7742d9d643f50ab7bd0ee5e5af2e295b7b49c5"
+  },
+  {
+    "id": "weather-clouds", "name": "Облака над Альпами", "description": "Слоистые облака и горные вершины в таймлапсе.",
+    "source": "https://mixkit.co/free-stock-video/swiss-alps-snow-background-time-lapse-4283/",
+    "url": "https://assets.mixkit.co/videos/4283/4283-720.mp4", "size": 4507212,
+    "sha256": "b840d609ce369d39bc34afd1f795ad840b9187d9bc6503aa5d64e2156612bc6f"
+  },
+  {
+    "id": "halloween-forest", "name": "Хэллоуин · огонь в тумане", "description": "Настоящая резная тыква с огнём в тёмном лесу.",
+    "source": "https://mixkit.co/free-stock-video/creepy-halloween-pumpkin-in-dark-cloud-forest-33884/",
+    "url": "https://assets.mixkit.co/videos/33884/33884-720.mp4", "size": 5079555,
+    "sha256": "f2dbccbd28024306b9e6d60cbad0470f4e1a4216496e3bf494229404f41c5231"
+  },
+  {
+    "id": "weather-storm", "name": "Ночная гроза", "description": "Грозовые облака на ночном горизонте. Ролик содержит молнии.",
+    "source": "https://mixkit.co/free-stock-video/thunderstorm-at-night-4422/",
+    "url": "https://assets.mixkit.co/videos/4422/4422-720.mp4", "size": 5382953,
+    "sha256": "b7d8190ada1da9c023275b775fac58e0f935d03e340065595613d2d66f0a9c60"
+  },
+  {
+    "id": "weather-clear", "name": "Солнечный лес", "description": "Дневной свет и солнечные лучи среди деревьев.",
+    "source": "https://mixkit.co/free-stock-video/sunny-day-in-a-forest-seen-in-detail-5022/",
+    "url": "https://assets.mixkit.co/videos/5022/5022-720.mp4", "size": 9713745,
+    "sha256": "1b5e565d6cddf1f74b35268d4811cb16908bd791c68e6a3e39907a72c438c3d8"
   }
 ]

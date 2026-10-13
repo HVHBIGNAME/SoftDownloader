@@ -788,6 +788,163 @@
       "detect": { "names": ["ImageGlass"] }
     },
     {
+      "id": "zotero", "name": "Zotero", "version": "Последняя", "publisher": "Corporation for Digital Scholarship",
+      "description": "Библиотека научных статей, аннотации PDF, цитаты и оформление библиографии.", "category": "productivity",
+      "tags": ["статьи", "наука", "библиография", "PDF"], "homepage": "https://www.zotero.org/",
+      "source": { "type": "winget", "package_id": "DigitalScholar.Zotero" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "logseq", "name": "Logseq", "version": "Последняя", "publisher": "Logseq",
+      "description": "Личная база знаний с обратными ссылками, ежедневными заметками и задачами.", "category": "productivity",
+      "tags": ["заметки", "база знаний", "задачи"], "homepage": "https://logseq.com/",
+      "source": { "type": "winget", "package_id": "Logseq.Logseq" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "notion", "name": "Notion", "version": "Последняя", "publisher": "Notion Labs",
+      "description": "Документы, базы данных и совместные рабочие пространства. Нужен аккаунт; часть функций платная.", "category": "productivity",
+      "tags": ["заметки", "документы", "команда"], "homepage": "https://www.notion.com/",
+      "source": { "type": "winget", "package_id": "Notion.Notion" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "pdfgear", "name": "PDFgear", "version": "Последняя", "publisher": "PDFgear",
+      "description": "Чтение, редактирование, объединение и конвертация PDF-документов.", "category": "productivity",
+      "tags": ["PDF", "редактор", "конвертация"], "homepage": "https://www.pdfgear.com/",
+      "source": { "type": "winget", "package_id": "PDFgear.PDFgear" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "super-productivity", "name": "Super Productivity", "version": "Последняя", "publisher": "Johannes Millan",
+      "description": "Задачи, проекты, учёт рабочего времени и Pomodoro с интеграциями GitHub и Jira.", "category": "productivity",
+      "tags": ["задачи", "время", "pomodoro", "планирование"], "homepage": "https://super-productivity.com/",
+      "source": { "type": "winget", "package_id": "JohannesMillan.superProductivity" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "pomotroid", "name": "Pomotroid", "version": "Последняя", "publisher": "Christopher Murphy",
+      "description": "Простой Pomodoro-таймер с настройкой рабочих интервалов и перерывов.", "category": "productivity",
+      "tags": ["pomodoro", "таймер", "фокус"], "homepage": "https://github.com/Splode/pomotroid",
+      "source": { "type": "winget", "package_id": "splode.pomotroid" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "autohotkey", "name": "AutoHotkey v2", "version": "Последняя", "publisher": "AutoHotkey Foundation",
+      "description": "Язык автоматизации Windows: горячие клавиши, макросы и сокращения текста. Скрипты создаются отдельно.", "category": "utilities",
+      "tags": ["автоматизация", "макросы", "клавиатура", "ahk"], "homepage": "https://www.autohotkey.com/",
+      "source": { "type": "winget", "package_id": "AutoHotkey.AutoHotkey" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "translucenttb", "name": "TranslucentTB", "version": "Последняя", "publisher": "Charles Milette",
+      "description": "Настройка прозрачности и оформления панели задач Windows.", "category": "system-tools",
+      "tags": ["панель задач", "оформление", "прозрачность"], "homepage": "https://github.com/TranslucentTB/TranslucentTB",
+      "source": { "type": "winget", "package_id": "CharlesMilette.TranslucentTB" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "wincompose", "name": "WinCompose", "version": "Последняя", "publisher": "Sam Hocevar",
+      "description": "Удобный ввод специальных символов и типографики через Compose-последовательности.", "category": "utilities",
+      "tags": ["символы", "типографика", "клавиатура"], "homepage": "https://github.com/samhocevar/wincompose",
+      "source": { "type": "winget", "package_id": "SamHocevar.WinCompose" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "wizfile", "name": "WizFile", "version": "Последняя", "publisher": "Antibody Software",
+      "description": "Быстрый поиск файлов по имени, размеру и дате с фильтрами.", "category": "utilities",
+      "tags": ["поиск", "файлы", "диск"], "homepage": "https://antibody-software.com/wizfile/",
+      "source": { "type": "winget", "package_id": "AntibodySoftware.WizFile" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "process-monitor", "name": "Process Monitor", "version": "Последняя", "publisher": "Microsoft Sysinternals",
+      "description": "Наблюдение за обращениями программ к файлам, реестру и процессам для диагностики проблем Windows.", "category": "system-tools",
+      "tags": ["диагностика", "реестр", "процессы", "procmon"], "homepage": "https://learn.microsoft.com/sysinternals/downloads/procmon",
+      "source": { "type": "winget", "package_id": "Microsoft.Sysinternals.ProcessMonitor" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "tcpview", "name": "TCPView", "version": "Последняя", "publisher": "Microsoft Sysinternals",
+      "description": "Список TCP/UDP-соединений с привязкой к процессам и адресам.", "category": "network-tools",
+      "tags": ["сеть", "соединения", "TCP", "UDP"], "homepage": "https://learn.microsoft.com/sysinternals/downloads/tcpview",
+      "source": { "type": "winget", "package_id": "Microsoft.Sysinternals.TCPView" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "zoomit", "name": "ZoomIt", "version": "Последняя", "publisher": "Microsoft Sysinternals",
+      "description": "Масштабирование, рисование поверх экрана и запись для презентаций и обучения.", "category": "video-tools",
+      "tags": ["презентации", "аннотации", "запись экрана"], "homepage": "https://learn.microsoft.com/sysinternals/downloads/zoomit",
+      "source": { "type": "winget", "package_id": "Microsoft.Sysinternals.ZoomIt" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "foobar2000", "name": "foobar2000", "version": "Последняя", "publisher": "Peter Pawlowski",
+      "description": "Аудиоплеер с музыкальной библиотекой, тегами, конвертацией и расширениями.", "category": "media",
+      "tags": ["музыка", "аудио", "плеер", "теги"], "homepage": "https://www.foobar2000.org/",
+      "source": { "type": "winget", "package_id": "PeterPawlowski.foobar2000" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "potplayer", "name": "PotPlayer", "version": "Последняя", "publisher": "Kakao Corp.",
+      "description": "Видеоплеер с поддержкой множества форматов, субтитров и аппаратного декодирования.", "category": "media",
+      "tags": ["видео", "плеер", "субтитры"], "homepage": "https://potplayer.tv/",
+      "source": { "type": "winget", "package_id": "Daum.PotPlayer" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "okular", "name": "Okular", "version": "Последняя", "publisher": "KDE",
+      "description": "Просмотр PDF, EPUB и других документов с аннотациями и закладками.", "category": "productivity",
+      "tags": ["PDF", "EPUB", "аннотации", "документы"], "homepage": "https://okular.kde.org/",
+      "source": { "type": "winget", "package_id": "KDE.Okular" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "kate", "name": "Kate", "version": "Последняя", "publisher": "KDE",
+      "description": "Редактор кода с разделением окна, проектами, Git и поддержкой языковых серверов.", "category": "editors",
+      "tags": ["редактор", "код", "LSP", "KDE"], "homepage": "https://kate-editor.org/",
+      "source": { "type": "winget", "package_id": "KDE.Kate" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "drawio", "name": "draw.io Desktop", "version": "Последняя", "publisher": "JGraph",
+      "description": "Локальный редактор диаграмм, блок-схем, UML и схем инфраструктуры.", "category": "design",
+      "tags": ["диаграммы", "схемы", "UML", "draw.io"], "homepage": "https://github.com/jgraph/drawio-desktop",
+      "source": { "type": "winget", "package_id": "JGraph.Draw" }, "install": { "type": "winget" },
+      "detect": { "names": ["draw.io"] }
+    },
+    {
+      "id": "sioyek", "name": "Sioyek", "version": "Последняя", "publisher": "ahrm",
+      "description": "PDF-просмотрщик для технических книг и статей с клавиатурной навигацией и переходами по ссылкам.", "category": "productivity",
+      "tags": ["PDF", "статьи", "книги", "клавиатура"], "homepage": "https://github.com/ahrm/sioyek",
+      "source": { "type": "winget", "package_id": "ahrm.sioyek" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "peazip", "name": "PeaZip", "version": "Последняя", "publisher": "Giorgio Tani",
+      "description": "Архиватор с поддержкой множества форматов, шифрованием и проверкой контрольных сумм.", "category": "archives",
+      "tags": ["архивы", "ZIP", "шифрование", "хеш"], "homepage": "https://peazip.github.io/",
+      "source": { "type": "winget", "package_id": "Giorgiotani.Peazip" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "anydesk", "name": "AnyDesk", "version": "Последняя", "publisher": "AnyDesk Software GmbH",
+      "description": "Удалённая помощь и доступ к компьютеру. Подключения и разрешения настраиваются в приложении; коммерческое использование лицензируется.", "category": "network-tools",
+      "tags": ["удалённый доступ", "поддержка", "remote"], "homepage": "https://anydesk.com/",
+      "source": { "type": "winget", "package_id": "AnyDesk.AnyDesk" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "virtualbox", "name": "Oracle VirtualBox", "version": "Последняя", "publisher": "Oracle",
+      "description": "Виртуальные машины для тестирования ОС и программ. Создание машин и выбор образов выполняются после установки.", "category": "development",
+      "tags": ["виртуализация", "VM", "операционные системы"], "homepage": "https://www.virtualbox.org/",
+      "source": { "type": "winget", "package_id": "Oracle.VirtualBox" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "freeplane", "name": "Freeplane", "version": "Последняя", "publisher": "Freeplane Team",
+      "description": "Ментальные карты для планирования, обучения и структурирования идей. Java добавляется как зависимость.", "category": "productivity", "depends_on": ["java-21"],
+      "tags": ["ментальные карты", "планирование", "идеи"], "homepage": "https://docs.freeplane.org/",
+      "source": { "type": "winget", "package_id": "Freeplane.Freeplane" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "jellyfin-player", "name": "Jellyfin Media Player", "version": "Последняя", "publisher": "Jellyfin",
+      "description": "Настольный клиент домашней медиатеки Jellyfin. Укажите адрес своего сервера после установки.", "category": "media",
+      "tags": ["медиатека", "видео", "домашний сервер"], "homepage": "https://github.com/jellyfin/jellyfin-media-player",
+      "source": { "type": "winget", "package_id": "Jellyfin.JellyfinMediaPlayer" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "kicad", "name": "KiCad", "version": "Последняя", "publisher": "KiCad",
+      "description": "Проектирование электронных схем и печатных плат с 3D-просмотром.", "category": "design",
+      "tags": ["электроника", "платы", "PCB", "EDA"], "homepage": "https://www.kicad.org/",
+      "source": { "type": "winget", "package_id": "KiCad.KiCad" }, "install": { "type": "winget" }
+    },
+    {
+      "id": "stellarium", "name": "Stellarium", "version": "Последняя", "publisher": "Stellarium Team",
+      "description": "Планетарий с реалистичным небом, звёздами, планетами и настройкой места наблюдения.", "category": "creative",
+      "tags": ["астрономия", "звёзды", "обучение", "небо"], "homepage": "https://stellarium.org/",
+      "source": { "type": "winget", "package_id": "Stellarium.Stellarium" }, "install": { "type": "winget" }
+    },
+    {
       "id": "r2modman", "name": "r2modman", "version": "Последняя", "publisher": "ebkr",
       "description": "Менеджер модов для Risk of Rain 2, Valheim и других игр с профилями сборок.", "category": "game-mods",
       "tags": ["моды", "менеджер модов", "Valheim"], "homepage": "https://github.com/ebkr/r2modmanPlus",

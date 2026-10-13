@@ -72,7 +72,11 @@ mod tests {
     #[test]
     fn stock_backgrounds_have_pinned_hashes_and_source_attribution() {
         let presets = super::presets().unwrap();
-        assert_eq!(presets.len(), 4);
+        for kind in crate::weather::WeatherKind::ALL {
+            for day in [false, true] {
+                assert!(presets.iter().any(|p| p.id == kind.film(day)));
+            }
+        }
         let ids: std::collections::BTreeSet<_> = presets.iter().map(|preset| &preset.id).collect();
         assert_eq!(ids.len(), presets.len());
     }

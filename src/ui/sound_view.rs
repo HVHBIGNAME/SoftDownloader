@@ -13,10 +13,11 @@ impl SoftDownloaderApp {
             ui.set_width((ui.available_width() - 2.0).max(150.0));
             ui.label(RichText::new("Звуки интерфейса").size(20.0).strong());
             ui.checkbox(&mut self.settings.sound.enabled, "Включить звуковой отклик");
-            ui.label(RichText::new("Короткие мягкие касания с ограниченной пиковой громкостью. Результат и ошибка обозначаются двумя тихими щелчками.").size(12.0).color(colors.muted));
+            ui.label(RichText::new("Пять авторских наборов · стерео 44,1 кГц. Короткие тактильные нажатия, музыкальное завершение и отдельный мягкий сигнал ошибки.").size(12.0).color(colors.muted));
             ui.add_space(8.0);
             ui.add_enabled_ui(self.settings.sound.enabled, |ui| {
                 theme::percent_slider(ui, &mut self.settings.sound.volume, 0..=100, "Громкость");
+                ui.checkbox(&mut self.settings.sound.clicks, "Озвучивать нажатия · при выключении останутся только результаты");
                 ui.add_space(8.0);
                 for style in SoundStyle::ALL {
                     ui.horizontal(|ui| {
@@ -41,7 +42,7 @@ impl SoftDownloaderApp {
                 ui.label(RichText::new(error).size(12.0).color(colors.orange));
             }
             ui.add_space(8.0);
-            ui.hyperlink_to("Звуки Kenney · CC0 и другие материалы оформления", "https://github.com/HVHBIGNAME/SoftDownloader/blob/main/assets/CREDITS.md");
+            ui.hyperlink_to("Авторские звуки SoftDownloader и материалы оформления", "https://github.com/HVHBIGNAME/SoftDownloader/blob/main/assets/CREDITS.md");
         });
         if previous != self.settings.sound && !self.save_preferences() {
             self.settings.sound = previous;

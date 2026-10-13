@@ -7,11 +7,11 @@ import copy
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import shutil
 import tempfile
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 MAX_CATALOG_BYTES = 8 * 1024 * 1024
@@ -23,13 +23,22 @@ BUILTIN_PATH = Path(__file__).resolve().parents[1] / "catalog" / "builtin.json"
 EXTENDED_PATH = BUILTIN_PATH.with_name("extended.json")
 TOOL_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+\-]{0,179}\Z")
 EXTENSION_ID_PATTERN = re.compile(r"[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\Z")
-INSTALL_EXTENSIONS = {"exe": ".exe", "msi": ".msi", "zip": ".zip", "portable": ".exe", "interactive": ".exe"}
+INSTALL_EXTENSIONS = {
+    "exe": ".exe",
+    "msi": ".msi",
+    "zip": ".zip",
+    "portable": ".exe",
+    "interactive": ".exe",
+}
 
 
 def builtin_catalog() -> dict:
     base = json.loads(BUILTIN_PATH.read_text(encoding="utf-8"))
     extended = json.loads(EXTENDED_PATH.read_text(encoding="utf-8"))
-    require(base["schema_version"] == extended["schema_version"] == 1, "Unsupported bundled catalog version")
+    require(
+        base["schema_version"] == extended["schema_version"] == 1,
+        "Unsupported bundled catalog version",
+    )
     for key in ("categories", "packages"):
         merged = {item["id"]: item for item in base[key]}
         merged.update({item["id"]: item for item in extended[key]})
@@ -43,14 +52,21 @@ def require(condition: bool, message: str) -> None:
 
 
 def safe_relative(value: str) -> Path:
-    require(isinstance(value, str) and bool(value), "Expected a non-empty relative path")
+    require(
+        isinstance(value, str) and bool(value), "Expected a non-empty relative path"
+    )
     parts = re.split(r"[/\\]", value)
     for part in parts:
         require(part not in ("", ".", ".."), f"Unsafe path: {value}")
-        require(not re.search(r'[\x00-\x1f\x7f<>:"|?*]', part), f"Invalid path: {value}")
+        require(
+            not re.search(r'[\x00-\x1f\x7f<>:"|?*]', part), f"Invalid path: {value}"
+        )
         require(not part.endswith((".", " ")), f"Invalid Windows path: {value}")
         stem = part.split(".")[0].upper()
-        require(not re.fullmatch(r"CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]", stem), f"Reserved Windows name: {part}")
+        require(
+            not re.fullmatch(r"CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]", stem),
+            f"Reserved Windows name: {part}",
+        )
     return Path(*parts)
 
 
@@ -66,18 +82,30 @@ def drive_id(value: str) -> str:
         require(bool(DRIVE_ID_PATTERN.fullmatch(value)), "Invalid Google Drive file ID")
         return value
     url = https_url(value)
-    require(url.hostname in ("drive.google.com", "drive.usercontent.google.com"), "Expected a Google Drive file link")
+    require(
+        url.hostname in ("drive.google.com", "drive.usercontent.google.com"),
+        "Expected a Google Drive file link",
+    )
     parts = url.path.strip("/").split("/")
     require("folders" not in parts, "Share a file, not a folder")
     match = re.search(r"/file/d/([^/]+)", url.path)
     identifier = match.group(1) if match else parse_qs(url.query).get("id", [""])[0]
-    require(bool(DRIVE_ID_PATTERN.fullmatch(identifier)), "No valid file ID in the Google Drive link")
+    require(
+        bool(DRIVE_ID_PATTERN.fullmatch(identifier)),
+        "No valid file ID in the Google Drive link",
+    )
     return identifier
 
 
 def https_url(value: str):
     url = urlparse(value)
-    require(url.scheme == "https" and bool(url.hostname) and not url.username and not url.password, "Use an HTTPS URL without credentials")
+    require(
+        url.scheme == "https"
+        and bool(url.hostname)
+        and not url.username
+        and not url.password,
+        "Use an HTTPS URL without credentials",
+    )
     return url
 
 
@@ -108,21 +136,41 @@ def validate_catalog(catalog: dict, public: bool = False) -> None:
     require(bool(catalog.get("title", "").strip()), "Catalog title is required")
     categories = catalog.get("categories", [])
     packages = catalog.get("packages", [])
-    require(isinstance(categories, list) and isinstance(packages, list), "categories and packages must be arrays")
+    require(
+        isinstance(categories, list) and isinstance(packages, list),
+        "categories and packages must be arrays",
+    )
     require(len(categories) <= 200 and len(packages) <= 5000, "Catalog is too large")
     groups = unique_index(categories, "category")
     entries = unique_index(packages, "package")
     builtin = builtin_catalog()
     combined_groups = unique_index(builtin["categories"], "category")
     combined_groups.update(groups)
-    validate_graph({key: [item["parent"]] if item.get("parent") else [] for key, item in combined_groups.items()})
-    dependencies = {item["id"]: item.get("depends_on", []) for item in builtin["packages"]}
-    dependencies.update({key: item.get("depends_on", []) for key, item in entries.items()})
+    validate_graph(
+        {
+            key: [item["parent"]] if item.get("parent") else []
+            for key, item in combined_groups.items()
+        }
+    )
+    dependencies = {
+        item["id"]: item.get("depends_on", []) for item in builtin["packages"]
+    }
+    dependencies.update(
+        {key: item.get("depends_on", []) for key, item in entries.items()}
+    )
     validate_graph(dependencies)
     for package in packages:
-        require(package.get("category") in combined_groups, f"Unknown category for {package['id']}")
-        require(bool(package.get("version", "").strip()), f"Missing version for {package['id']}")
-        require(package.get("kind", "app") in ("app", "addon"), "kind must be app or addon")
+        require(
+            package.get("category") in combined_groups,
+            f"Unknown category for {package['id']}",
+        )
+        require(
+            bool(package.get("version", "").strip()),
+            f"Missing version for {package['id']}",
+        )
+        require(
+            package.get("kind", "app") in ("app", "addon"), "kind must be app or addon"
+        )
         if package.get("homepage"):
             https_url(package["homepage"])
         source = package.get("source") or {}
@@ -130,25 +178,62 @@ def validate_catalog(catalog: dict, public: bool = False) -> None:
         manual = source.get("type") == "manual"
         managed = install.get("type") in ("winget", "vscode_extension")
         if package.get("enabled", True) and not manual:
-            require(bool(package.get("artifact") or source or managed) and bool(install), f"Missing artifact/source or install for {package['id']}")
-        require((source.get("type") == "winget") == (install.get("type") == "winget"), "Use source.winget and install.winget together")
-        require(install.get("type") != "vscode_extension" or not source, "VS Code extensions use Marketplace without a source")
-        require(not managed or not package.get("artifact"), "Managed packages do not use artifacts")
-        require(not manual or not (install or package.get("artifact")), "Manual sources only accept a URL and instructions")
+            require(
+                bool(package.get("artifact") or source or managed) and bool(install),
+                f"Missing artifact/source or install for {package['id']}",
+            )
+        require(
+            (source.get("type") == "winget") == (install.get("type") == "winget"),
+            "Use source.winget and install.winget together",
+        )
+        require(
+            install.get("type") != "vscode_extension" or not source,
+            "VS Code extensions use Marketplace without a source",
+        )
+        require(
+            not managed or not package.get("artifact"),
+            "Managed packages do not use artifacts",
+        )
+        require(
+            not manual or not (install or package.get("artifact")),
+            "Manual sources only accept a URL and instructions",
+        )
         if source:
             validate_source(source)
-            require(source.get("type") != "direct" or install.get("type") in ("exe", "msi", "interactive"), "Direct sources require a native installer")
+            require(
+                source.get("type") != "direct"
+                or install.get("type") in ("exe", "msi", "interactive"),
+                "Direct sources require a native installer",
+            )
         validate_detection(package.get("detect", {}))
         artifact = package.get("artifact")
         if artifact:
-            validate_artifact(artifact, public and package.get("enabled", True), signed=source.get("type") in ("website", "direct"))
+            validate_artifact(
+                artifact,
+                public and package.get("enabled", True),
+                signed=source.get("type") in ("website", "direct"),
+            )
         if install:
             validate_install(install)
-            require(source.get("type") != "website" or install["type"] != "zip", "Website artifacts must be signed EXE/MSI files")
+            require(
+                source.get("type") != "website" or install["type"] != "zip",
+                "Website artifacts must be signed EXE/MSI files",
+            )
             if source.get("type") == "direct":
-                require(install["type"] in ("exe", "msi", "interactive") and source["file_name"].lower().endswith(INSTALL_EXTENSIONS[install["type"]]), "Direct sources require a matching signed EXE/MSI installer")
+                require(
+                    install["type"] in ("exe", "msi", "interactive")
+                    and source["file_name"]
+                    .lower()
+                    .endswith(INSTALL_EXTENSIONS[install["type"]]),
+                    "Direct sources require a matching signed EXE/MSI installer",
+                )
             if artifact:
-                require(artifact["file_name"].lower().endswith(INSTALL_EXTENSIONS[install["type"]]), "Installer extension does not match install.type")
+                require(
+                    artifact["file_name"]
+                    .lower()
+                    .endswith(INSTALL_EXTENSIONS[install["type"]]),
+                    "Installer extension does not match install.type",
+                )
 
 
 def unique_index(items: list, kind: str) -> dict:
@@ -156,7 +241,10 @@ def unique_index(items: list, kind: str) -> dict:
     for item in items:
         require(isinstance(item, dict), f"Each {kind} must be an object")
         identifier = item.get("id", "")
-        require(isinstance(identifier, str) and bool(ID_PATTERN.fullmatch(identifier)), f"Invalid {kind} ID: {identifier}")
+        require(
+            isinstance(identifier, str) and bool(ID_PATTERN.fullmatch(identifier)),
+            f"Invalid {kind} ID: {identifier}",
+        )
         require(identifier not in result, f"Duplicate {kind}: {identifier}")
         require(bool(item.get("name", "").strip()), f"Missing name: {identifier}")
         result[identifier] = item
@@ -189,36 +277,78 @@ def validate_artifact(artifact: dict, public: bool, signed: bool = False) -> Non
     filename = artifact.get("file_name", "")
     require(len(safe_relative(filename).parts) == 1, "file_name must be a filename")
     size = artifact.get("size", 0)
-    require(isinstance(size, int) and not isinstance(size, bool) and (0 if signed else 1) <= size <= MAX_ARTIFACT_BYTES, "Invalid artifact size (zero requires a signed website source)")
-    require((signed and not artifact.get("sha256")) or bool(re.fullmatch(r"[a-f0-9]{64}", artifact.get("sha256", ""))), "Invalid SHA-256")
-    require(any(artifact.get(key) for key in ("local_path", "drive_file_id", "url")), "Missing artifact source")
-    require(not (artifact.get("drive_file_id") and artifact.get("url")), "Choose drive_file_id or url")
+    require(
+        isinstance(size, int)
+        and not isinstance(size, bool)
+        and (0 if signed else 1) <= size <= MAX_ARTIFACT_BYTES,
+        "Invalid artifact size (zero requires a signed website source)",
+    )
+    require(
+        (signed and not artifact.get("sha256"))
+        or bool(re.fullmatch(r"[a-f0-9]{64}", artifact.get("sha256", ""))),
+        "Invalid SHA-256",
+    )
+    require(
+        any(artifact.get(key) for key in ("local_path", "drive_file_id", "url")),
+        "Missing artifact source",
+    )
+    require(
+        not (artifact.get("drive_file_id") and artifact.get("url")),
+        "Choose drive_file_id or url",
+    )
     if artifact.get("local_path"):
         safe_relative(artifact["local_path"])
     if artifact.get("drive_file_id"):
-        require(bool(DRIVE_ID_PATTERN.fullmatch(artifact["drive_file_id"])), "Invalid Drive file ID")
+        require(
+            bool(DRIVE_ID_PATTERN.fullmatch(artifact["drive_file_id"])),
+            "Invalid Drive file ID",
+        )
     if artifact.get("url"):
         https_url(artifact["url"])
     if public:
-        require(bool(artifact.get("drive_file_id") or artifact.get("url")), "A public package needs a download link; run the link command first")
-        require(not artifact.get("local_path"), "Public catalogs must not expose local paths")
+        require(
+            bool(artifact.get("drive_file_id") or artifact.get("url")),
+            "A public package needs a download link; run the link command first",
+        )
+        require(
+            not artifact.get("local_path"),
+            "Public catalogs must not expose local paths",
+        )
 
 
 def validate_install(install: dict) -> None:
     kind = install.get("type")
-    require(kind in (*INSTALL_EXTENSIONS, "winget", "vscode_extension"), "Unsupported install.type")
+    require(
+        kind in (*INSTALL_EXTENSIONS, "winget", "vscode_extension"),
+        "Unsupported install.type",
+    )
     if kind in ("exe", "msi"):
         arguments = install.get("silent_args" if kind == "exe" else "arguments", [])
-        require(isinstance(arguments, list) and all(isinstance(arg, str) and "\0" not in arg for arg in arguments), "Installer arguments must be an array of strings without NUL")
-        require(kind != "exe" or bool(arguments), "EXE installers require --silent-arg (see the vendor documentation)")
+        require(
+            isinstance(arguments, list)
+            and all(isinstance(arg, str) and "\0" not in arg for arg in arguments),
+            "Installer arguments must be an array of strings without NUL",
+        )
+        require(
+            kind != "exe" or bool(arguments),
+            "EXE installers require --silent-arg (see the vendor documentation)",
+        )
     elif kind in ("zip", "portable"):
         destination = install.get("destination", {})
-        require(destination.get("root") in ROOTS, f"ZIP destination root must be one of {ROOTS}")
+        require(
+            destination.get("root") in ROOTS,
+            f"ZIP destination root must be one of {ROOTS}",
+        )
         safe_relative(destination.get("path", ""))
         strip = install.get("strip_components", 0)
-        require(isinstance(strip, int) and 0 <= strip <= 8, "strip_components must be 0–8")
+        require(
+            isinstance(strip, int) and 0 <= strip <= 8, "strip_components must be 0–8"
+        )
     elif kind == "vscode_extension":
-        require(bool(EXTENSION_ID_PATTERN.fullmatch(install.get("extension_id", ""))), "Invalid VS Code extension ID")
+        require(
+            bool(EXTENSION_ID_PATTERN.fullmatch(install.get("extension_id", ""))),
+            "Invalid VS Code extension ID",
+        )
 
 
 def validate_detection(detect: dict) -> None:
@@ -227,47 +357,103 @@ def validate_detection(detect: dict) -> None:
     require(not detect.keys() - keys, "Unknown detection field")
     for key in keys - {"name_pattern"}:
         items = detect.get(key, [])
-        require(isinstance(items, list) and len(items) <= 64 and all(isinstance(item, str) and item.strip() and "\0" not in item for item in items), f"Invalid detect.{key}")
+        require(
+            isinstance(items, list)
+            and len(items) <= 64
+            and all(
+                isinstance(item, str) and item.strip() and "\0" not in item
+                for item in items
+            ),
+            f"Invalid detect.{key}",
+        )
     for name in detect.get("names", []) + detect.get("appx_names", []):
         require(len(name) <= 256, "Detection name is too long")
     for identifier in detect.get("winget_ids", []) + detect.get("commands", []):
-        require(bool(TOOL_ID_PATTERN.fullmatch(identifier)), "Invalid detection ID/command")
+        require(
+            bool(TOOL_ID_PATTERN.fullmatch(identifier)), "Invalid detection ID/command"
+        )
     for path in detect.get("paths", []):
-        require(not path.startswith(("/", "\\")) and ".." not in re.split(r"[/\\]", path), "Detection requires a local path without traversal or UNC")
+        require(
+            not path.startswith(("/", "\\")) and ".." not in re.split(r"[/\\]", path),
+            "Detection requires a local path without traversal or UNC",
+        )
     pattern = detect.get("name_pattern")
     if pattern is not None:
-        require(isinstance(pattern, str) and len(pattern) <= 256 and pattern.startswith("^") and pattern.endswith("$"), "Detection patterns must be bounded by ^ and $")
+        require(
+            isinstance(pattern, str)
+            and len(pattern) <= 256
+            and pattern.startswith("^")
+            and pattern.endswith("$"),
+            "Detection patterns must be bounded by ^ and $",
+        )
         re.compile(pattern)
 
 
 def validate_source(source: dict) -> None:
     kind = source.get("type")
-    require(kind in ("github", "website", "winget", "manual", "direct"), "Unsupported source.type")
+    require(
+        kind in ("github", "website", "winget", "manual", "direct"),
+        "Unsupported source.type",
+    )
     if kind in ("manual", "direct"):
         https_url(source["url"])
         if kind == "manual":
-            require(bool(source.get("instructions", "").strip()), "Manual source needs instructions")
+            require(
+                bool(source.get("instructions", "").strip()),
+                "Manual source needs instructions",
+            )
         else:
             filename = source["file_name"]
-            require(len(safe_relative(filename).parts) == 1 and filename.lower().endswith((".exe", ".msi")), "Direct source requires an EXE/MSI filename")
+            require(
+                len(safe_relative(filename).parts) == 1
+                and filename.lower().endswith((".exe", ".msi")),
+                "Direct source requires an EXE/MSI filename",
+            )
         return
     if kind == "github":
-        require(bool(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", source.get("repository", ""))), "Invalid GitHub repository")
+        require(
+            bool(
+                re.fullmatch(
+                    r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", source.get("repository", "")
+                )
+            ),
+            "Invalid GitHub repository",
+        )
         re.compile(source["asset_pattern"])
     elif kind == "website":
         https_url(source["page_url"])
-        require(bool(source.get("link_selector")) and bool(source.get("version_selector")), "Website source needs CSS selectors")
-        require(bool(source.get("download_hosts")), "Website source needs allowed download hosts")
+        require(
+            bool(source.get("link_selector")) and bool(source.get("version_selector")),
+            "Website source needs CSS selectors",
+        )
+        require(
+            bool(source.get("download_hosts")),
+            "Website source needs allowed download hosts",
+        )
         for host in source["download_hosts"]:
-            require(https_url(f"https://{host}/").hostname == host, "Invalid download host")
+            require(
+                https_url(f"https://{host}/").hostname == host, "Invalid download host"
+            )
         if source.get("version_attribute") is not None:
-            require(bool(re.fullmatch(r"[A-Za-z0-9_\-]+", source["version_attribute"])), "Invalid HTML version attribute")
+            require(
+                bool(re.fullmatch(r"[A-Za-z0-9_\-]+", source["version_attribute"])),
+                "Invalid HTML version attribute",
+            )
         if source.get("version_pattern") is not None:
             pattern = source["version_pattern"]
-            require(len(pattern) <= 256 and re.compile(pattern).groups == 1, "Version pattern requires exactly one capture group")
+            require(
+                len(pattern) <= 256 and re.compile(pattern).groups == 1,
+                "Version pattern requires exactly one capture group",
+            )
     else:
-        require(bool(TOOL_ID_PATTERN.fullmatch(source.get("package_id", ""))), "Invalid WinGet ID")
-        require(source.get("repository", "winget") in ("winget", "msstore"), "Unsupported WinGet repository")
+        require(
+            bool(TOOL_ID_PATTERN.fullmatch(source.get("package_id", ""))),
+            "Invalid WinGet ID",
+        )
+        require(
+            source.get("repository", "winget") in ("winget", "msstore"),
+            "Unsupported WinGet repository",
+        )
 
 
 def file_metadata(path: Path) -> tuple[int, str]:
@@ -282,14 +468,22 @@ def file_metadata(path: Path) -> tuple[int, str]:
 
 def copy_verified(source: Path, destination: Path, expected: tuple[int, str]) -> None:
     if destination.exists():
-        require(file_metadata(destination) == expected, "The destination contains different bytes; it was not overwritten")
+        require(
+            file_metadata(destination) == expected,
+            "The destination contains different bytes; it was not overwritten",
+        )
         return
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(dir=destination.parent, suffix=".part", delete=False) as stream:
+    with tempfile.NamedTemporaryFile(
+        dir=destination.parent, suffix=".part", delete=False
+    ) as stream:
         temporary = Path(stream.name)
     try:
         shutil.copyfile(source, temporary)
-        require(file_metadata(temporary) == expected, "Installer changed while copying; try again")
+        require(
+            file_metadata(temporary) == expected,
+            "Installer changed while copying; try again",
+        )
         os.replace(temporary, destination)
     finally:
         temporary.unlink(missing_ok=True)
@@ -297,12 +491,23 @@ def copy_verified(source: Path, destination: Path, expected: tuple[int, str]) ->
 
 def initialize(args: argparse.Namespace) -> str:
     root = args.root.resolve()
-    require(not (root / "catalog.json").exists(), "catalog.json already exists; init never overwrites it")
+    require(
+        not (root / "catalog.json").exists(),
+        "catalog.json already exists; init never overwrites it",
+    )
     root.mkdir(parents=True, exist_ok=True)
     for name in ("installers", "addons"):
         (root / name).mkdir(exist_ok=True)
     categories = builtin_catalog()["categories"]
-    write_catalog(root / "catalog.json", {"schema_version": 1, "title": args.title, "categories": categories, "packages": []})
+    write_catalog(
+        root / "catalog.json",
+        {
+            "schema_version": 1,
+            "title": args.title,
+            "categories": categories,
+            "packages": [],
+        },
+    )
     return f"Created {root / 'catalog.json'}"
 
 
@@ -312,12 +517,20 @@ def add_package(args: argparse.Namespace) -> str:
     catalog = read_catalog(path)
     source = args.file.resolve(strict=True)
     require(source.is_file(), "Installer must be a file")
-    require(bool(ID_PATTERN.fullmatch(args.id)), "Use a-z, 0-9, - and _ for package IDs")
+    require(
+        bool(ID_PATTERN.fullmatch(args.id)), "Use a-z, 0-9, - and _ for package IDs"
+    )
     existing = next((p for p in catalog["packages"] if p["id"] == args.id), None)
-    require(existing is None or args.replace, "Package ID already exists. Use --replace to update its entry")
+    require(
+        existing is None or args.replace,
+        "Package ID already exists. Use --replace to update its entry",
+    )
     kind = args.type or source.suffix.lower().lstrip(".")
     require(kind in INSTALL_EXTENSIONS, "Supported files: .exe, .msi, .zip")
-    require(source.suffix.lower() == INSTALL_EXTENSIONS[kind], "File extension must match installer type")
+    require(
+        source.suffix.lower() == INSTALL_EXTENSIONS[kind],
+        "File extension must match installer type",
+    )
     install = make_install_spec(args, kind)
     validate_install(install)
     expected = file_metadata(source)
@@ -325,11 +538,22 @@ def add_package(args: argparse.Namespace) -> str:
     relative = f"{'addons' if args.kind == 'addon' else 'installers'}/{args.id}/{expected[1][:12]}/{source.name}"
     destination = within(root, relative)
     package = {
-        "id": args.id, "name": args.name, "version": args.version,
-        "publisher": args.publisher, "description": args.description,
-        "category": args.category, "kind": args.kind, "enabled": True,
-        "tags": args.tag, "depends_on": args.depends_on,
-        "artifact": {"file_name": source.name, "size": expected[0], "sha256": expected[1], "local_path": relative},
+        "id": args.id,
+        "name": args.name,
+        "version": args.version,
+        "publisher": args.publisher,
+        "description": args.description,
+        "category": args.category,
+        "kind": args.kind,
+        "enabled": True,
+        "tags": args.tag,
+        "depends_on": args.depends_on,
+        "artifact": {
+            "file_name": source.name,
+            "size": expected[0],
+            "sha256": expected[1],
+            "local_path": relative,
+        },
         "install": install,
     }
     if args.homepage:
@@ -337,12 +561,16 @@ def add_package(args: argparse.Namespace) -> str:
     if args.drive_url:
         package["artifact"]["drive_file_id"] = drive_id(args.drive_url)
     if not any(category["id"] == args.category for category in catalog["categories"]):
-        require(bool(args.group), "Category not found. Supply --group with its display name")
+        require(
+            bool(args.group), "Category not found. Supply --group with its display name"
+        )
         category = {"id": args.category, "name": args.group}
         if args.parent:
             category["parent"] = args.parent
         catalog["categories"].append(category)
-    catalog["packages"] = [p for p in catalog["packages"] if p["id"] != args.id] + [package]
+    catalog["packages"] = [p for p in catalog["packages"] if p["id"] != args.id] + [
+        package
+    ]
     validate_catalog(catalog)
     copy_verified(source, destination, expected)
     write_catalog(path, catalog)
@@ -351,21 +579,31 @@ def add_package(args: argparse.Namespace) -> str:
 
 def make_install_spec(args: argparse.Namespace, kind: str) -> dict:
     if kind in ("zip", "portable"):
-        spec = {"type": kind, "destination": {"root": args.destination_root, "path": args.destination}}
+        spec = {
+            "type": kind,
+            "destination": {"root": args.destination_root, "path": args.destination},
+        }
         if kind == "zip":
             spec["strip_components"] = args.strip_components
         return spec
     admin = args.admin if args.admin is not None else kind == "msi"
     if kind == "interactive":
         return {"type": kind, "requires_admin": admin}
-    return {"type": kind, "requires_admin": admin, "silent_args" if kind == "exe" else "arguments": args.silent_arg}
+    return {
+        "type": kind,
+        "requires_admin": admin,
+        "silent_args" if kind == "exe" else "arguments": args.silent_arg,
+    }
 
 
 def link_package(args: argparse.Namespace) -> str:
     path = args.root.resolve() / "catalog.json"
     catalog = read_catalog(path)
     package = next((p for p in catalog["packages"] if p["id"] == args.id), None)
-    require(package is not None and bool(package.get("artifact")), "Package with an installer was not found")
+    require(
+        package is not None and bool(package.get("artifact")),
+        "Package with an installer was not found",
+    )
     package["artifact"]["drive_file_id"] = drive_id(args.drive_url)
     package["artifact"].pop("url", None)
     write_catalog(path, catalog)
@@ -394,5 +632,8 @@ def validate_command(args: argparse.Namespace) -> str:
             artifact = package.get("artifact")
             if package.get("enabled", True) and artifact and artifact.get("local_path"):
                 file = within(path.parent, artifact["local_path"])
-                require(file_metadata(file) == (artifact["size"], artifact["sha256"]), f"File differs from catalog: {package['id']}")
+                require(
+                    file_metadata(file) == (artifact["size"], artifact["sha256"]),
+                    f"File differs from catalog: {package['id']}",
+                )
     return f"OK: {len(catalog['packages'])} packages, {len(catalog['categories'])} categories"

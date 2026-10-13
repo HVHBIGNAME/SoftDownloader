@@ -1,6 +1,6 @@
 [package]
 name = "softdownloader"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2024"
 rust-version = "1.88"
 description = "A native Windows software manager with portable program lists"
@@ -14,6 +14,11 @@ catalog-tools = []
 [[bin]]
 name = "catalog-check"
 path = "src/bin/catalog-check.rs"
+required-features = ["catalog-tools"]
+
+[[bin]]
+name = "weather-check"
+path = "src/bin/weather-check.rs"
 required-features = ["catalog-tools"]
 
 [build-dependencies]
@@ -34,6 +39,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
 tempfile = "3.20"
+time = { version = "0.3", features = ["parsing"] }
 tokio = { version = "1.45", features = ["rt-multi-thread", "fs", "io-util", "time", "macros", "sync"] }
 tokio-util = { version = "0.7", features = ["io", "rt"] }
 url = "2.5"

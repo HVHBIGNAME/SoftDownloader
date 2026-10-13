@@ -31,6 +31,21 @@ pub const PRESETS: &[Preset] = &[
         ids: &["naps2", "pdf24", "sumatra-pdf"],
     },
     Preset {
+        name: "Учёба и исследования",
+        description: "Статьи, PDF, диаграммы и концентрация на задачах.",
+        ids: &["zotero", "okular", "drawio", "pomotroid"],
+    },
+    Preset {
+        name: "Диагностика Windows",
+        description: "Процессы, сетевые соединения, автозагрузка и состояние дисков.",
+        ids: &[
+            "process-monitor",
+            "tcpview",
+            "autoruns",
+            "crystal-disk-info",
+        ],
+    },
+    Preset {
         name: "Разработка",
         description: "VS Code, Git, терминал, Python и инструменты редактора.",
         ids: &[

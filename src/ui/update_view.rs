@@ -205,6 +205,7 @@ impl SoftDownloaderApp {
                     self.updater.idle_since = None;
                 }
                 ui.hyperlink_to("Релизы на GitHub", updater::RELEASES_URL);
+                if ui.button("Что нового").clicked() { self.experience.news(); }
             });
         });
     }

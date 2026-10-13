@@ -1,11 +1,13 @@
 mod actions;
 mod app;
 mod appearance_view;
+mod atmosphere;
 mod background;
 mod background_view;
 mod catalog_controls;
 mod catalog_view;
 mod confirmations;
+mod experience;
 mod icons;
 #[cfg(test)]
 mod installation_tests;
@@ -20,5 +22,6 @@ mod sounds;
 pub mod theme;
 mod update_view;
 mod video_player;
+mod weather_view;
 
 pub use app::SoftDownloaderApp;

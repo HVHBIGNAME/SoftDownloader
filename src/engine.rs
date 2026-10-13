@@ -87,6 +87,11 @@ pub enum WorkerEvent {
     BackgroundProgress(Progress),
     AppUpdate(Result<Option<crate::updater::ReadyUpdate>, String>),
     AppUpdateProgress(Progress),
+    Weather {
+        slot: usize,
+        ticket: u64,
+        result: Result<crate::weather::Response, String>,
+    },
     QueueFinished,
 }
 
@@ -115,6 +120,7 @@ pub struct Engine {
     background_cancel: CancellationToken,
     update_cancel: CancellationToken,
     paused: Arc<AtomicBool>,
+    weather_cancel: [CancellationToken; 3],
 }
 
 impl Engine {
@@ -137,6 +143,7 @@ impl Engine {
             background_cancel: CancellationToken::new(),
             update_cancel: CancellationToken::new(),
             paused: Arc::new(AtomicBool::new(false)),
+            weather_cancel: std::array::from_fn(|_| CancellationToken::new()),
         };
         Ok((engine, receiver))
     }
@@ -268,6 +275,44 @@ impl Engine {
 
     pub fn cancel_background(&self) {
         self.background_cancel.cancel();
+    }
+
+    pub fn weather(&mut self, request: crate::weather::Request, ticket: u64, store: Store) {
+        use crate::weather::{Request, Response};
+        let slot = request.slot();
+        self.weather_cancel[slot].cancel();
+        self.weather_cancel[slot] = self.shutdown.child_token();
+        let cancel = self.weather_cancel[slot].clone();
+        let client = self.client.clone();
+        let sender = self.sender.clone();
+        self.runtime.spawn(async move {
+            let work = async {
+                Ok(match request {
+                    Request::Search(query) => Response::Cities(crate::weather::search(&client, &query).await?),
+                    Request::Locate => Response::Cities(crate::weather::locate(&client).await?),
+                    Request::Forecast(city) => Response::Forecast(crate::weather::forecast(&client, city).await?),
+                    Request::Film(preset) => {
+                        let path = crate::backgrounds::download(&client, &preset, &store, &cancel, |_| {}).await?;
+                        Response::Film { id: preset.id, path: validate_background(path).await? }
+                    }
+                })
+            };
+            let result: Result<_> = tokio::select! {
+                _ = cancel.cancelled() => return,
+                result = tokio::time::timeout(std::time::Duration::from_secs(120), work) => result.map_err(|_| anyhow::anyhow!("Превышено время запроса погоды")).and_then(|r| r),
+            };
+            let _ = sender.send(WorkerEvent::Weather { slot, ticket, result: result.map_err(|e| format!("{e:#}")) });
+        });
+    }
+
+    pub fn cancel_weather(&self) {
+        for cancel in &self.weather_cancel {
+            cancel.cancel();
+        }
+    }
+
+    pub fn cancel_weather_film(&self) {
+        self.weather_cancel[2].cancel();
     }
 
     pub fn start(

@@ -21,3 +21,4 @@ pub mod ui;
 pub mod uninstall;
 pub mod updater;
 pub mod video;
+pub mod weather;

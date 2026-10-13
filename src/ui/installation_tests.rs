@@ -8,7 +8,7 @@ use super::app::SoftDownloaderApp;
 use crate::catalog::{Catalog, CatalogDocument};
 use crate::storage::{Settings, Store};
 
-fn fixture(review: bool) -> (tempfile::TempDir, egui::Context, SoftDownloaderApp) {
+pub(super) fn fixture(review: bool) -> (tempfile::TempDir, egui::Context, SoftDownloaderApp) {
     let appdata = directories::BaseDirs::new()
         .unwrap()
         .data_local_dir()
@@ -35,6 +35,8 @@ fn fixture(review: bool) -> (tempfile::TempDir, egui::Context, SoftDownloaderApp
         ..Default::default()
     };
     settings.updates.enabled = false;
+    settings.experience.guide_seen = true;
+    settings.experience.last_seen_version = env!("CARGO_PKG_VERSION").into();
     settings.sound.volume = 0;
     settings.installation.confirm_before_install = review;
     store.save_settings(&settings).unwrap();
@@ -168,4 +170,81 @@ fn settings_and_named_sets_are_operable_and_persist_at_minimum_window_size() {
         BTreeSet::from(["ui-fixture".into()])
     );
     assert_eq!(saved.restore_selection, app.selected);
+}
+
+#[test]
+fn first_run_guide_and_release_table_are_acknowledged_once_and_help_reopens() {
+    let (_root, ctx, mut app) = fixture(false);
+    app.settings.experience = Default::default();
+    app.experience = super::experience::ExperienceUi::new(&app.settings.experience, false);
+    for _ in 0..4 {
+        click(&mut app, &ctx, "Далее");
+    }
+    click(&mut app, &ctx, "Начать работу");
+    let saved = app.store.load_settings().unwrap();
+    assert!(saved.experience.guide_seen);
+    assert!(!super::experience::ExperienceUi::new(&saved.experience, true).open());
+    app.settings.experience.last_seen_version = "0.6.1".into();
+    app.experience = super::experience::ExperienceUi::new(&app.settings.experience, true);
+    click(&mut app, &ctx, "Понятно");
+    assert_eq!(
+        app.store
+            .load_settings()
+            .unwrap()
+            .experience
+            .last_seen_version,
+        env!("CARGO_PKG_VERSION")
+    );
+    click(&mut app, &ctx, "Помощь");
+    assert!(app.experience.open());
+    click(&mut app, &ctx, "Пропустить");
+    assert!(!app.experience.open());
+}
+
+#[test]
+fn weather_demo_and_city_dropdown_work_without_starting_installers() {
+    let (_root, ctx, mut app) = fixture(false);
+    app.settings.weather.cinematic = false;
+    click(&mut app, &ctx, "Погода");
+    for _ in 0..2 {
+        frame(
+            &mut app,
+            &ctx,
+            vec![
+                Event::PointerMoved(Pos2::new(850.0, 540.0)),
+                Event::MouseWheel {
+                    unit: egui::MouseWheelUnit::Point,
+                    delta: Vec2::new(0.0, -400.0),
+                    modifiers: egui::Modifiers::NONE,
+                },
+            ],
+        );
+    }
+    click(&mut app, &ctx, "Дождь");
+    assert_eq!(
+        app.weather.preview.unwrap().kind,
+        crate::weather::WeatherKind::Rain
+    );
+    assert!(!app.settings.weather.enabled && app.settings.weather.city.is_none());
+    assert!(!app.queue_active);
+    drop(app);
+    let (_root, ctx, mut app) = fixture(false);
+    click(&mut app, &ctx, "Погода");
+    let city = crate::weather::City {
+        name: "Test city".into(),
+        country: "Country".into(),
+        admin1: "Region".into(),
+        latitude: 10.0,
+        longitude: 20.0,
+    };
+    app.receive_weather(
+        0,
+        0,
+        Ok(crate::weather::Response::Cities(vec![city.clone()])),
+    );
+    click(&mut app, &ctx, &city.label());
+    let saved = app.store.load_settings().unwrap();
+    assert_eq!(saved.weather.city, Some(city));
+    assert!(saved.weather.enabled);
+    assert!(!app.queue_active);
 }

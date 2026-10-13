@@ -24,6 +24,7 @@ pub(super) enum Page {
     Installed,
     Queue,
     Sets,
+    Weather,
     Settings,
 }
 
@@ -64,6 +65,8 @@ pub struct SoftDownloaderApp {
     pub(super) selected_removals: BTreeSet<String>,
     pub(super) settings: Settings,
     pub(super) updater: super::update_view::UpdateUi,
+    pub(super) weather: super::weather_view::WeatherUi,
+    pub(super) experience: super::experience::ExperienceUi,
     appearance: theme::ThemeTransition,
     pub(super) sounds: SoundPlayer,
     pub(super) settings_section: super::settings_view::SettingsSection,
@@ -120,8 +123,13 @@ impl SoftDownloaderApp {
     ) -> Result<Self> {
         theme::initialize(ctx);
         let settings = store.load_settings()?;
+        let experience = super::experience::ExperienceUi::new(
+            &settings.experience,
+            store.root.join("settings.json").is_file(),
+        );
         let selected = settings.restore_selection.clone();
         let updater = super::update_view::UpdateUi::new(&store);
+        let weather = super::weather_view::WeatherUi::new(&store);
         let appearance = theme::ThemeTransition::new(
             ctx,
             settings.appearance,
@@ -156,6 +164,8 @@ impl SoftDownloaderApp {
             selected_removals: BTreeSet::new(),
             settings,
             updater,
+            weather,
+            experience,
             appearance,
             sounds: SoundPlayer::new(ctx.clone())?,
             settings_section: super::settings_view::SettingsSection::Appearance,
@@ -306,6 +316,11 @@ impl SoftDownloaderApp {
                     self.background_progress = Some(progress)
                 }
                 WorkerEvent::AppUpdate(result) => self.receive_app_update(result),
+                WorkerEvent::Weather {
+                    slot,
+                    ticket,
+                    result,
+                } => self.receive_weather(slot, ticket, result),
                 WorkerEvent::AppUpdateProgress(progress) => self.updater.progress = Some(progress),
                 WorkerEvent::QueueFinished => {
                     self.queue_active = false;
@@ -590,6 +605,9 @@ impl SoftDownloaderApp {
                         self.page = Page::Settings;
                         self.details = None;
                     }
+                    if theme::nav(ui, "Помощь", Icon::Layers, false, None) {
+                        self.experience.guide();
+                    }
                     ui.add_space(10.0);
                     let warning =
                         !self.catalog_warnings.is_empty() || !self.document.diagnostics.is_empty();
@@ -670,6 +688,10 @@ impl SoftDownloaderApp {
             self.page = Page::Sets;
             self.details = None;
         }
+        if theme::nav(ui, "Погода", Icon::Layers, self.page == Page::Weather, None) {
+            self.page = Page::Weather;
+            self.details = None;
+        }
     }
 
     pub(super) fn show_catalog(&mut self, kind: Option<PackageKind>) {
@@ -709,6 +731,7 @@ impl SoftDownloaderApp {
 
     pub(super) fn has_modal(&self) -> bool {
         self.confirm_plan.is_some()
+            || self.experience.open()
             || self.confirm_removal.is_some()
             || self.import_preview.is_some()
             || self.close_dialog
@@ -746,18 +769,20 @@ impl SoftDownloaderApp {
             self.tick_app_update(ctx);
             return;
         }
+        self.tick_weather(ctx);
+        let (background_settings, weather_scene) = self.weather_background();
         self.background
-            .update(ctx, &self.settings.background, self.settings.reduced_motion);
+            .update(ctx, &background_settings, self.settings.reduced_motion);
         self.appearance.update(
             ctx,
             self.settings.appearance,
             self.settings.appearance.current_season(),
             self.settings.reduced_motion,
-            self.background
-                .video
-                .texture
-                .as_ref()
-                .map(|_| self.settings.background.dimming),
+            (self.background.video.texture.is_some()
+                || weather_scene.is_some()
+                || (self.settings.background.effects
+                    && self.settings.appearance.current_season().is_some()))
+            .then_some(background_settings.dimming),
         );
         ctx.request_repaint_after(Duration::from_secs(60));
         self.icons.collect(ctx);
@@ -773,8 +798,9 @@ impl SoftDownloaderApp {
         self.handle_shortcuts(ctx);
         self.background.paint(
             ctx,
-            &self.settings.background,
+            &background_settings,
             self.settings.appearance.current_season(),
+            weather_scene,
         );
         self.sidebar(ctx);
         self.update_banner(ctx);
@@ -796,6 +822,7 @@ impl SoftDownloaderApp {
                     Page::Installed => self.installed_page(ui),
                     Page::Settings => self.settings_page(ui),
                     Page::Sets => self.sets_page(ui),
+                    Page::Weather => self.weather_page(ui),
                 }
             });
         self.toast(ctx);
@@ -806,6 +833,7 @@ impl SoftDownloaderApp {
         self.import_dialog(ctx);
         self.handle_close(ctx);
         self.tick_app_update(ctx);
+        self.experience_dialogs(ctx);
         self.sounds
             .update(ctx, self.settings.sound, self.error.as_deref());
     }

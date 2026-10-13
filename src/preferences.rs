@@ -1,5 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(default)]
+pub struct ExperienceSettings {
+    pub guide_seen: bool,
+    pub last_seen_version: String,
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(default)]
 pub struct BackgroundSettings {
@@ -128,6 +135,7 @@ impl SeasonMode {
 #[serde(default)]
 pub struct SoundSettings {
     pub enabled: bool,
+    pub clicks: bool,
     pub style: SoundStyle,
     pub volume: u8,
 }
@@ -136,8 +144,9 @@ impl Default for SoundSettings {
     fn default() -> Self {
         Self {
             enabled: true,
-            style: SoundStyle::Glass,
-            volume: 18,
+            clicks: true,
+            style: SoundStyle::Aurora,
+            volume: 28,
         }
     }
 }
@@ -145,28 +154,40 @@ impl Default for SoundSettings {
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SoundStyle {
-    #[default]
     Glass,
     Wood,
     Digital,
+    #[default]
+    Aurora,
+    Cinema,
 }
 
 impl SoundStyle {
-    pub const ALL: [Self; 3] = [Self::Glass, Self::Wood, Self::Digital];
+    pub const ALL: [Self; 5] = [
+        Self::Aurora,
+        Self::Cinema,
+        Self::Glass,
+        Self::Wood,
+        Self::Digital,
+    ];
 
     pub fn label(self) -> &'static str {
         match self {
-            Self::Glass => "Мягкие",
-            Self::Wood => "Деревянные",
-            Self::Digital => "Приглушённые",
+            Self::Glass => "Кристалл",
+            Self::Wood => "Тактильные",
+            Self::Digital => "Орбита",
+            Self::Aurora => "Аврора",
+            Self::Cinema => "Кино",
         }
     }
 
     pub fn description(self) -> &'static str {
         match self {
-            Self::Glass => "Тихие округлые касания без звона",
-            Self::Wood => "Короткие тёплые щелчки",
-            Self::Digital => "Сухой мягкий отклик без резких высоких частот",
+            Self::Glass => "Светлые стеклянные тона с коротким пространственным хвостом",
+            Self::Wood => "Тёплый низкий щелчок и мягкие сигналы результата",
+            Self::Digital => "Чистый электронный отклик без резкого писка",
+            Self::Aurora => "Воздушное стерео и восходящий аккорд завершения",
+            Self::Cinema => "Глубокий мягкий отклик с объёмным послезвучием",
         }
     }
 }

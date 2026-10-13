@@ -6,17 +6,15 @@ The walkthrough stops at the installation confirmation and never runs installers
 
 import argparse
 import ctypes as ct
-from ctypes import wintypes as wt
 import logging
-from pathlib import Path
 import subprocess
 import threading
 import time
+from ctypes import wintypes as wt
+from pathlib import Path
 
 from PIL import Image
-
 from ui_movie import Movie
-
 
 USER = ct.WinDLL("user32", use_last_error=True)
 CALLBACK = ct.WINFUNCTYPE(wt.BOOL, wt.HWND, wt.LPARAM)
@@ -26,7 +24,15 @@ USER.GetWindowThreadProcessId.argtypes = [wt.HWND, ct.POINTER(wt.DWORD)]
 USER.GetWindowTextW.argtypes = [wt.HWND, wt.LPWSTR, ct.c_int]
 USER.GetClassNameW.argtypes = [wt.HWND, wt.LPWSTR, ct.c_int]
 USER.GetClientRect.argtypes = [wt.HWND, ct.POINTER(wt.RECT)]
-USER.SetWindowPos.argtypes = [wt.HWND, wt.HWND, ct.c_int, ct.c_int, ct.c_int, ct.c_int, wt.UINT]
+USER.SetWindowPos.argtypes = [
+    wt.HWND,
+    wt.HWND,
+    ct.c_int,
+    ct.c_int,
+    ct.c_int,
+    ct.c_int,
+    wt.UINT,
+]
 USER.GetWindowLongPtrW.argtypes = [wt.HWND, ct.c_int]
 USER.GetWindowLongPtrW.restype = ct.c_ssize_t
 USER.SetForegroundWindow.argtypes = [wt.HWND]
@@ -64,25 +70,51 @@ GDI.DeleteDC.argtypes = [wt.HDC]
 
 class BitmapInfo(ct.Structure):
     _fields_ = [
-        ("size", wt.DWORD), ("width", wt.LONG), ("height", wt.LONG),
-        ("planes", wt.WORD), ("bits", wt.WORD), ("compression", wt.DWORD),
-        ("image_size", wt.DWORD), ("xppm", wt.LONG), ("yppm", wt.LONG),
-        ("used", wt.DWORD), ("important", wt.DWORD), ("palette", wt.DWORD),
+        ("size", wt.DWORD),
+        ("width", wt.LONG),
+        ("height", wt.LONG),
+        ("planes", wt.WORD),
+        ("bits", wt.WORD),
+        ("compression", wt.DWORD),
+        ("image_size", wt.DWORD),
+        ("xppm", wt.LONG),
+        ("yppm", wt.LONG),
+        ("used", wt.DWORD),
+        ("important", wt.DWORD),
+        ("palette", wt.DWORD),
     ]
 
 
-GDI.CreateDIBSection.argtypes = [wt.HDC, ct.POINTER(BitmapInfo), wt.UINT, ct.POINTER(ct.c_void_p), wt.HANDLE, wt.DWORD]
+GDI.CreateDIBSection.argtypes = [
+    wt.HDC,
+    ct.POINTER(BitmapInfo),
+    wt.UINT,
+    ct.POINTER(ct.c_void_p),
+    wt.HANDLE,
+    wt.DWORD,
+]
 GDI.CreateDIBSection.restype = wt.HANDLE
 
 
 class MouseInput(ct.Structure):
-    _fields_ = [("dx", wt.LONG), ("dy", wt.LONG), ("data", wt.DWORD),
-                ("flags", wt.DWORD), ("time", wt.DWORD), ("extra", ct.c_size_t)]
+    _fields_ = [
+        ("dx", wt.LONG),
+        ("dy", wt.LONG),
+        ("data", wt.DWORD),
+        ("flags", wt.DWORD),
+        ("time", wt.DWORD),
+        ("extra", ct.c_size_t),
+    ]
 
 
 class KeyboardInput(ct.Structure):
-    _fields_ = [("virtual", wt.WORD), ("scan", wt.WORD), ("flags", wt.DWORD),
-                ("time", wt.DWORD), ("extra", ct.c_size_t)]
+    _fields_ = [
+        ("virtual", wt.WORD),
+        ("scan", wt.WORD),
+        ("flags", wt.DWORD),
+        ("time", wt.DWORD),
+        ("extra", ct.c_size_t),
+    ]
 
 
 class InputData(ct.Union):
@@ -98,7 +130,11 @@ USER.SendInput.restype = wt.UINT
 
 
 def key_button(code: int, flags: int = 0, unicode: bool = False) -> None:
-    keyboard = KeyboardInput(virtual=0 if unicode else code, scan=code if unicode else 0, flags=flags | (4 if unicode else 0))
+    keyboard = KeyboardInput(
+        virtual=0 if unicode else code,
+        scan=code if unicode else 0,
+        flags=flags | (4 if unicode else 0),
+    )
     event = Input(type=1, data=InputData(keyboard=keyboard))
     if USER.SendInput(1, ct.byref(event), ct.sizeof(event)) != 1:
         raise ct.WinError(ct.get_last_error())
@@ -132,7 +168,11 @@ def render_window(window: int) -> Image.Image:
         USER.ShowWindow(window, 9)
         USER.SetWindowPos(window, None, 50, 40, 1296, 879, 0x54)
         time.sleep(0.3)
-        if not USER.GetClientRect(window, ct.byref(rect)) or rect.right <= 0 or rect.bottom <= 0:
+        if (
+            not USER.GetClientRect(window, ct.byref(rect))
+            or rect.right <= 0
+            or rect.bottom <= 0
+        ):
             raise RuntimeError("Window has no drawable client area")
     screen = USER.GetDC(window)
     memory = GDI.CreateCompatibleDC(screen)
@@ -143,7 +183,9 @@ def render_window(window: int) -> Image.Image:
         error = ct.get_last_error()
         GDI.DeleteDC(memory)
         USER.ReleaseDC(window, screen)
-        raise RuntimeError(f"Could not allocate {rect.right}x{rect.bottom} capture bitmap: Windows error {error}")
+        raise RuntimeError(
+            f"Could not allocate {rect.right}x{rect.bottom} capture bitmap: Windows error {error}"
+        )
     previous = GDI.SelectObject(memory, bitmap)
     try:
         if not USER.PrintWindow(window, memory, 3):
@@ -160,7 +202,9 @@ def render_window(window: int) -> Image.Image:
 
 def text(window: int, class_name: bool = False) -> str:
     value = ct.create_unicode_buffer(1024)
-    (USER.GetClassNameW if class_name else USER.GetWindowTextW)(window, value, len(value))
+    (USER.GetClassNameW if class_name else USER.GetWindowTextW)(
+        window, value, len(value)
+    )
     return value.value
 
 
@@ -190,7 +234,10 @@ class Session:
         self.output = output
         self.profile = profile
         self.render_lock = threading.RLock()
-        self.process = subprocess.Popen([str(exe.resolve()), "--data-dir", str(profile.resolve())], cwd=exe.resolve().parent)
+        self.process = subprocess.Popen(
+            [str(exe.resolve()), "--data-dir", str(profile.resolve())],
+            cwd=exe.resolve().parent,
+        )
         try:
             self.window = self.wait_window("SoftDownloader")
             self.assert_normal_window()
@@ -209,13 +256,17 @@ class Session:
         if USER.GetWindowLongPtrW(self.window, -20) & 0x00000008:
             raise RuntimeError("Application window unexpectedly has WS_EX_TOPMOST")
 
-    def wait_window(self, title: str = "", class_name: str = "", timeout: float = 20) -> int:
+    def wait_window(
+        self, title: str = "", class_name: str = "", timeout: float = 20
+    ) -> int:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             if self.process.poll() is not None:
                 raise RuntimeError(f"Application exited: {self.process.returncode}")
             for window in windows(self.process.pid):
-                if (not title or text(window) == title) and (not class_name or text(window, True) == class_name):
+                if (not title or text(window) == title) and (
+                    not class_name or text(window, True) == class_name
+                ):
                     return window
             time.sleep(0.1)
         raise TimeoutError(f"Window not found: {title or class_name}")
@@ -246,16 +297,25 @@ class Session:
                 time.sleep(0.5)
             if USER.WindowFromPoint(screen) != self.window:
                 hit = USER.WindowFromPoint(screen)
-                raise RuntimeError(f"Target application is covered by {text(hit, True)}; refusing to click another window")
+                raise RuntimeError(
+                    f"Target application is covered by {text(hit, True)}; refusing to click another window"
+                )
             position = (x & 0xFFFF) | ((y & 0xFFFF) << 16)
-            for message, buttons in [(0x0200, 0), (0x0201, 1), (0x0200, 1), (0x0202, 0)]:
+            for message, buttons in [
+                (0x0200, 0),
+                (0x0201, 1),
+                (0x0200, 1),
+                (0x0202, 0),
+            ]:
                 USER.SendMessageW(self.window, message, buttons, position)
         time.sleep(0.45)
 
     def key(self, code: int, control: bool = False) -> None:
         with self.render_lock:
             if USER.GetForegroundWindow() != self.window:
-                raise RuntimeError("Target application is not focused; refusing keyboard input")
+                raise RuntimeError(
+                    "Target application is not focused; refusing keyboard input"
+                )
             try:
                 if control:
                     key_button(0x11)
@@ -276,7 +336,7 @@ class Session:
             for index in range(0, len(encoded), 2):
                 if USER.GetForegroundWindow() != self.window:
                     raise RuntimeError("Target application lost keyboard focus")
-                unit = int.from_bytes(encoded[index:index + 2], "little")
+                unit = int.from_bytes(encoded[index : index + 2], "little")
                 key_button(unit, unicode=True)
                 key_button(unit, 2, unicode=True)
                 time.sleep(0.02)
@@ -285,8 +345,11 @@ class Session:
     def choose_file(self, path: Path) -> None:
         dialog = self.wait_window(class_name="#32770")
         USER.SetWindowPos(dialog, None, 185, 155, 980, 640, 0x14)
-        edits = [child for child in windows(self.process.pid, dialog)
-                 if text(child, True) == "Edit" and USER.IsWindowEnabled(child)]
+        edits = [
+            child
+            for child in windows(self.process.pid, dialog)
+            if text(child, True) == "Edit" and USER.IsWindowEnabled(child)
+        ]
         if not edits:
             raise RuntimeError("Native dialog filename field was not found")
         value = ct.c_wchar_p(str(path.resolve()))
@@ -308,14 +371,20 @@ class Session:
         from ui_scenarios import preferences
 
         appearance = preferences(self).get("appearance")
-        color = appearance.get("accent", [134, 185, 232]) if appearance is not None else [134, 185, 232]
+        color = (
+            appearance.get("accent", [134, 185, 232])
+            if appearance is not None
+            else [134, 185, 232]
+        )
         image = self.snapshot()
         run = None
         for y in range(420, image.height - 8, 2):
             start = None
             for x in range(250, image.width - 10):
                 pixel = image.getpixel((x, y))
-                accent = all(abs(actual - wanted) <= 3 for actual, wanted in zip(pixel, color))
+                accent = all(
+                    abs(actual - wanted) <= 3 for actual, wanted in zip(pixel, color)
+                )
                 if accent and start is None:
                     start = x
                 if not accent and start is not None:
@@ -339,6 +408,7 @@ class Session:
 
     def transfer_scenario(self, example: Path, review: bool = False) -> None:
         from ui_scenarios import transfer
+
         transfer(self, example, review)
 
 
@@ -349,13 +419,33 @@ def main() -> None:
     parser.add_argument("--profile", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--wait", type=int, default=55)
-    parser.add_argument("--transfer", type=Path, help="Import this example after testing export")
-    parser.add_argument("--video", type=Path, help="Record the client window to MP4 (requires FFmpeg)")
-    parser.add_argument("--features", action="store_true", help="Exercise favorites, layouts, custom sets, undo and removal preview")
-    parser.add_argument("--appearance", action="store_true", help="Verify themes, sound settings and real video download/playback/pause")
-    parser.add_argument("--check-layout", action="store_true", help="Also capture the minimum-size window after the walkthrough")
+    parser.add_argument(
+        "--transfer", type=Path, help="Import this example after testing export"
+    )
+    parser.add_argument(
+        "--video", type=Path, help="Record the client window to MP4 (requires FFmpeg)"
+    )
+    parser.add_argument(
+        "--features",
+        action="store_true",
+        help="Exercise favorites, layouts, custom sets, undo and removal preview",
+    )
+    parser.add_argument(
+        "--appearance",
+        action="store_true",
+        help="Verify themes, sound settings and real video download/playback/pause",
+    )
+    parser.add_argument(
+        "--check-layout",
+        action="store_true",
+        help="Also capture the minimum-size window after the walkthrough",
+    )
     args = parser.parse_args()
-    if not args.exe.is_file() or not args.profile.parent.is_dir() or not args.output.is_dir():
+    if (
+        not args.exe.is_file()
+        or not args.profile.parent.is_dir()
+        or not args.output.is_dir()
+    ):
         parser.error("Executable and output/profile parent folders must exist")
     session = Session(args.exe, args.profile, args.output)
     movie = None
@@ -380,6 +470,7 @@ def main() -> None:
             removal_preview(session)
         if args.appearance:
             from ui_appearance_scenarios import appearance
+
             appearance(session)
         session.click(100, 252)
         time.sleep(1)

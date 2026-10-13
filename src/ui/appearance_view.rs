@@ -38,6 +38,8 @@ impl SoftDownloaderApp {
             ui.checkbox(&mut self.settings.background.effects, "Праздничные эффекты на фоне");
             ui.checkbox(&mut self.settings.reduced_motion, "Уменьшить анимацию");
             ui.label(RichText::new("Короткие переходы и плавная подсветка. Изменения применяются сразу.").size(12.0).color(colors.muted));
+            if ui.button("Погода по городу…").clicked() { self.page = super::app::Page::Weather; }
+            if ui.button("Сезонные видеосцены…").clicked() { self.settings_section = super::settings_view::SettingsSection::Background; }
         });
         if previous
             != (
