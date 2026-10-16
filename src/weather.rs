@@ -6,6 +6,15 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::{network, storage::Store};
 
+mod solar;
+pub use solar::{Lighting, Sunlight};
+
+#[derive(Clone, Copy, Debug)]
+pub struct Scene {
+    pub conditions: Conditions,
+    pub sunlight: Sunlight,
+}
+
 pub const SEARCH_URL: &str = "https://geocoding-api.open-meteo.com/v1/search";
 pub const FORECAST_URL: &str = "https://api.met.no/weatherapi/locationforecast/2.0/compact";
 pub const LOCATION_URL: &str = "https://ipwho.is/";
@@ -60,13 +69,17 @@ pub enum WeatherKind {
     Blizzard,
     Fog,
     Storm,
+    Downpour,
+    Hail,
 }
 
 impl WeatherKind {
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 9] = [
         Self::Clear,
         Self::Clouds,
         Self::Rain,
+        Self::Downpour,
+        Self::Hail,
         Self::Snow,
         Self::Blizzard,
         Self::Fog,
@@ -81,6 +94,8 @@ impl WeatherKind {
             Self::Blizzard => "Метель",
             Self::Fog => "Туман",
             Self::Storm => "Гроза",
+            Self::Downpour => "Ливень",
+            Self::Hail => "Град",
         }
     }
     pub fn film(self, day: bool) -> &'static str {
@@ -88,11 +103,11 @@ impl WeatherKind {
             Self::Clear if day => "weather-clear",
             Self::Clear => "night-mountains",
             Self::Clouds => "weather-clouds",
-            Self::Rain => "weather-rain",
+            Self::Rain | Self::Downpour => "weather-rain",
             Self::Snow => "winter-forest",
             Self::Blizzard => "weather-blizzard",
             Self::Fog => "weather-fog",
-            Self::Storm => "weather-storm",
+            Self::Storm | Self::Hail => "weather-storm",
         }
     }
 }
@@ -110,13 +125,21 @@ impl Conditions {
     pub fn demo(kind: WeatherKind) -> Self {
         Self {
             kind,
-            temperature: 10.0,
-            wind_kmh: if kind == WeatherKind::Blizzard {
-                45.0
-            } else {
-                10.0
+            temperature: match kind {
+                WeatherKind::Snow | WeatherKind::Blizzard => -5.0,
+                WeatherKind::Hail => 3.0,
+                _ => 10.0,
             },
-            precipitation: 1.0,
+            wind_kmh: match kind {
+                WeatherKind::Blizzard => 45.0,
+                WeatherKind::Storm | WeatherKind::Downpour => 30.0,
+                _ => 10.0,
+            },
+            precipitation: match kind {
+                WeatherKind::Downpour | WeatherKind::Storm => 8.0,
+                WeatherKind::Clear | WeatherKind::Clouds | WeatherKind::Fog => 0.0,
+                _ => 1.0,
+            },
             day: true,
         }
     }
@@ -156,6 +179,7 @@ pub struct WeatherSettings {
     pub city: Option<City>,
     pub cinematic: bool,
     pub dimming: u8,
+    pub lighting: Lighting,
 }
 
 impl Default for WeatherSettings {
@@ -165,6 +189,7 @@ impl Default for WeatherSettings {
             city: None,
             cinematic: true,
             dimming: 58,
+            lighting: Lighting::Automatic,
         }
     }
 }
@@ -271,9 +296,10 @@ fn parse_forecast(document: &serde_json::Value, city: City, timestamp: u64) -> R
         "Погодный сервис вернул устаревший прогноз"
     );
     let details = &current["data"]["instant"]["details"];
-    let period = current["data"]
+    let (period, hours) = current["data"]
         .get("next_1_hours")
-        .or_else(|| current["data"].get("next_6_hours"))
+        .map(|p| (p, 1.0))
+        .or_else(|| current["data"].get("next_6_hours").map(|p| (p, 6.0)))
         .context("Нет состояния погоды")?;
     let symbol = period["summary"]["symbol_code"]
         .as_str()
@@ -282,22 +308,22 @@ fn parse_forecast(document: &serde_json::Value, city: City, timestamp: u64) -> R
         .as_f64()
         .context("Нет данных о ветре")? as f32
         * 3.6;
+    let precipitation = period["details"]["precipitation_amount"]
+        .as_f64()
+        .unwrap_or(0.0) as f32
+        / hours;
+    let mut kind = kind_from_symbol(symbol, wind)?;
+    if kind == WeatherKind::Rain && precipitation >= 5.0 {
+        kind = WeatherKind::Downpour;
+    }
     let conditions = Conditions {
-        kind: kind_from_symbol(symbol, wind)?,
+        kind,
         temperature: details["air_temperature"]
             .as_f64()
             .context("Нет температуры")? as f32,
         wind_kmh: wind,
-        precipitation: period["details"]["precipitation_amount"]
-            .as_f64()
-            .unwrap_or(0.0) as f32,
-        day: if symbol.ends_with("_night") {
-            false
-        } else if symbol.ends_with("_day") {
-            true
-        } else {
-            daylight(city.latitude, city.longitude, timestamp)
-        },
+        precipitation,
+        day: Sunlight::at(city.latitude, city.longitude, timestamp).elevation > -0.833,
     };
     let snapshot = Snapshot {
         city,
@@ -313,7 +339,9 @@ fn parse_forecast(document: &serde_json::Value, city: City, timestamp: u64) -> R
 }
 
 fn kind_from_symbol(symbol: &str, wind: f32) -> Result<WeatherKind> {
-    Ok(if symbol.contains("thunder") {
+    Ok(if symbol.contains("hail") {
+        WeatherKind::Hail
+    } else if symbol.contains("thunder") {
         WeatherKind::Storm
     } else if symbol.contains("snow") || symbol.contains("sleet") {
         if wind >= 35.0 {
@@ -321,6 +349,8 @@ fn kind_from_symbol(symbol: &str, wind: f32) -> Result<WeatherKind> {
         } else {
             WeatherKind::Snow
         }
+    } else if symbol.contains("heavyrain") {
+        WeatherKind::Downpour
     } else if symbol.contains("rain") {
         WeatherKind::Rain
     } else if symbol == "fog" {
@@ -332,20 +362,6 @@ fn kind_from_symbol(symbol: &str, wind: f32) -> Result<WeatherKind> {
     } else {
         anyhow::bail!("Неизвестное состояние погоды: {symbol}")
     })
-}
-
-fn daylight(latitude: f64, longitude: f64, unix: u64) -> bool {
-    let days = unix as f64 / 86400.0 - 10957.5;
-    let anomaly = (357.529 + 0.98560028 * days).to_radians();
-    let longitude_sun =
-        (280.459 + 0.98564736 * days + 1.915 * anomaly.sin() + 0.020 * (2.0 * anomaly).sin())
-            .to_radians();
-    let obliquity = 23.439_f64.to_radians();
-    let declination = (obliquity.sin() * longitude_sun.sin()).asin();
-    let right_ascension = (obliquity.cos() * longitude_sun.sin()).atan2(longitude_sun.cos());
-    let hour_angle = (280.16 + 360.9856235 * days + longitude).to_radians() - right_ascension;
-    let lat = latitude.to_radians();
-    lat.sin() * declination.sin() + lat.cos() * declination.cos() * hour_angle.cos() > -0.0145
 }
 
 async fn json<T: DeserializeOwned>(client: &reqwest::Client, url: &str) -> Result<T> {
@@ -397,7 +413,9 @@ mod tests {
         for (symbol, wind, expected) in [
             ("clearsky_night", 0.0, WeatherKind::Clear),
             ("cloudy", 10.0, WeatherKind::Clouds),
-            ("heavyrain", 2.0, WeatherKind::Rain),
+            ("heavyrain", 2.0, WeatherKind::Downpour),
+            ("rain", 2.0, WeatherKind::Rain),
+            ("hail", 10.0, WeatherKind::Hail),
             ("snow", 10.0, WeatherKind::Snow),
             ("snowshowers_day", 40.0, WeatherKind::Blizzard),
             ("fog", 0.0, WeatherKind::Fog),
@@ -406,8 +424,8 @@ mod tests {
             assert_eq!(kind_from_symbol(symbol, wind).unwrap(), expected);
         }
         assert!(kind_from_symbol("unknown", 1.0).is_err());
-        assert!(!daylight(0.0, 0.0, 0));
-        assert!(daylight(0.0, 0.0, 43200));
+        assert!(Sunlight::at(0.0, 0.0, 0).elevation < 0.0);
+        assert!(Sunlight::at(0.0, 0.0, 43200).elevation > 0.0);
     }
     #[test]
     fn malformed_weather_is_never_presented_as_real_conditions() {
@@ -452,5 +470,36 @@ mod tests {
         assert_eq!(result.conditions.kind, WeatherKind::Blizzard);
         assert!(parse_forecast(&document, city.clone(), at + 8 * 3600).is_err());
         assert!(parse_forecast(&document, city, at - 6 * 3600).is_err());
+    }
+
+    #[test]
+    fn precipitation_is_hourly_and_intensity_does_not_hide_thunder_or_snow() {
+        let city = City {
+            name: "City".into(),
+            country: String::new(),
+            admin1: String::new(),
+            latitude: 0.0,
+            longitude: 0.0,
+        };
+        for (hours, amount, symbol, expected) in [
+            (1, 4.9, "rain", WeatherKind::Rain),
+            (1, 5.0, "rain", WeatherKind::Downpour),
+            (6, 6.0, "rain", WeatherKind::Rain),
+            (6, 30.0, "rain", WeatherKind::Downpour),
+            (6, 1.0, "heavyrain", WeatherKind::Downpour),
+            (1, 9.0, "heavyrainandthunder", WeatherKind::Storm),
+            (1, 9.0, "snow", WeatherKind::Snow),
+        ] {
+            let mut data =
+                serde_json::json!({"instant":{"details":{"air_temperature":5.0,"wind_speed":1.0}}});
+            data[format!("next_{hours}_hours")] = serde_json::json!({
+                "summary":{"symbol_code":symbol}, "details":{"precipitation_amount":amount}
+            });
+            let document = serde_json::json!({"properties":{"timeseries":[{"time":"1970-01-01T00:00:00Z", "data":data}]}});
+            let result = parse_forecast(&document, city.clone(), 0).unwrap();
+            assert_eq!(result.conditions.kind, expected);
+            assert!((result.conditions.precipitation - amount as f32 / hours as f32).abs() < 0.001);
+        }
+        assert_eq!(kind_from_symbol("sleet", 10.0).unwrap(), WeatherKind::Snow);
     }
 }

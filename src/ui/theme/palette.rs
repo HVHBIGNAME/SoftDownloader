@@ -221,6 +221,7 @@ impl Palette {
         egui::Button::new(RichText::new(text.into()).color(self.on_accent).strong())
             .fill(self.accent_fill)
             .min_size(Vec2::new(0.0, 40.0))
+            .wrap_mode(egui::TextWrapMode::Extend)
             .corner_radius(CONTROL_RADIUS)
     }
 }
@@ -370,7 +371,7 @@ fn apply(ctx: &egui::Context, colors: Palette, reduced: bool) {
         }
         for widget in [&mut v.widgets.inactive, &mut v.widgets.open] {
             widget.bg_fill = colors.surface;
-            widget.weak_bg_fill = colors.surface;
+            widget.weak_bg_fill = colors.surface.lerp_to_gamma(colors.raised, 0.35);
             widget.bg_stroke = Stroke::new(1.0_f32, colors.border);
         }
         v.widgets.hovered.bg_fill = colors.raised;

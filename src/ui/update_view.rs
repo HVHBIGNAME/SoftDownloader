@@ -123,6 +123,7 @@ impl SoftDownloaderApp {
         }
         ctx.request_repaint_after(Duration::from_millis(250));
         let idle = !self.queue_active
+            && self.pending_install.is_none()
             && !self.loading
             && !self.programs_loading
             && !self.list_busy

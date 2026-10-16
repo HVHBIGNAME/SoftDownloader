@@ -148,16 +148,17 @@ impl SoftDownloaderApp {
                         ui.label(RichText::new(notice.text).color(colors.accent).size(12.0));
                         if notice.undo.is_some()
                             && ui
-                                .add_enabled(
-                                    !self.queue_active,
-                                    egui::Button::new("Вернуть").small(),
-                                )
+                                .add_enabled(!self.queue_active, theme::compact("Вернуть"))
                                 .on_hover_text("Вернуть очищенный выбор · Ctrl+Z вне поля ввода")
                                 .clicked()
                         {
                             self.undo_clear();
                         }
-                        if ui.small_button("×").clicked() {
+                        if ui
+                            .add(theme::compact("×"))
+                            .on_hover_text("Закрыть уведомление")
+                            .clicked()
+                        {
                             self.message = None;
                         }
                     });

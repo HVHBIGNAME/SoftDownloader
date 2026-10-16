@@ -37,9 +37,10 @@ impl SoftDownloaderApp {
         ui.add_space(10.0);
         let colors = theme::colors(ui.ctx());
         colors.card_frame().show(ui, |ui| {
+            ui.set_width((ui.available_width() - 2.0).max(150.0));
             ui.label(RichText::new("Сохранить свой набор").strong());
             ui.horizontal_wrapped(|ui| {
-                ui.add(egui::TextEdit::singleline(&mut self.sets_ui.name).desired_width(190.0).char_limit(80).hint_text("Название набора"));
+                ui.add(egui::TextEdit::singleline(&mut self.sets_ui.name).desired_width(190.0).margin(egui::vec2(10.0, 9.0)).char_limit(80).hint_text("Название набора"));
                 if ui.add_enabled(!self.selected.is_empty() && self.list_actions_enabled(), egui::Button::new(format!("Сохранить выбор · {}", self.selected.len()))).clicked() {
                     self.save_new_set(self.selected.clone());
                 }
@@ -52,7 +53,7 @@ impl SoftDownloaderApp {
         if let Some(deleted) = self.sets_ui.deleted.clone() {
             ui.horizontal_wrapped(|ui| {
                 ui.label(format!("Удалён набор «{}»", deleted.name));
-                if ui.small_button("Вернуть").clicked() {
+                if ui.add(theme::compact("Вернуть")).clicked() {
                     let mut sets = self.settings.program_sets.clone();
                     sets.push(deleted);
                     if self.save_sets(sets) {
@@ -90,7 +91,21 @@ impl SoftDownloaderApp {
         ui.push_id((saved, &set.name), |ui| {
             colors.card_frame().show(ui, |ui| {
                 ui.set_width((ui.available_width() - 2.0).max(160.0));
-                ui.label(RichText::new(&set.name).size(17.0).strong());
+                ui.horizontal(|ui| {
+                    ui.allocate_ui_with_layout(
+                        egui::vec2((ui.available_width() - 52.0).max(100.0), 38.0),
+                        egui::Layout::left_to_right(egui::Align::Center),
+                        |ui| {
+                            ui.set_min_width(ui.available_width());
+                            ui.add(
+                                egui::Label::new(RichText::new(&set.name).size(17.0).strong())
+                                    .truncate(),
+                            )
+                            .on_hover_text(&set.name);
+                        },
+                    );
+                    self.set_menu(ui, set, saved);
+                });
                 ui.label(RichText::new(description).color(colors.muted).size(12.0));
                 ui.label(
                     RichText::new(format!(
@@ -131,7 +146,7 @@ impl SoftDownloaderApp {
                 ui.horizontal_wrapped(|ui| {
                     if ui
                         .add_enabled(
-                            self.list_actions_enabled() && !batch.packages.is_empty(),
+                            self.install_actions_enabled() && !batch.packages.is_empty(),
                             colors.primary(format!("Установить · {}", batch.packages.len())),
                         )
                         .clicked()
@@ -168,7 +183,6 @@ impl SoftDownloaderApp {
                     {
                         self.request_install(set.ids.clone(), true);
                     }
-                    self.set_menu(ui, set, saved);
                 });
             });
             ui.add_space(8.0);

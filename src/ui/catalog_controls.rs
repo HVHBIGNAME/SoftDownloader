@@ -17,7 +17,7 @@ impl SoftDownloaderApp {
             "Каталог"
         };
         ui.horizontal(|ui| {
-            let width = (ui.available_width() - 230.0).max(90.0);
+            let width = (ui.available_width() - 256.0).max(90.0);
             ui.allocate_ui_with_layout(
                 Vec2::new(width, 36.0),
                 Layout::left_to_right(Align::Center),
@@ -33,7 +33,7 @@ impl SoftDownloaderApp {
                 } else if ui
                     .add_enabled(
                         !self.queue_active && !self.list_busy,
-                        egui::Button::new("Обновить"),
+                        egui::Button::new("Обновить").wrap_mode(egui::TextWrapMode::Extend),
                     )
                     .clicked()
                 {
@@ -42,7 +42,7 @@ impl SoftDownloaderApp {
                 if ui
                     .add_enabled(
                         self.list_actions_enabled(),
-                        egui::Button::new("Импорт списка"),
+                        egui::Button::new("Импорт списка").wrap_mode(egui::TextWrapMode::Extend),
                     )
                     .on_hover_text("Восстановить выбор из JSON-файла · Ctrl+O")
                     .clicked()
@@ -79,7 +79,7 @@ impl SoftDownloaderApp {
                     egui::Label::new(RichText::new(label).color(colors.accent).size(12.0))
                         .truncate(),
                 );
-                if ui.small_button("Весь каталог").clicked() {
+                if ui.add(theme::compact("Весь каталог")).clicked() {
                     self.imported_selection = None;
                 }
             });
@@ -111,7 +111,7 @@ impl SoftDownloaderApp {
                     if self.filter.query.is_empty() {
                         ui.label(RichText::new("Ctrl K").size(10.0).color(colors.dim));
                     } else if ui
-                        .small_button("×")
+                        .add(theme::compact("×"))
                         .on_hover_text("Очистить поиск · Esc")
                         .clicked()
                     {
@@ -177,7 +177,7 @@ impl SoftDownloaderApp {
                         .color(colors.dim),
                     );
                 }
-                if ui.small_button("Сбросить фильтры").clicked() {
+                if ui.add(theme::compact("Сбросить фильтры")).clicked() {
                     self.filter.reset_constraints();
                 }
             });

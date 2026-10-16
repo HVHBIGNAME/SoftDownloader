@@ -25,13 +25,28 @@ impl SoftDownloaderApp {
 
     pub(super) fn installation_settings(&mut self, ui: &mut egui::Ui) {
         let colors = theme::colors(ui.ctx());
+        if self
+            .winget_status
+            .is_none_or(|(checked, _)| checked.elapsed().as_secs() >= 10)
+        {
+            self.winget_status = Some((
+                std::time::Instant::now(),
+                crate::system::winget::available(),
+            ));
+        }
+        let winget_available = self.winget_status.is_some_and(|(_, available)| available);
         colors.card_frame().show(ui, |ui| {
+            ui.set_width((ui.available_width() - 2.0).max(150.0));
             ui.label(RichText::new("Установка без лишних шагов").size(20.0).strong());
-            if crate::system::winget::available() {
+            if winget_available {
                 ui.label(RichText::new("WinGet готов к установке программ").color(colors.accent).size(12.0));
             } else {
                 ui.label(RichText::new("Для большинства программ нужен WinGet").color(colors.orange));
                 ui.hyperlink_to("Установить App Installer Microsoft", "https://apps.microsoft.com/detail/9nblggh4nns1");
+            }
+            if ui.add(theme::compact("Проверить WinGet снова")).clicked() {
+                self.winget_status = None;
+                ui.ctx().request_repaint();
             }
             self.installation_mode_picker(ui);
             ui.label("Тихая установка использует штатные параметры пакета. «С мастером» открывает установщик для выбора компонентов и папки.");
@@ -43,13 +58,14 @@ impl SoftDownloaderApp {
         });
         ui.add_space(14.0);
         colors.card_frame().show(ui, |ui| {
+            ui.set_width((ui.available_width() - 2.0).max(150.0));
             ui.label(RichText::new("Отдельные режимы программ").strong());
             ui.label("Задайте исключение в подробностях программы. Режим запущенной очереди не изменяется.");
             for (id, mode) in self.settings.installation.overrides.clone() {
                 ui.horizontal(|ui| {
                     let name = self.document.catalog.package(&id).map_or(id.as_str(), |p| p.name.as_str());
                     ui.label(format!("{name} · {}", mode.label()));
-                    if ui.small_button("Сбросить").clicked() {
+                    if ui.add(theme::compact("Сбросить")).clicked() {
                         self.settings.installation.overrides.remove(&id);
                         if !self.save_preferences() { self.settings.installation.overrides.insert(id.clone(), mode); }
                     }
@@ -87,13 +103,13 @@ impl SoftDownloaderApp {
         ui.label(
             RichText::new(self.settings.installation.label_for(package))
                 .color(colors.dim)
-                .size(11.0),
+                .size(12.0),
         );
         if !package.is_manual()
             && !installed
             && ui
                 .add_enabled(
-                    self.list_actions_enabled() && package.ready(),
+                    self.install_actions_enabled() && package.ready(),
                     colors.primary("Установить сейчас"),
                 )
                 .clicked()
@@ -134,8 +150,11 @@ impl SoftDownloaderApp {
         let response = egui::Modal::new(egui::Id::new("confirm-install")).frame(colors.dialog_frame().inner_margin(24)).show(ctx, |ui| {
             ui.set_width(570.0);
             theme::heading(ui, "План установки", "Зависимости добавлены, установленное пропущено.");
+            if self.inventory_needs_review() {
+                ui.label(RichText::new("Проверка установленного ПО завершилась не полностью. Проверьте список, чтобы не переустановить уже имеющиеся программы.").color(colors.orange));
+            }
             ui.label(format!("Установить: {} · Уже есть: {} · Недоступно: {}", plan.batch.packages.len(), plan.batch.installed, plan.batch.blocked.len()));
-            egui::ScrollArea::vertical().max_height((ctx.content_rect().height() - 320.0).clamp(120.0, 400.0)).show(ui, |ui| {
+            egui::ScrollArea::vertical().auto_shrink([false, true]).max_height((ctx.content_rect().height() - 320.0).clamp(120.0, 400.0)).show(ui, |ui| {
                 for package in &plan.batch.packages {
                     ui.horizontal_wrapped(|ui| {
                         ui.label(RichText::new(&package.name).strong());

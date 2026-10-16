@@ -67,7 +67,7 @@ impl SoftDownloaderApp {
                 theme::percent_slider(ui, &mut self.settings.background.dimming, 45..=95, "Приглушение");
                 ui.checkbox(&mut self.settings.background.paused, "Пауза фона и эффектов");
             });
-            ui.label(RichText::new("Текст автоматически подстраивается под фон. Видео и эффекты приостанавливаются в неактивном окне и при уменьшении анимации.").size(12.0).color(colors.muted));
+            ui.label(RichText::new("Текст автоматически подстраивается под фон. Видео и эффекты приостанавливаются в свёрнутом окне, на паузе и при уменьшении анимации.").size(12.0).color(colors.muted));
         });
         ui.add_space(16.0);
         self.background_downloads(ui);

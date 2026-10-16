@@ -22,7 +22,11 @@ pub(super) struct ImportedSelection {
 
 impl SoftDownloaderApp {
     pub(super) fn list_actions_enabled(&self) -> bool {
-        !self.loading && !self.programs_loading && !self.queue_active && !self.list_busy
+        !self.loading && !self.programs_loading && self.install_actions_enabled()
+    }
+
+    pub(super) fn install_actions_enabled(&self) -> bool {
+        !self.queue_active && !self.list_busy && self.pending_install.is_none()
     }
 
     pub(super) fn request_program_list_import(&mut self) {
@@ -124,18 +128,18 @@ impl SoftDownloaderApp {
             ui.add_space(8.0);
             ui.add(egui::TextEdit::singleline(&mut preview.query).hint_text("Найти в списке…").desired_width(f32::INFINITY).margin(8.0));
             ui.horizontal(|ui| {
-                if ui.small_button("Выбрать доступные").clicked() {
+                if ui.add(theme::compact("Выбрать доступные")).clicked() {
                     preview.selected = preview.rows.iter().filter(|r| r.status == MatchStatus::Available)
                         .filter_map(|r| r.package_id.clone()).collect();
                 }
-                if ui.small_button("Снять выбор").clicked() { preview.selected.clear(); }
+                if ui.add(theme::compact("Снять выбор")).clicked() { preview.selected.clear(); }
             });
             ui.add_space(4.0);
             let query = preview.query.to_lowercase();
             let rows: Vec<_> = preview.rows.iter().filter(|r| {
                 r.entry.name.to_lowercase().contains(&query) || r.package_id.as_ref().is_some_and(|id| id.contains(&query))
             }).collect();
-            egui::ScrollArea::vertical().id_salt("import-list-rows").max_height((ctx.content_rect().height() - 460.0).clamp(120.0, 320.0))
+            egui::ScrollArea::vertical().id_salt("import-list-rows").auto_shrink([false, true]).max_height((ctx.content_rect().height() - 500.0).clamp(72.0, 320.0))
                 .show_rows(ui, 54.0, rows.len(), |ui, visible| {
                     for row in &rows[visible] {
                         import_row(ui, row, &mut preview.selected);
@@ -144,7 +148,7 @@ impl SoftDownloaderApp {
             ui.add_space(12.0);
             ui.label(RichText::new("Версии в файле — для справки. Установка использует текущий каталог; зависимости добавятся автоматически.").size(11.0).color(colors.muted));
             ui.add_space(8.0);
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 if ui.add_enabled(!preview.selected.is_empty() && self.list_actions_enabled(), egui::Button::new(format!("Установить сейчас · {}", preview.selected.len()))).clicked() {
                     let current = preview.list.match_catalog(&self.document.catalog, &self.effective_state);
                     install_ids = Some(current.into_iter().filter(|row| row.status == MatchStatus::Available).filter_map(|row| row.package_id).filter(|id| preview.selected.contains(id)).collect());

@@ -444,7 +444,18 @@ impl Package {
     }
 
     pub fn matches_search(&self, query: &str) -> bool {
-        let haystack = format!(
+        if query.trim().is_empty() {
+            return true;
+        }
+        let haystack = self.search_text();
+        query
+            .to_lowercase()
+            .split_whitespace()
+            .all(|term| haystack.contains(term))
+    }
+
+    pub(crate) fn search_text(&self) -> String {
+        format!(
             "{} {} {} {} {}",
             self.name,
             self.publisher,
@@ -452,11 +463,7 @@ impl Package {
             self.id,
             self.tags.join(" ")
         )
-        .to_lowercase();
-        query
-            .to_lowercase()
-            .split_whitespace()
-            .all(|term| haystack.contains(term))
+        .to_lowercase()
     }
 
     pub fn ready(&self) -> bool {

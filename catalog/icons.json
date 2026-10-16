@@ -1,0 +1,1604 @@
+{
+  "columns": 16,
+  "cell": 68,
+  "size": 64,
+  "packages": {
+    "2ip-startguard": {
+      "url": "https://2ip.ru/favicon.ico",
+      "credit": "Product artwork from 2ip.ru",
+      "sha256": "264a99769c2fbec67019e74877d767a553d4d33454c583d952be96ded8dd649f",
+      "tile": 0
+    },
+    "3utools": {
+      "url": "https://www.3u.com/images/logo.png?v=0.01",
+      "credit": "Product artwork from www.3u.com",
+      "sha256": "42d2b98444f7353c7a13ee7ea6bdaaf5676f02508e65a8731536b0774f711c41",
+      "tile": 1
+    },
+    "7zip": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/7zip.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "5e0eae86969847a8ad150d88a8b5e796b0ae4b2371f55bd99d3bf5033eda04a5",
+      "tile": 2
+    },
+    "aimp": {
+      "url": "https://www.aimp.ru/favicon.ico",
+      "credit": "Product artwork from www.aimp.ru",
+      "sha256": "73cf446789e3374d2be3edcb442a9074dea53e8389ae778ce336f6bacd927eca",
+      "tile": 3
+    },
+    "amd-software": {
+      "url": "https://www.amd.com/content/dam/code/images/favicon/favicon.ico",
+      "credit": "Product artwork from www.amd.com",
+      "sha256": "028434e4bbb42cfd4554998bd89f7e6eb71f32a2cbc8ca618d0470280cd1e28a",
+      "tile": 4
+    },
+    "ame-wizard": {
+      "url": "https://amelabs.net/favicon.png",
+      "credit": "Product artwork from amelabs.net",
+      "sha256": "b3fc58b1814ec4d4ebe810585d9ed48a38de29b75d61a1dbb7658fdc1013f3c4",
+      "tile": 5
+    },
+    "amnezia-vpn": {
+      "url": "https://raw.githubusercontent.com/amnezia-vpn/amnezia-client/3d4a45246ad21142da3705e886d3e9bd18e470f1/client/macos/app/Images.xcassets/AppIcon.appiconset/128.png",
+      "credit": "AmneziaVPN official application icon",
+      "tile": 6,
+      "sha256": "9bd5c95688f2662f791cf18e7873fb6e9d9ec304bb28382fe8236f10c5d763f4"
+    },
+    "android-studio": {
+      "url": "https://www.gstatic.com/devrel-devsite/prod/v097103d8ccd7b257790809ea4cc5e5fee6daa6e24890a4af388296e58364bc31/android/images/touchicon-180.png",
+      "credit": "Product artwork from developer.android.com",
+      "sha256": "ead629480a3a5c6d50a2133690e7917e70bb64d51ee48cd905ae498afdc75d6b",
+      "tile": 7
+    },
+    "anki": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/anki.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "f94b2d5bace87d4f953d21af2da1fdb5e01ae7af3ec8a774ae08caab86848640",
+      "tile": 8
+    },
+    "antigravity": {
+      "url": "https://antigravity.google/assets/image/brand/antigravity-icon__full-color.png",
+      "credit": "Google Antigravity official press artwork",
+      "sha256": "e0cd08ccd10cd8d08ccf0ba449823ee88495825c0841619618100d3ab089f51e",
+      "tile": 9
+    },
+    "anydesk": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/anydesk.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "790185e0502cc4d7e7fcdac9ff153d44cc39db1a82503f60d80a6a176019c216",
+      "tile": 10
+    },
+    "atlauncher": {
+      "url": "https://atlauncher.com/favicon.ico",
+      "credit": "Product artwork from atlauncher.com",
+      "sha256": "e44e2198b411ba7e8e4bd85376d0d18eb7de415cc13794b5aab682d9eba5cd24",
+      "tile": 11
+    },
+    "audacity": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/audacity.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "e7abfc9f0434ef8f4a5e8c58d1d48ee1c3116737fedcdb61bd0c43e1254917ed",
+      "tile": 12
+    },
+    "auto-dark-mode": {
+      "url": "https://raw.githubusercontent.com/AutoDarkMode/Windows-Auto-Night-Mode/56ec186a27e7c16599498781e762f994ac202687/.github/assets/logo.png",
+      "credit": "Product artwork from AutoDarkMode/Windows-Auto-Night-Mode",
+      "sha256": "b5664850588906eacbaf215777ff7bd7a3bb4e15ea56216b120d3dd94a8414bb",
+      "tile": 13
+    },
+    "autohotkey": {
+      "url": "https://www.autohotkey.com/static/ahk76.png",
+      "credit": "Product artwork from www.autohotkey.com",
+      "sha256": "a9f3af86593ec7aba3040abfb78c57683dee5931270c93c7a11a032eafab11d2",
+      "tile": 14
+    },
+    "autoruns": {
+      "url": "https://live.sysinternals.com/Autoruns.exe",
+      "format": "exe",
+      "credit": "Microsoft Sysinternals product icon; resource extraction only",
+      "sha256": "38519c3ae945f678261327d05efe8fb0be44afb91236bd71199e20e1151ff157",
+      "tile": 15
+    },
+    "ayugram": {
+      "url": "https://raw.githubusercontent.com/AyuGram/AyuGramDesktop/d4b7546e77f93ac4c9bb53a3fcf7e9ffbbecf1b5/Telegram/Resources/art/ayu/alt/app_icon.ico",
+      "credit": "Product artwork from AyuGram/AyuGramDesktop",
+      "sha256": "b5a15baedb9484e314fe5d58e7e6f3ad01f628dada29656690dd632cd9ad821e",
+      "tile": 16
+    },
+    "bandizip": {
+      "url": "https://www.bandisoft.com/favicon.ico",
+      "credit": "Product artwork from www.bandisoft.com",
+      "sha256": "31d9945f8faa0591b36362d03b389e9d86bb5c09404d57f4228730f19d7e3dd1",
+      "tile": 17
+    },
+    "bat": {
+      "url": "https://raw.githubusercontent.com/sharkdp/bat/d9559c69f541873f8c47ac8ad81d985f4441edf6/doc/logo-header.svg",
+      "credit": "Product artwork from sharkdp/bat",
+      "sha256": "804d9c052ec24251d36a82dff75d82ab918a5c14c9d8d261410f508f4563987c",
+      "tile": 18
+    },
+    "bcuninstaller": {
+      "url": "https://raw.githubusercontent.com/Klocman/Bulk-Crap-Uninstaller/30da609384c98ba6e35c6530129541ea4ff3970a/installer/assets/logo.ico",
+      "credit": "Product artwork from Klocman/Bulk-Crap-Uninstaller",
+      "sha256": "e64650a06deddbb96acbe7317aba95a99d0622e756598c9bcea6b5a4e6aec94c",
+      "tile": 19
+    },
+    "bitwarden": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/bitwarden.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "d264c13c550f2e226ec05ff8d19870f092d6c7e8ad68b536454d88f323d5a415",
+      "tile": 20
+    },
+    "bleachbit": {
+      "url": "https://www.bleachbit.org/images/apple-touch-icon.png",
+      "credit": "Product artwork from www.bleachbit.org",
+      "sha256": "7314c152a2715c6c637fc63868c5644b2d9b9f488961c58a0d93f0dea414d7dd",
+      "tile": 21
+    },
+    "blender": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/blender.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "793b636302e8675a3a5d6a1ffa3d49b6268ff54fcdc87d7176dd05af19a873dc",
+      "tile": 22
+    },
+    "bradlc-vscode-tailwindcss": {
+      "url": "https://bradlc.gallery.vsassets.io/_apis/public/gallery/publisher/bradlc/extension/vscode-tailwindcss/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "de52c5c75cc6db6082252e38171375dbb0eceab48aa5ee4c017a9544fb76ccf6",
+      "tile": 23
+    },
+    "brave": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/brave.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "6cea4a0b7c3a75f9a5d3e1b4795dcb6a9598c5f3f78dd13f34bbfa47a4ef6f71",
+      "tile": 24
+    },
+    "bun": {
+      "url": "https://bun.sh/icons/apple-touch-icon.png",
+      "credit": "Product artwork from bun.sh",
+      "sha256": "d4ee2d7902b652b5205f9f53f7ccb3455cf6386cbc2fedcb133db05dd7a771b4",
+      "tile": 25
+    },
+    "calibre": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/calibre.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "b4bdd2e7811d78fcb4e9d8a068a6f4125916f51c2bfc04040d78d4e3f3ce0559",
+      "tile": 26
+    },
+    "capcut": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/cap-cut.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "3120f0cdedc7792a71b3de2aa84fcd9cc9d8e372c4e0567b9ef8d8053daa6c5b",
+      "tile": 27
+    },
+    "charliermarsh-ruff": {
+      "url": "https://charliermarsh.gallery.vsassets.io/_apis/public/gallery/publisher/charliermarsh/extension/ruff/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "b46ff18cd247636ace6971e57f960a6b0c397d6f37a15eb1c3af4e4542392f59",
+      "tile": 28
+    },
+    "chrome": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/chrome.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "13f3cad1105d6db37d0bb85db94f63c0a3e81ddb9ae99f5469a8149440d04136",
+      "tile": 29
+    },
+    "claude": {
+      "url": "https://claude.ai/favicon.ico",
+      "credit": "Anthropic product artwork",
+      "sha256": "525d5c063365f7656ba0fe8b9165742c4874e70852d9bed7153b6faca8663a02",
+      "tile": 30
+    },
+    "claude-code": {
+      "url": "https://claude.ai/favicon.ico",
+      "credit": "Anthropic product artwork",
+      "sha256": "525d5c063365f7656ba0fe8b9165742c4874e70852d9bed7153b6faca8663a02",
+      "tile": 30
+    },
+    "cline": {
+      "url": "https://saoudrizwan.gallery.vsassets.io/_apis/public/gallery/publisher/saoudrizwan/extension/claude-dev/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "653b81c4eee035547205dbc4089ded35f92e9c1166915feb151811623570cfc6",
+      "tile": 31
+    },
+    "cloudflare-warp": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/cloudflare.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "8f2b4022d67811025fec71b40f363e2b3b8287df3714d8e9eeca00a5aa5e0490",
+      "tile": 32
+    },
+    "cmake": {
+      "url": "https://cmake.org/favicon.ico",
+      "credit": "Product artwork from cmake.org",
+      "sha256": "7056b969eaf9826ad668aee81affd50f55f654777a0ef79cf9932356b64ff5db",
+      "tile": 33
+    },
+    "continue-continue": {
+      "url": "https://Continue.gallery.vsassets.io/_apis/public/gallery/publisher/Continue/extension/continue/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "c615fb9d525937b3610e6ba2965e6f433f3b5d4680e861b90016881d14a7552a",
+      "tile": 34
+    },
+    "copyq": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/copyq.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "50f9efb58846e04652e05a1051f1b3088393355c81b42c718bd6052409828493",
+      "tile": 35
+    },
+    "cpu-z": {
+      "url": "https://www.cpuid.com/medias/images/softwares/cpu-z.svg",
+      "credit": "CPUID product artwork",
+      "sha256": "4e1b8dcf0f6fabcdfcf266ccafa0b8b63421ce22a8bd7b6a08a41a443609362a",
+      "tile": 36
+    },
+    "cryptomator": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/cryptomator.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "e9082c4dd8a0eb6dcfdc50f203d52219df455008094f04451e6ee8500f2b5ad3",
+      "tile": 37
+    },
+    "crystal-disk-info": {
+      "url": "https://crystalmark.info/favicon.ico",
+      "credit": "Product artwork from crystalmark.info",
+      "sha256": "70f583e074a1e4b8e942c5586c298e7b5a7f9676400b3730eef07fc399a84c5e",
+      "tile": 38
+    },
+    "crystal-disk-mark": {
+      "url": "https://crystalmark.info/favicon.ico",
+      "credit": "Product artwork from crystalmark.info",
+      "sha256": "70f583e074a1e4b8e942c5586c298e7b5a7f9676400b3730eef07fc399a84c5e",
+      "tile": 38
+    },
+    "curseforge": {
+      "url": "https://cdn.simpleicons.org/curseforge/F16436",
+      "credit": "Simple Icons product artwork, CC0 collection",
+      "sha256": "68445366cc45200f214eb4b17f26a3fcceb6f10a6007c00fdca5a446659ad494",
+      "tile": 39
+    },
+    "cursor": {
+      "url": "https://cursor.com/marketing-static/apple-touch-icon-light.png",
+      "credit": "Product artwork from cursor.com",
+      "sha256": "a57fcff6994c83bd2acc0ea84d8b950b0ace6e00c1bf25d9abc7d15704de73db",
+      "tile": 40
+    },
+    "darktable": {
+      "url": "https://raw.githubusercontent.com/darktable-org/darktable/3ecbc2446cf3caf85dba0fd690cd19873f99035a/data/style/favicon.ico",
+      "credit": "Product artwork from darktable-org/darktable",
+      "sha256": "157db1a55088e8dd6c9d4a1a0552d1d106c3c3e64efc015ce7a8a7944cf60aa3",
+      "tile": 41
+    },
+    "db-browser": {
+      "url": "https://sqlitebrowser.org/favicon.ico",
+      "credit": "Product artwork from sqlitebrowser.org",
+      "sha256": "d306abe2adfbb1624ac168fd788f745df7d8fd8575f07159718e100cdf0a7888",
+      "tile": 42
+    },
+    "dbaeumer-vscode-eslint": {
+      "url": "https://dbaeumer.gallery.vsassets.io/_apis/public/gallery/publisher/dbaeumer/extension/vscode-eslint/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "92e6896ddce8de2bcb3826a58555a797fb51ff9c88877a64ce8af7b173640df3",
+      "tile": 43
+    },
+    "dbeaver": {
+      "url": "https://raw.githubusercontent.com/dbeaver/dbeaver/af937fb27ca542dbb4a94dab925b95fb794b58a1/product/community/icons/dbeaver.ico",
+      "credit": "Product artwork from dbeaver/dbeaver",
+      "sha256": "9e832505290bc70fd5e0270a979462111dcd40c406840fa75390a63cdc1d9914",
+      "tile": 44
+    },
+    "delta": {
+      "symbol": "diff",
+      "credit": "Original SoftDownloader interface symbol, MIT; not a product logo",
+      "tile": 45
+    },
+    "deno": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/deno.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "0bad240f0e8307afa95cb5c33f12f11b1b9785c3e03465b488592a9fc46505d7",
+      "tile": 46
+    },
+    "discord": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/discord.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "13ae2215f810ed44c9689dad38d622e5555dbc25c4eb347f46ad1c8a3539574c",
+      "tile": 47
+    },
+    "ditto": {
+      "url": "https://raw.githubusercontent.com/sabrogden/Ditto/a80fd3536bc407cac8cce43b5682022282ace983/res/Ditto.ico",
+      "credit": "Product artwork from sabrogden/Ditto",
+      "sha256": "f28739240f456ed8405215c49cd08ca504ddd3d8ad456b8f56fb187cfbb8664e",
+      "tile": 48
+    },
+    "docker-desktop": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/docker.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "5315f36c25d54e819a479b7655c9f883c727c74d934fd3cceccb9419f5ba26bd",
+      "tile": 49
+    },
+    "double-commander": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/double-commander.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "8257f56ae35b11d37703736114c3ff2890ca38139f944530ba010942b6d98634",
+      "tile": 50
+    },
+    "drawio": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/draw-io.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "422e762b261f7c79abd7687f8de9e52a81f8b32fb529f77cf5a617ba0145ed87",
+      "tile": 51
+    },
+    "droidcam": {
+      "url": "https://files.dev47apps.net/img/app_icon.png",
+      "credit": "DroidCam product artwork",
+      "sha256": "2354a2f350ea663c9653beba53460b8487298992e61e154dd2552601d7b92535",
+      "tile": 52
+    },
+    "droidcam-obs": {
+      "url": "https://files.dev47apps.net/img/dobs-icon.png",
+      "credit": "DroidCam OBS product artwork",
+      "sha256": "48951cd6c30a943c149fce044bf454a564d17d996afc228b62c235625fb3ae99",
+      "tile": 53
+    },
+    "duplicati": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/duplicati.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "dfbee76a1a41ac1eea3c556e334d2c51d361e3c6d81f89c9f02540fabdc28beb",
+      "tile": 54
+    },
+    "eamodio-gitlens": {
+      "url": "https://eamodio.gallery.vsassets.io/_apis/public/gallery/publisher/eamodio/extension/gitlens/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "f3d1e006deab9815d310181fdf1b5ae5e2e19772af1cf1a0b45e92c7a728adcf",
+      "tile": 55
+    },
+    "element": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/element.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "f1647d1d55d9436444bb676752e2bba5179515d45d6176be24f6f493585a1c28",
+      "tile": 56
+    },
+    "epic-games": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/epic-games.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "a142e14d37f7dbc1db564c1b6d236f1f1f59cc050bbb7960dbf2170ae2af85c8",
+      "tile": 57
+    },
+    "esbenp-prettier-vscode": {
+      "url": "https://esbenp.gallery.vsassets.io/_apis/public/gallery/publisher/esbenp/extension/prettier-vscode/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "f42b8cb231d939c22fe845d1eb2668d9f5ef0b2dd79f4ed1b169ac62e984bdca",
+      "tile": 58
+    },
+    "eset-premium": {
+      "url": "https://www.eset.com/favicon.ico",
+      "credit": "Product artwork from www.eset.com",
+      "sha256": "70307205f7e8b6551b98c014b5ce40d074d2390b25fcbef228319e6a0d0427bd",
+      "tile": 59
+    },
+    "everything": {
+      "url": "https://www.voidtools.com/favicon.ico",
+      "credit": "Product artwork from www.voidtools.com",
+      "sha256": "ca8be8b4161305bee99afa076ba52e34b2ffe3431626d644a144e34d97a1eb41",
+      "tile": 60
+    },
+    "eza": {
+      "url": "https://eza.rocks/apple-touch-icon.png",
+      "credit": "Product artwork from eza.rocks",
+      "sha256": "85f33a5d206d3254021f996b4c210915d28be7369b82bc720a58ff425f3474bd",
+      "tile": 61
+    },
+    "fd": {
+      "url": "https://raw.githubusercontent.com/sharkdp/fd/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/doc/logo.png",
+      "credit": "Product artwork from sharkdp/fd",
+      "sha256": "f40964c4246e8b768ab608de67be89a95d3b44cc46de5186fd4891e50e2ddc02",
+      "tile": 62
+    },
+    "ffmpeg": {
+      "url": "https://ffmpeg.org/favicon.ico",
+      "credit": "Product artwork from ffmpeg.org",
+      "sha256": "03060126b43eda242b42b33a8d2f292a038d8e9cdf1f6a0d6f21f695b06e940a",
+      "tile": 63
+    },
+    "figma": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/figma.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "937eb592c8dfb80f17084b2328ac10578e9e515596334121a42c6b56eb9971cd",
+      "tile": 64
+    },
+    "file-converter": {
+      "url": "https://file-converter.io/favicon.ico",
+      "credit": "Product artwork from file-converter.io",
+      "sha256": "b3a503b5c20688e5761a5c37d1e2ce0c29fbec7b19fb8ec0d5ca942f35c15170",
+      "tile": 65
+    },
+    "firefox": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/firefox.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "30676559023c207d850dc840336ec6b4aaa7cb89a226f5a1ca783f0997d74445",
+      "tile": 66
+    },
+    "flameshot": {
+      "url": "https://flameshot.org/favicon-16x16.png",
+      "credit": "Product artwork from flameshot.org",
+      "sha256": "0687614a2c11c7ca58a259c0c3c2f3be71ba747c639fbb36007f44bf35b60b6f",
+      "tile": 67
+    },
+    "flclash": {
+      "url": "https://raw.githubusercontent.com/chen08209/FlClash/03f955382409a4a7ac1f3f92e46d9fcc6d39f106/windows/runner/resources/app_icon.ico",
+      "credit": "Product artwork from chen08209/FlClash",
+      "sha256": "3f1e85b3ab4ce19083daa1920648f9a7ad16d5ab9e960e14aef3465fc43834c8",
+      "tile": 68
+    },
+    "flow-launcher": {
+      "url": "https://raw.githubusercontent.com/Flow-Launcher/Flow.Launcher/a28397b76271215cfd7bb29b2a85e3dfe2e8daa4/Artworks/app.ico",
+      "credit": "Product artwork from Flow-Launcher/Flow.Launcher",
+      "sha256": "10d0d8ef4bca985080d0ffa8178451c408840d3ba0da66342ce9a7048febb0e3",
+      "tile": 69
+    },
+    "foobar2000": {
+      "url": "https://www.foobar2000.org/favicon.ico",
+      "credit": "Product artwork from www.foobar2000.org",
+      "sha256": "266b46346f5bae633b6538438b52f8f5b1ab0de3a65197e551f53885e34969d2",
+      "tile": 70
+    },
+    "fork": {
+      "url": "https://git-fork.com/favicon.ico",
+      "credit": "Product artwork from git-fork.com",
+      "sha256": "0cd95ef2a95cdf48d1b1b2f251430818b37c6c3b6425e0380ea71f8ae8999bf8",
+      "tile": 71
+    },
+    "formulahendry-code-runner": {
+      "url": "https://formulahendry.gallery.vsassets.io/_apis/public/gallery/publisher/formulahendry/extension/code-runner/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "fcef36bd23c2ab944ad900bb0089158151418db445d4f98d5d8ffd838cbdf0c4",
+      "tile": 72
+    },
+    "freeplane": {
+      "url": "https://docs.freeplane.org/favicon.png",
+      "credit": "Product artwork from docs.freeplane.org",
+      "sha256": "d6b14f7e292b35143fda2ca13539f8dbbe6bce1bdd26025273813bb6cdf2c8ac",
+      "tile": 73
+    },
+    "fzf": {
+      "url": "https://raw.githubusercontent.com/junegunn/i/master/fzf-color.png",
+      "credit": "Junegunn Choi project wordmark",
+      "sha256": "ab79b190cc974f000ca195958e1d29f5c6072daafbbc6619a2c6be8f3d79f4d3",
+      "tile": 74
+    },
+    "geforcenow": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/nvidia.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "7ef9d98abe5e83fa2c73d647925cf9640731e55cffd2966bc15e2a7da8b580f1",
+      "tile": 75
+    },
+    "gimp": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/gimp.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "d320fa6277dd252910c17c59944e1175a90a5f56d1f6c6409b5f17c7dea9e975",
+      "tile": 76
+    },
+    "git": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/git.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "de78ea6efa5d052dbaa6a81d1bb831a7c1e18bbe4b70e388468646022f0d003e",
+      "tile": 77
+    },
+    "github-cli": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/github.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "1ad6348921b99235d360b2153b33e68e077322ba28a34590fde9f793d4071a25",
+      "tile": 78
+    },
+    "github-copilot": {
+      "url": "https://GitHub.gallery.vsassets.io/_apis/public/gallery/publisher/GitHub/extension/copilot/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "10812cc1baceeb1d932232e69e1121f290faedca3f400289c24293f1e8d57d0b",
+      "tile": 79
+    },
+    "github-desktop": {
+      "url": "https://raw.githubusercontent.com/desktop/desktop/bebc062caafcf818993b9f53397b976d33484231/app/static/common/logo-64x64%402x.png",
+      "credit": "Product artwork from desktop/desktop",
+      "sha256": "e46ed2e5d094f4393ecbe4979efe9da6c13caf47e1c5a8d1e5f5df9afd136892",
+      "tile": 80
+    },
+    "gitkraken": {
+      "url": "https://gitkraken.com/wp-content/uploads/2021/03/android-chrome-144x144-1.png",
+      "credit": "Product artwork from www.gitkraken.com",
+      "sha256": "1b7b2bb638dcea175cf45b0c4025e03ae16e8ca55f30e29e9e83e532d5e1d0f8",
+      "tile": 81
+    },
+    "go": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/go.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "cfcac653ffed01e47df2fa9a77a5a41801c95774c72a3b7d0a8b79a75647c70a",
+      "tile": 82
+    },
+    "godot": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/godot.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "1d5e36249fd7447b85b8846c61a1d3fbb344dce39529262ca147db2e6e3c7fd7",
+      "tile": 83
+    },
+    "gog-galaxy": {
+      "url": "https://gogalaxy.gog-statics.com/favicons/favicon-16x16.png",
+      "credit": "Product artwork from www.gog.com",
+      "sha256": "482be4b0f90b220e66832746a20f8fb34345b77144068a823d60ce9e3600f11b",
+      "tile": 84
+    },
+    "golang-go": {
+      "url": "https://golang.gallery.vsassets.io/_apis/public/gallery/publisher/golang/extension/go/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "ccd7ed10c7721b5c87e33071f32322fe2213b2905613f9e3fe6f190935bd5a7a",
+      "tile": 85
+    },
+    "gpu-z": {
+      "url": "https://tpucdn.com/apple-touch-icon-v1790929079.png",
+      "credit": "Product artwork from www.techpowerup.com",
+      "sha256": "e12c2fbe177c9d3f3f9fa2c77a85ee07fd133955d46dd3fa229ef3d5f84b0606",
+      "tile": 86
+    },
+    "greenshot": {
+      "url": "https://getgreenshot.org/favicon.ico",
+      "credit": "Product artwork from getgreenshot.org",
+      "sha256": "f35b4655dc5ffae84e2e2af48c83574ab1d2cb440f425643ddff1514fc0ff16c",
+      "tile": 87
+    },
+    "gruntfuggly-todo-tree": {
+      "url": "https://Gruntfuggly.gallery.vsassets.io/_apis/public/gallery/publisher/Gruntfuggly/extension/todo-tree/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "1a89c830f081ff042a5130b8aecced916e92afb4dd67b3adcf8bcbbc0cc1424e",
+      "tile": 88
+    },
+    "handbrake": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/handbrake.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "9a90bd9cd7ac5c27c3f3fb5d4b4166f34632589d6b107283d52215cc5fd08906",
+      "tile": 89
+    },
+    "happ": {
+      "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/91/6b/00/916b0085-d7d9-1791-c94f-5f6adb9a3d37/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-85-220.png/100x100bb.jpg",
+      "credit": "Happ official App Store artwork, Flyfrog LLC",
+      "sha256": "6fc5b53fad0c78a1dab35183f05fdb9c2b2042b5df6fefb60d010307bec9878f",
+      "tile": 90
+    },
+    "heidisql": {
+      "url": "https://www.heidisql.com/favicon.ico",
+      "credit": "Product artwork from www.heidisql.com",
+      "sha256": "aa721b1a93f91991e4894161e0ba6b1fd8fc0f1d20f17e5c70047898b5af92b2",
+      "tile": 91
+    },
+    "hermes": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/hermes.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "33a38e9a32db9078a74497f03ddbb8f458bb4c325593ae99d198e8a186a6d443",
+      "tile": 92
+    },
+    "heroic": {
+      "url": "https://raw.githubusercontent.com/Heroic-Games-Launcher/HeroicGamesLauncher/fc249e021e5d988732f4b05e338fcc972f428f05/public/icon.png",
+      "credit": "Product artwork from Heroic-Games-Launcher/HeroicGamesLauncher",
+      "sha256": "35cf28043bcb6e1d4cf290051403566a71914e176a5ce4045aba586003eb0dce",
+      "tile": 93
+    },
+    "hiddify": {
+      "url": "https://raw.githubusercontent.com/hiddify/hiddify-app/83911ed31600868d674809465be1f182c8edfa2b/windows/runner/resources/app_icon.ico",
+      "credit": "Product artwork from hiddify/hiddify-app",
+      "sha256": "d60fc11f1772ee3c9068789335b8a2cea58ce6f8ca959428f1f7329c22518be8",
+      "tile": 94
+    },
+    "httpdebugger": {
+      "url": "https://www.httpdebugger.com/brand/logo-icon.png",
+      "credit": "Product artwork from www.httpdebugger.com",
+      "sha256": "bee3ab7d6e8e1d10000c5484479c633e15b9f44e7c88e5406752d50748d29201",
+      "tile": 95
+    },
+    "hwinfo": {
+      "url": "https://www.hwinfo.com/images/hwi_logo_flat_square_192.png",
+      "credit": "Product artwork from www.hwinfo.com",
+      "sha256": "2840e1a7c481c2ae883cab63b8b602dff90fc4ce56208b9ee89b3039e3c83d45",
+      "tile": 96
+    },
+    "imageglass": {
+      "url": "https://raw.githubusercontent.com/d2phap/ImageGlass/db544cf28f820621d5309a32ea1a0e204bbc44f6/v9/ImageGlass/icon256.ico",
+      "credit": "Product artwork from d2phap/ImageGlass",
+      "sha256": "1237b8dbda461fc761eaa104b12f8e01f9852f371f6d683146a456bac506b931",
+      "tile": 97
+    },
+    "imagemagick": {
+      "url": "https://imagemagick.org/image/wand.png",
+      "credit": "Product artwork from imagemagick.org",
+      "sha256": "1f88e593ab8094272e3f981cf72c95d2cf98a67612c7c99fe39fe70356b57011",
+      "tile": 98
+    },
+    "inkscape": {
+      "url": "https://inkscape.org/favicon.ico",
+      "credit": "Product artwork from inkscape.org",
+      "sha256": "649b81433e1b6affa161dbfbdfc7f0c9c53fa18a8080a6d1db417edea3b9fce6",
+      "tile": 99
+    },
+    "intellij-idea-ce": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/intellij.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "b000bc9ecab1417f674387d1f70875d74984cd3fe9e5053f1cb1ec99b69b47d0",
+      "tile": 100
+    },
+    "irfanview": {
+      "url": "https://www.irfanview.com/images/favicon.png",
+      "credit": "Product artwork from www.irfanview.com",
+      "sha256": "3d1dff42266de661e2a21e94c4771a7b7b7bd739bf955691eafc9ce4c7b44c25",
+      "tile": 101
+    },
+    "itunes": {
+      "url": "https://www.apple.com/favicon.ico",
+      "credit": "Product artwork from www.apple.com",
+      "sha256": "5493c61cf725cf3a1d63cd9d07de75b0d6faa5564e772f7d0a6074f341442938",
+      "tile": 102
+    },
+    "ivpn": {
+      "url": "https://raw.githubusercontent.com/ivpn/desktop-app/1fd063064f466322c3749dc758f7e72dfbae4b99/ui/References/Windows/Installer/icon.ico",
+      "credit": "Product artwork from ivpn/desktop-app",
+      "sha256": "a84746990c52efe60f02b432215c95731839eb75bca03060d29a7669f2279dd1",
+      "tile": 103
+    },
+    "java-11": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/java.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "c1984e39018180df332c57eb4a52fc0fccec76209b8b0ed11c2a712414fc36f9",
+      "tile": 104
+    },
+    "java-17": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/java.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "c1984e39018180df332c57eb4a52fc0fccec76209b8b0ed11c2a712414fc36f9",
+      "tile": 104
+    },
+    "java-21": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/java.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "c1984e39018180df332c57eb4a52fc0fccec76209b8b0ed11c2a712414fc36f9",
+      "tile": 104
+    },
+    "java-25": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/java.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "c1984e39018180df332c57eb4a52fc0fccec76209b8b0ed11c2a712414fc36f9",
+      "tile": 104
+    },
+    "java-8": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/java.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "c1984e39018180df332c57eb4a52fc0fccec76209b8b0ed11c2a712414fc36f9",
+      "tile": 104
+    },
+    "jellyfin-player": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/jellyfin.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "2e45c7bb04b1fdbc70737be1676c73bcfbe98dcd9f72dcd063196c7075c65b37",
+      "tile": 105
+    },
+    "jetbrains-toolbox": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/jetbrains-toolbox.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "c6694ffb341068330b5aff3e3e742eedaf68b6ec3d0127cd58346d3e0d84d9fe",
+      "tile": 106
+    },
+    "joplin": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/joplin.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "5fa8a3200daf8e10e136e42d73c206add58b4189f47063573c6b7c967cd1938c",
+      "tile": 107
+    },
+    "julia": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/julia.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "a4a0de28cb3e3cb17eb41373e15d59ed98190c702c1f72ac64b59b08a0951b19",
+      "tile": 108
+    },
+    "kate": {
+      "url": "https://kate-editor.org/favicon.ico",
+      "credit": "Product artwork from kate-editor.org",
+      "sha256": "6225f497438cfd5cfa49eee83e215980a112bf6edab1b6af06de2705888c75a4",
+      "tile": 109
+    },
+    "kde-connect": {
+      "url": "https://kdeconnect.kde.org/assets/aether/media/16x16.svg",
+      "credit": "Product artwork from kdeconnect.kde.org",
+      "sha256": "3d039c0caa8b91b4027c00523f8ab40a6c53ed32ca11b39a3da1c8628f9d848e",
+      "tile": 110
+    },
+    "kdenlive": {
+      "url": "https://kdenlive.org/favicon-16x16.png",
+      "credit": "Product artwork from kdenlive.org",
+      "sha256": "c6b9f40c077306f7f50d3b33d33e2f120bf16975ffc22dc426b89916377c9169",
+      "tile": 111
+    },
+    "keepassxc": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/keepassxc.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "07494679d7b86ecde778a49636ddc446b9d62c644300139e87904cec813d555a",
+      "tile": 112
+    },
+    "kicad": {
+      "url": "https://www.kicad.org/favicon-16x16.png",
+      "credit": "Product artwork from www.kicad.org",
+      "sha256": "16cdb85bfd7ceb757c7baf35210164a940fbad3def1ba4241fac07636501f449",
+      "tile": 113
+    },
+    "laby-launcher": {
+      "url": "https://www.labymod.net/favicon.ico",
+      "credit": "Product artwork from www.labymod.net",
+      "sha256": "6012173317457249a9d56e483794fdd870170ce4313dc5cec0a2894dbc02e273",
+      "tile": 114
+    },
+    "lazygit": {
+      "symbol": "git",
+      "credit": "Original SoftDownloader interface symbol, MIT; not a product logo",
+      "tile": 115
+    },
+    "libreoffice": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/libreoffice.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "ea1e266b8a8d13b17d61736f33640bcc8eb8ba7ceacfde4ec2a1dc13f348e234",
+      "tile": 116
+    },
+    "liquid-launcher": {
+      "url": "https://raw.githubusercontent.com/CCBlueX/LiquidLauncher/5b861921eea8ba546a57114262af64cdac3db272/src-tauri/icons/icon.ico",
+      "credit": "Product artwork from CCBlueX/LiquidLauncher",
+      "sha256": "2026f1aa8b8edbeca9869b1b73bcfd0b6c5fcd3a0512ebf89850596dc35f2f59",
+      "tile": 117
+    },
+    "llvm": {
+      "url": "https://llvm.org/favicon.ico",
+      "credit": "Product artwork from llvm.org",
+      "sha256": "a965c5fb2db3cc8e6a7846077c206ab01e05c76204c24a35f2fb50128808879d",
+      "tile": 118
+    },
+    "lm-studio": {
+      "url": "https://lmstudio.ai/assets/marketing/logo-192x192.png",
+      "credit": "Product artwork from lmstudio.ai",
+      "sha256": "e79ff2ac0fece5c0a76fcb8b20a29226794d11824ee7c7a2f521dcde0f88e12b",
+      "tile": 119
+    },
+    "lmms": {
+      "url": "https://lmms.io/img/logo_sm.png",
+      "credit": "Product artwork from lmms.io",
+      "sha256": "0c4b0e28bd98e9b4be2cf7ce5c51f807e0d1863d262ec3e996b475cbb48a73ac",
+      "tile": 120
+    },
+    "localsend": {
+      "url": "https://raw.githubusercontent.com/localsend/localsend/14f3a87426eedffaa9d87d011132eca5501abeb8/app/windows/runner/resources/app_icon.ico",
+      "credit": "Product artwork from localsend/localsend",
+      "sha256": "da340046a7506bc495e519cfd45569d5df025591eed173afc43e4c63a45a500b",
+      "tile": 121
+    },
+    "logseq": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/logseq.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "36696d81d73f5f09c7534085f797eebffca80358e232e6e518f113cd088f0676",
+      "tile": 122
+    },
+    "malwarebytes": {
+      "url": "https://www.malwarebytes.com/wp-content/uploads/sites/2/2026/10/app.png?w=180",
+      "credit": "Product artwork from www.malwarebytes.com",
+      "sha256": "661311fd69941cf10c36d0d293ef661a921ef47f0620dea6b7019ce78098a405",
+      "tile": 123
+    },
+    "meta-horizon-link": {
+      "url": "https://static.xx.fbcdn.net/rsrc.php/yQ/r/0eWKxz9kEoF.webp",
+      "credit": "Product artwork from www.meta.com",
+      "sha256": "2d1ac8a2fd4b90aa0e4be05bfdb634c02404c94c9f5c1923e4be7b89fa36cfe3",
+      "tile": 124
+    },
+    "mhutchie-git-graph": {
+      "url": "https://mhutchie.gallery.vsassets.io/_apis/public/gallery/publisher/mhutchie/extension/git-graph/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "64e652270c9efcb4b609b456cff22d057928b2e33ef5eb165374a639c948dfeb",
+      "tile": 125
+    },
+    "minecraft-launcher": {
+      "url": "https://www.minecraft.net/etc.clientlibs/minecraftnet/clientlibs/clientlib-site/resources/apple-icon-180x180.png",
+      "credit": "Product artwork from www.minecraft.net",
+      "sha256": "713f0ea29c9a28eb263f0b9783cff360dff8a05f282c0375e263fa974695aac9",
+      "tile": 126
+    },
+    "mod-organizer-2": {
+      "url": "https://raw.githubusercontent.com/ModOrganizer2/modorganizer/HEAD/src/mo_icon.ico",
+      "credit": "Mod Organizer 2 product artwork",
+      "sha256": "80533a03c964a45ba4bc0039aa3c03633241259b01f56dcd0dbbfd787af91008",
+      "tile": 127
+    },
+    "modrinth": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/modrinth.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "0fa5d21f0d473f67db779c8c8a2e5eafa05044fbc6b2321011bbee42bc1d92f1",
+      "tile": 128
+    },
+    "moonlight": {
+      "url": "https://raw.githubusercontent.com/moonlight-stream/moonlight-qt/b0af84ead19e711a55db46f8900182d2e0fa3716/app/moonlight.ico",
+      "credit": "Product artwork from moonlight-stream/moonlight-qt",
+      "sha256": "217eaa17949f190a582c39898ef524ae80bb944fcc75e54daea714c22831c4d5",
+      "tile": 129
+    },
+    "mpc-hc": {
+      "url": "https://raw.githubusercontent.com/clsid2/mpc-hc/48478c2d44e975dc473d3452610a7252be26b174/src/mpc-hc/res/icon.ico",
+      "credit": "Product artwork from clsid2/mpc-hc",
+      "sha256": "0a8fc163a11c8a8e71cec6ee9abfa6eb7940df12ae42b7faf3259a77e79227d8",
+      "tile": 130
+    },
+    "mpv": {
+      "url": "https://mpv.io/images/favicon-5d3b2a52.png",
+      "credit": "Product artwork from mpv.io",
+      "sha256": "760b17a001a0b040ed5a7ebd7ebd0055404821e4eed861edeb6fb456dbda41e4",
+      "tile": 131
+    },
+    "ms-azuretools-vscode-docker": {
+      "url": "https://ms-azuretools.gallery.vsassets.io/_apis/public/gallery/publisher/ms-azuretools/extension/vscode-docker/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "0c55fe20a02973da4bb0a723bd9261c8c09b49d6bde99bd557169bf40e2d56c9",
+      "tile": 132
+    },
+    "ms-ceintl-vscode-language-pack-ru": {
+      "url": "https://MS-CEINTL.gallery.vsassets.io/_apis/public/gallery/publisher/MS-CEINTL/extension/vscode-language-pack-ru/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "00446b52fa5fe7550f8618f5fe8a8dbba6d1b241fecb01490dc9ac4c90da04ac",
+      "tile": 133
+    },
+    "ms-dotnettools-csharp": {
+      "url": "https://ms-dotnettools.gallery.vsassets.io/_apis/public/gallery/publisher/ms-dotnettools/extension/csharp/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "6f3c3283c922fe61789f5c9f210e31ac7ba7c5214437756bdcc5b3763c31d788",
+      "tile": 134
+    },
+    "ms-python-debugpy": {
+      "url": "https://ms-python.gallery.vsassets.io/_apis/public/gallery/publisher/ms-python/extension/debugpy/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "677615c4e4f2585c8df24364902284d3bb019b7eca56c43da1c18af0f1b2631f",
+      "tile": 135
+    },
+    "ms-python-python": {
+      "url": "https://ms-python.gallery.vsassets.io/_apis/public/gallery/publisher/ms-python/extension/python/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "677615c4e4f2585c8df24364902284d3bb019b7eca56c43da1c18af0f1b2631f",
+      "tile": 135
+    },
+    "ms-python-vscode-pylance": {
+      "url": "https://ms-python.gallery.vsassets.io/_apis/public/gallery/publisher/ms-python/extension/vscode-pylance/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "677615c4e4f2585c8df24364902284d3bb019b7eca56c43da1c18af0f1b2631f",
+      "tile": 135
+    },
+    "ms-toolsai-jupyter": {
+      "url": "https://ms-toolsai.gallery.vsassets.io/_apis/public/gallery/publisher/ms-toolsai/extension/jupyter/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "378915a76120c25b97872ad24b0881c95b112d25d70beb625da034fb7a5d5521",
+      "tile": 136
+    },
+    "ms-vscode-cpptools": {
+      "url": "https://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/cpptools/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "1fd84737d395e0727263d78d2c6b92d57c9b57cd13771075b8c7c193d6e47d53",
+      "tile": 137
+    },
+    "ms-vscode-remote-remote-ssh": {
+      "url": "https://ms-vscode-remote.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode-remote/extension/remote-ssh/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "6693efc8e5bd7dbb43d07c09e5b0cbc256674868546a0d28cc994a92463819df",
+      "tile": 138
+    },
+    "ms-vscode-remote-remote-wsl": {
+      "url": "https://ms-vscode-remote.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode-remote/extension/remote-wsl/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "9240a6c71f610b9052df3c5771fafc2b09bc41574f299ae5383a1df63736a96e",
+      "tile": 139
+    },
+    "mullvad": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/mullvad.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "24e5e2436e6da6a8188420f28cffe44af8f2a1cde9bcae61f96a848da10c09b3",
+      "tile": 140
+    },
+    "nanazip": {
+      "url": "https://raw.githubusercontent.com/M2Team/NanaZip/0d073f0b068041640f1d79b9b33c61915b4212da/Assets/NanaZip.ico",
+      "credit": "Product artwork from M2Team/NanaZip",
+      "sha256": "d2bb1041070742ea77bcee9411287ca458288ac8746d18f4ec93c5bcb2b3dcb8",
+      "tile": 141
+    },
+    "naps2": {
+      "url": "https://raw.githubusercontent.com/cyanfish/naps2/b8da3ba1d94ba85167639555325dce7842c172c2/NAPS2.Lib/Icons/favicon.ico",
+      "credit": "Product artwork from cyanfish/naps2",
+      "sha256": "77dd9d833690bfce339a9f424ff770154c34de394116de0df7d2591c98d866f2",
+      "tile": 142
+    },
+    "neovim": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/neovim.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "05191ea16909c02ae17c8d255e2ecc3d4e27de9f96367a2c428cf1f27c68929e",
+      "tile": 143
+    },
+    "nextcloud": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/nextcloud.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "76255228d7ad2eb781b509a868fe054e32f18afc875ed80c3e986da2c9366e11",
+      "tile": 144
+    },
+    "ninja": {
+      "symbol": "build",
+      "credit": "Original SoftDownloader interface symbol, MIT; not a product logo",
+      "tile": 145
+    },
+    "nodejs": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/nodejs.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "40a726687fbf411c6339b9138ebaa034963085e9e6ea8cc5e035fb3584bffcd5",
+      "tile": 146
+    },
+    "notepad-plus-plus": {
+      "url": "https://raw.githubusercontent.com/notepad-plus-plus/notepad-plus-plus/HEAD/PowerEditor/src/icons/npp.ico",
+      "credit": "Notepad++ product artwork",
+      "sha256": "7f00c181277bddfe06f51e7712c713e24e29a167b20033c43829136cdadc655d",
+      "tile": 147
+    },
+    "notion": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/notion.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "385d360e996dc36bb5967ee3eeb1bdb21b69fecb74b0784c53574156a973f6f1",
+      "tile": 148
+    },
+    "nushell": {
+      "url": "https://www.nushell.sh/icon.png",
+      "credit": "Product artwork from www.nushell.sh",
+      "sha256": "d883245446de196b21c726886a8114b3571b02aa3a56b55e1574997399d0b184",
+      "tile": 149
+    },
+    "nvidia-app": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/nvidia.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "7ef9d98abe5e83fa2c73d647925cf9640731e55cffd2966bc15e2a7da8b580f1",
+      "tile": 75
+    },
+    "obs": {
+      "url": "https://obsproject.com/assets/images/new_icon_small-r.png",
+      "credit": "OBS Project product artwork",
+      "sha256": "cc4b94efae24b4a571131526361352787a9193c01ffe09ce5bb018710ce666c9",
+      "tile": 150
+    },
+    "obsidian": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/obsidian.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "ba67bb70a7f8e3d15afd87f6d63164982a1a2aaabb83afc9e851cb2f9fdf4dc4",
+      "tile": 151
+    },
+    "oh-my-posh": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/oh-my-posh.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "a5be1aa78fe0bad49a0aead6741e322e3cadffd3b01e26be4a6da00b76d6cc5d",
+      "tile": 152
+    },
+    "okular": {
+      "url": "https://okular.kde.org/favicon-16x16.png",
+      "credit": "Product artwork from okular.kde.org",
+      "sha256": "b56e5b9473036ccce7bf241254ab11d6574526761f39990597a4b10d3461b49f",
+      "tile": 153
+    },
+    "ollama": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/ollama.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "a556c6d196df09e0023ef8159b1533d8cab8fb39db086c43200561b8887a53a4",
+      "tile": 154
+    },
+    "onlyoffice": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/onlyoffice.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "042798f169835bf390d9e573a03cebd4e8b03b85276a051197e094cc8090233a",
+      "tile": 155
+    },
+    "op-auto-clicker": {
+      "url": "https://www.opautoclicker.com/favicon.ico",
+      "credit": "Product artwork from www.opautoclicker.com",
+      "sha256": "664fc57e3534e31201dd329d419e081837d413b79db2e7b16996174c0d3a47ba",
+      "tile": 156
+    },
+    "paint-net": {
+      "url": "https://www.getpaint.net/apple-touch-icon.png",
+      "credit": "Product artwork from www.getpaint.net",
+      "sha256": "c3d825aa2cc100b4c81639cd89dae1c76d92a7742573f916549f9a45fcb626e7",
+      "tile": 157
+    },
+    "parsec": {
+      "url": "https://parsec.app/favicon.ico",
+      "credit": "Product artwork from parsec.app",
+      "sha256": "fce1a24e408ac00dcef4c8eb64e20d4042728b1fd1e96965a3da0f6f21869770",
+      "tile": 158
+    },
+    "pdf24": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/pdf24.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "22b989ee22c97efffa83bb317f7c21496e7add1a316fb445fe07dfd285dfc4c9",
+      "tile": 159
+    },
+    "pdfgear": {
+      "url": "https://www.pdfgear.com/img/icon.png",
+      "credit": "Product artwork from www.pdfgear.com",
+      "sha256": "378d7a94966327cc874f6970c3c2632e6b3279496a1866e4c76d33a07fed90cd",
+      "tile": 160
+    },
+    "peazip": {
+      "url": "https://peazip.github.io/favicon.ico",
+      "credit": "Product artwork from peazip.github.io",
+      "sha256": "c7482a043ac6b2925c9faf6219cba273c488b0933df1c8c258c6e72762ef8037",
+      "tile": 161
+    },
+    "pkief-material-icon-theme": {
+      "url": "https://PKief.gallery.vsassets.io/_apis/public/gallery/publisher/PKief/extension/material-icon-theme/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "3c0ddca5f1dc1d3c4d9fe6e269e8d26ca7bb465234b1379411f0dab51ab27bc8",
+      "tile": 162
+    },
+    "playnite": {
+      "url": "https://raw.githubusercontent.com/JosefNemec/Playnite/ecee01452a25db1fb2674a69f883d298d4c7be8a/source/Playnite.BrowserProcess/app.ico",
+      "credit": "Product artwork from JosefNemec/Playnite",
+      "sha256": "6e4d75e822a22b2ee09545f826fbba5082db0416b149255747c433bb5e3d03e5",
+      "tile": 163
+    },
+    "pomotroid": {
+      "url": "https://raw.githubusercontent.com/Splode/pomotroid/dda06e6bf412bebe5ef8668a4357c52d974dc874/src-tauri/icons/icon.ico",
+      "credit": "Product artwork from Splode/pomotroid",
+      "sha256": "ab047fe2806a9a9a64e522a9dc61a3d4136941774918c2036629bbc592acb923",
+      "tile": 164
+    },
+    "postman": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/postman.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "9a22d98845fb220941c4d7a784ef42d89daf3dcaff6ee38403958f5954ef7d85",
+      "tile": 165
+    },
+    "potplayer": {
+      "url": "https://t1.kakaocdn.net/potplayer/main/img/player.png",
+      "credit": "Product artwork from potplayer.tv",
+      "sha256": "c24c398c8c5e9a78dc0dfa81a3d1daee299eb74f49296aa76766ef6430e85912",
+      "tile": 166
+    },
+    "powershell": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/powershell.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "cad7032e1f6f61410f0d264c94790bbd158c23948f98d8235d8187816f5913d2",
+      "tile": 167
+    },
+    "powertoys": {
+      "url": "https://raw.githubusercontent.com/microsoft/PowerToys/396400dab2db8cfbc1649ae36559c198d6b4d3c1/src/runner/svgs/icon.ico",
+      "credit": "Product artwork from microsoft/PowerToys",
+      "sha256": "637eecfa2f0baaf87677adfbd7164ff9954429cf920e1bd7abebe08f85984e1d",
+      "tile": 168
+    },
+    "prism-cracked": {
+      "url": "https://raw.githubusercontent.com/Diegiwg/PrismLauncher-Cracked/HEAD/program_info/prismlauncher.ico",
+      "credit": "Prism Launcher fork product artwork",
+      "sha256": "d2e25572c4df4d4cc39e89c95490106f66777545374cc00ec44630382f37c547",
+      "tile": 169
+    },
+    "prism-launcher": {
+      "url": "https://raw.githubusercontent.com/PrismLauncher/PrismLauncher/HEAD/program_info/prismlauncher.ico",
+      "credit": "Prism Launcher product artwork",
+      "sha256": "c9c7e5e97fa34675c2ae29b1eec8b9f01eb5eacdba46a1d3642c3f244c9d3c39",
+      "tile": 170
+    },
+    "process-explorer": {
+      "url": "https://live.sysinternals.com/procexp.exe",
+      "format": "exe",
+      "credit": "Microsoft Sysinternals product icon; resource extraction only",
+      "sha256": "00a9670b2a8cfc94e45ef0b70f7963121e03c287e37301975efdc9989f069045",
+      "tile": 171
+    },
+    "process-monitor": {
+      "url": "https://live.sysinternals.com/Procmon.exe",
+      "format": "exe",
+      "credit": "Microsoft Sysinternals product icon; resource extraction only",
+      "sha256": "c28d800a38621a5bc79b051052418a454ce9a67678767b9ee2164420ec895619",
+      "tile": 172
+    },
+    "proton-vpn": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/proton-vpn.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "995d8c0328287d555fff5613fd09f39236ef7e3926b50f23c20803aadefe017b",
+      "tile": 173
+    },
+    "proxifier": {
+      "url": "https://www.proxifier.com/favicon.png",
+      "credit": "Product artwork from www.proxifier.com",
+      "sha256": "fe0e0b85c65358cc7bc4b3c660b9eaa5428bbdb3cccef1a88ff6ce7bf707ff2c",
+      "tile": 174
+    },
+    "putty": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/putty.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "fc94b14d946c3fc5113b7c5f66a2a76262a6f9f537e7e3bb9f57b3801b122783",
+      "tile": 175
+    },
+    "pycharm-ce": {
+      "url": "https://resources.jetbrains.com/storage/products/pycharm/img/meta/pycharm_logo_300x300.png",
+      "credit": "JetBrains PyCharm product artwork",
+      "sha256": "150590bab081555448f1ec1be8869a07b349237fb2bb1adaf5a7f7100a2fbc74",
+      "tile": 176
+    },
+    "python": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/python.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "49bca2f2cbae365dc9739389cc9de179f571941b65262f2fc1de60d4445719c9",
+      "tile": 177
+    },
+    "python-313": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/python.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "49bca2f2cbae365dc9739389cc9de179f571941b65262f2fc1de60d4445719c9",
+      "tile": 177
+    },
+    "qbittorrent": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/qbittorrent.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "3d03a2c91440a85ab6879207f90e17a8ff9c9580ae5a26ec3a64b2c2418f7019",
+      "tile": 178
+    },
+    "quicklook": {
+      "url": "https://raw.githubusercontent.com/QL-Win/QuickLook/5026c71b27d203e8853303a5a87577647bc37a9e/QuickLook/Resources/app.ico",
+      "credit": "Product artwork from QL-Win/QuickLook",
+      "sha256": "32147b66b2f19bfacf81a1b01c1aee75f623992c622b7178662491db268f0ea3",
+      "tile": 179
+    },
+    "r2modman": {
+      "url": "https://raw.githubusercontent.com/ebkr/r2modmanPlus/a1897e3d6f7c1946dc51312252db1cc25f1dace0/public/favicon.ico",
+      "credit": "Product artwork from ebkr/r2modmanPlus",
+      "sha256": "5b0cb7c05b15b187d1b9383091267f8294a5161fbe6fc9509b2283a51378183e",
+      "tile": 180
+    },
+    "reaper": {
+      "url": "https://www.reaper.fm/favicon.ico",
+      "credit": "Product artwork from www.reaper.fm",
+      "sha256": "94e32df70a5db8526e3420298e3aff93931b30d6f8141c36e9cbd3597225d082",
+      "tile": 181
+    },
+    "redhat-java": {
+      "url": "https://redhat.gallery.vsassets.io/_apis/public/gallery/publisher/redhat/extension/java/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "cf669aebbece61123c6f2de180444227812d8a61827740cbc3f908e1ef77a0b2",
+      "tile": 182
+    },
+    "revo-uninstaller": {
+      "url": "https://www.revouninstaller.com/favicon.ico",
+      "credit": "Product artwork from www.revouninstaller.com",
+      "sha256": "91e8f868eef6967dcfca5eeb8e428184a0f4dcd017246c78138e71e158a78db7",
+      "tile": 183
+    },
+    "ripgrep": {
+      "symbol": "search",
+      "credit": "Original SoftDownloader interface symbol, MIT; not a product logo",
+      "tile": 184
+    },
+    "ritwickdey-liveserver": {
+      "url": "https://ritwickdey.gallery.vsassets.io/_apis/public/gallery/publisher/ritwickdey/extension/LiveServer/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "1e865267cd33d881a6ef622f1ca6897b737ec14bfb931a722202e5ce70c67cab",
+      "tile": 185
+    },
+    "rooveterinaryinc-roo-cline": {
+      "url": "https://RooVeterinaryInc.gallery.vsassets.io/_apis/public/gallery/publisher/RooVeterinaryInc/extension/roo-cline/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "6dfbd44c806ace9d2b2d71f011cfb72fea5bfd501ab586e841a4c5f87c10f39a",
+      "tile": 186
+    },
+    "rufus": {
+      "url": "https://raw.githubusercontent.com/pbatard/rufus/875f221d5b4fa2c43cad1b85ae975d106964949f/res/rufus.ico",
+      "credit": "Product artwork from pbatard/rufus",
+      "sha256": "15337501f2b2be6b84ecf5571d6419b9a2e54a6c1fcaebf77cbf5becd2ed86e2",
+      "tile": 187
+    },
+    "rust": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/rust.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "2cfc460f07467daa1882841caa80ddd604de3bf1464224c79360b6efa18061ad",
+      "tile": 188
+    },
+    "rust-lang-rust-analyzer": {
+      "url": "https://rust-lang.gallery.vsassets.io/_apis/public/gallery/publisher/rust-lang/extension/rust-analyzer/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "283cc535e5fa385e1b467a9eb932b020cef6ff7d702653ecd662d2c2a2096bec",
+      "tile": 189
+    },
+    "screentogif": {
+      "url": "https://raw.githubusercontent.com/NickeManarin/ScreenToGif/a4d0a67c2131cd048ceec86cd40afc2f1a06f2fd/Other/Translator/Logo.ico",
+      "credit": "Product artwork from NickeManarin/ScreenToGif",
+      "sha256": "c1910129e5a84686c0950d325f506e1bd0f8cb419336fd8bad5b299ab6e3fce8",
+      "tile": 190
+    },
+    "sharex": {
+      "url": "https://raw.githubusercontent.com/ShareX/ShareX/HEAD/ShareX/ShareX_Icon.ico",
+      "credit": "ShareX product artwork",
+      "sha256": "7c0edf2e90f3dbac9c76a4719df1a1f543a2a30d4cfe3dc37eb83671cae682e9",
+      "tile": 191
+    },
+    "shotcut": {
+      "url": "https://shotcut.org/assets/img/favicon.ico",
+      "credit": "Product artwork from shotcut.org",
+      "sha256": "88ce9796279d95332c8c807b2b9ddad868bfcd1e3bf4f76335f6a0c9fbe1ef88",
+      "tile": 192
+    },
+    "shutdown-pc-timer": {
+      "symbol": "power",
+      "credit": "Original SoftDownloader interface symbol, MIT; not a product logo",
+      "tile": 193
+    },
+    "shutdown-timer": {
+      "url": "https://raw.githubusercontent.com/lukaslangrock/ShutdownTimerClassic/22ac336295da6d26a509714cda29eb88fcb09767/media/icons/display/icon.ico",
+      "credit": "Product artwork from lukaslangrock/ShutdownTimerClassic",
+      "sha256": "a11e54ebec8da0e558ba32518ed05f04488912c2f09441af372a2da230701fba",
+      "tile": 194
+    },
+    "sideloadly": {
+      "url": "https://www.google.com/s2/favicons?domain=sideloadly.io&sz=128",
+      "credit": "Sideloadly website icon from the Google S2 favicon cache",
+      "sha256": "bd19d6f372d03a3608c6bea6d963f4bf0a45d500bc7ba472218a9a76d48e71b1",
+      "tile": 195
+    },
+    "signal": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/signal.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "bf297032cb3686701f14573679a9a922499b690cc515bd5279d262aeb23a40ee",
+      "tile": 196
+    },
+    "sioyek": {
+      "url": "https://raw.githubusercontent.com/ahrm/sioyek/78b94e2115f60eb124df266d13eb2838da42c5b5/android/res/drawable-mdpi/icon.png",
+      "credit": "Product artwork from ahrm/sioyek",
+      "sha256": "d638ea0c74c4630b3ca6278ba0feabed74472aa1473ca4d2c5cb41c0d74c4466",
+      "tile": 197
+    },
+    "slack": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/slack.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "1dcd4ff469d9a924542a60eb15ca48206d83ebfbe0a22c977699f5caafc04b6f",
+      "tile": 198
+    },
+    "spotify": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/spotify.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "253d15d7551c4fd34d525965023dd4cd2f5db0d2f5f05497d59015017d5d079a",
+      "tile": 199
+    },
+    "starship": {
+      "url": "https://starship.rs/icon.png",
+      "credit": "Product artwork from starship.rs",
+      "sha256": "1bc408e033eb09caf6feea1079b11c6c47c18d356604223cfa99b966a99b7d36",
+      "tile": 200
+    },
+    "steam": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/steam.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "85a46d68f46d5c019e71ebabd98ba016418d18ff2222932cdf35a2f8cddf08e4",
+      "tile": 201
+    },
+    "stellarium": {
+      "url": "https://stellarium.org/img/favicon/16x16/stellarium.png",
+      "credit": "Product artwork from stellarium.org",
+      "sha256": "6b2f773a1a0119b32744e6fc522f37a7c492c4f34be602e881b4a681b9afe22e",
+      "tile": 202
+    },
+    "streetsidesoftware-code-spell-checker": {
+      "url": "https://streetsidesoftware.gallery.vsassets.io/_apis/public/gallery/publisher/streetsidesoftware/extension/code-spell-checker/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "8b0d85fbb4a0135e941bd0869dac4c0630205d07be80db2993b93eebf62d18da",
+      "tile": 203
+    },
+    "sublime-text": {
+      "url": "https://www.sublimetext.com/images/icon.png",
+      "credit": "Product artwork from www.sublimetext.com",
+      "sha256": "e0a5324f805b8b53932bd55da1706a8ede1a0e5d6f55b296bb7e395393decdc5",
+      "tile": 204
+    },
+    "sumatra-pdf": {
+      "url": "https://www.sumatrapdfreader.org/favicon.ico",
+      "credit": "Product artwork from www.sumatrapdfreader.org",
+      "sha256": "4910410972a7d550f6e483de99a53ede10fdbfa5435122af36736368d5abb04a",
+      "tile": 205
+    },
+    "super-productivity": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/super-productivity.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "5f2644131565bc2117fcec5c8fe72df4d2b965f1ecf659861dbfca46b68aad28",
+      "tile": 206
+    },
+    "svelte-svelte-vscode": {
+      "url": "https://svelte.gallery.vsassets.io/_apis/public/gallery/publisher/svelte/extension/svelte-vscode/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "28c24caacc504671b17da0e6b8ba3895a4c71393e0ef15693d43a6a11dfb13a5",
+      "tile": 207
+    },
+    "syncthing": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/syncthing.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "fb461551f86dde899328d302b7b0bcf3a21447d8c3b567900c96fa1d11c43cf2",
+      "tile": 208
+    },
+    "system-informer": {
+      "url": "https://systeminformer.sourceforge.io/favicon.ico",
+      "credit": "Product artwork from systeminformer.sourceforge.io",
+      "sha256": "d9d9c30c0001280eb935b654177dcf8004480940fcefdebb0fa2269d5b5f8c0a",
+      "tile": 209
+    },
+    "tailscale": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/tailscale.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "0d4ecf4a308786856ee161c914d248a8a22909c1d28999eeb3deac4d7de66e51",
+      "tile": 210
+    },
+    "tamasfe-even-better-toml": {
+      "url": "https://tamasfe.gallery.vsassets.io/_apis/public/gallery/publisher/tamasfe/extension/even-better-toml/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "623953e83e77449b1a389a169ace6e51b66d5421e4e55202e9406e61f10356ba",
+      "tile": 211
+    },
+    "tcpview": {
+      "url": "https://live.sysinternals.com/Tcpview.exe",
+      "format": "exe",
+      "credit": "Microsoft Sysinternals product icon; resource extraction only",
+      "sha256": "9775b4bbe23b8eb93727efe0a6d0b160ae5132a10b223f43200499cf0051a18f",
+      "tile": 212
+    },
+    "telegram": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/telegram.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "8c650d14ca47eb6fd72aa3347d9d5f284016b7eae1e3b9606555b354db9387f3",
+      "tile": 213
+    },
+    "termius": {
+      "url": "https://framerusercontent.com/images/RaVfXKUnfCfHvsZac7elxD7jVtc.png",
+      "credit": "Product artwork from termius.com",
+      "sha256": "6feaf4defa6f2e8b0ba511e0b1afc7130f1cfd2765c47a910447d5306dac01f0",
+      "tile": 214
+    },
+    "tgwsproxy": {
+      "url": "https://raw.githubusercontent.com/Flowseal/tg-ws-proxy/307a384ab7f522e34bb1a045884d0bd90f40bee5/icon.ico",
+      "credit": "Product artwork from Flowseal/tg-ws-proxy",
+      "sha256": "4b3108858a414b35d0a6fde2e304fb7ae18e5b2831e69e9e492cfdb1b048009d",
+      "tile": 215
+    },
+    "thunderbird": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/thunderbird.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "0543210d50cd7e82c123ad77527487dd50cd6b2676b5b324a6a39d108f9378b7",
+      "tile": 216
+    },
+    "total-commander": {
+      "url": "https://www.ghisler.com/favicon.ico",
+      "credit": "Product artwork from www.ghisler.com",
+      "sha256": "dadc393d6f767e776a8ac7d4992d15b08d2b6e2b3300693b8382844a6e867be0",
+      "tile": 217
+    },
+    "trae": {
+      "url": "https://lf16-web-neutral.traecdn.ai/obj/trae-ai-static/trae_website/favicon.png",
+      "credit": "Product artwork from www.trae.ai",
+      "sha256": "49d523938a22af5a70dd79923725df38674823026e2f917e76337319969f4af4",
+      "tile": 218
+    },
+    "translucenttb": {
+      "url": "https://raw.githubusercontent.com/TranslucentTB/TranslucentTB/HEAD/AppPackage/Assets-Release/Square44x44Logo.targetsize-256.png",
+      "credit": "TranslucentTB product artwork",
+      "sha256": "9be741e745cd9c63537f773c0a7e3571dd7f6d955d54475d80eb6aca0fae850f",
+      "tile": 219
+    },
+    "treesize-free": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/treesize.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "537acc1b742cfb653d4ed1a76338e124bd6951e4350388f1f8b4f4b2d1492d53",
+      "tile": 220
+    },
+    "twinkle-tray": {
+      "url": "https://twinkletray.com/assets/img/logo.ico",
+      "credit": "Product artwork from twinkletray.com",
+      "sha256": "97804c612a56e614b0f4679b88cd8bb50b4bf23884e73e6afd479206eebb06c5",
+      "tile": 221
+    },
+    "ubisoft-connect": {
+      "url": "https://static-dm.ubisoft.com/ubisoft/prod/favicon-57x57.png",
+      "credit": "Product artwork from ubisoftconnect.com",
+      "sha256": "9eba33b30853abcfd8e122dee9a2f14083d525b9af76de8a86ba37bf7d053075",
+      "tile": 222
+    },
+    "unigetui": {
+      "url": "https://raw.githubusercontent.com/marticliment/UniGetUI/96e230965686d1f821a136465b5e150ad960d642/src/SharedAssets/icon.ico",
+      "credit": "Product artwork from marticliment/UniGetUI",
+      "sha256": "370537c5d72fc76148acca34cfe421a702e0c56c39f9cf6685e3d3225cade1c4",
+      "tile": 223
+    },
+    "unity-hub": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/unity.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "b5737557cffd5b0e59de88d21e73ae8b7e07f38d2cf81b8dd2fa1a996d3de42b",
+      "tile": 224
+    },
+    "usernamehw-errorlens": {
+      "url": "https://usernamehw.gallery.vsassets.io/_apis/public/gallery/publisher/usernamehw/extension/errorlens/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "fca1cdfebf35376283725965b61d8f63eccd8cdacededf7e2892a49c48a24d36",
+      "tile": 225
+    },
+    "vcredist-x64": {
+      "url": "https://aka.ms/vs/17/release/vc_redist.x64.exe",
+      "format": "exe",
+      "credit": "Microsoft Visual C++ runtime installer icon; resource extraction only",
+      "sha256": "cc0ff0eb1dc3f5188ae6300faef32bf5beeba4bdd6e8e445a9184072096b713b",
+      "tile": 226
+    },
+    "vcredist-x86": {
+      "url": "https://aka.ms/vs/17/release/vc_redist.x86.exe",
+      "format": "exe",
+      "credit": "Microsoft Visual C++ runtime installer icon; resource extraction only",
+      "sha256": "0c09f2611660441084ce0df425c51c11e147e6447963c3690f97e0b25c55ed64",
+      "tile": 226
+    },
+    "ventoy": {
+      "url": "https://www.ventoy.net/favicon.ico",
+      "credit": "Product artwork from www.ventoy.net",
+      "sha256": "d061d137a58daefeee3ae745aab806b05987ce015b4ae6ce84d668186019f269",
+      "tile": 227
+    },
+    "veracrypt": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/vera-crypt.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "c860bad86b1df0506a483b4315920923999053943954883d9255d0787f2cfe45",
+      "tile": 228
+    },
+    "vim": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/vim.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "bbb69ebf05e7a100a6415db8c04f95303065f553635044de86ebc8d283afb35d",
+      "tile": 229
+    },
+    "virtualbox": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/virtualbox.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "2589cbff0f419d14eed080bc31a47f63d995bf53d352500187f5a2d103e05cd0",
+      "tile": 230
+    },
+    "visual-studio": {
+      "url": "https://visualstudio.microsoft.com/wp-content/themes/Avada-Child-Theme/assets/img/favicon/apple-touch-icon-180.png?ver=1789066767",
+      "credit": "Product artwork from visualstudio.microsoft.com",
+      "sha256": "fae5e4e60392cdb3ed9d6bbafba334eeb08598f584d1b50bb81e6721407c60c1",
+      "tile": 231
+    },
+    "vlc": {
+      "url": "https://www.videolan.org/favicon.ico",
+      "credit": "VideoLAN product artwork",
+      "sha256": "8d4a9eb0ab500890bbca4691848f67967efb16f1c3b1f81564a5656250edf419",
+      "tile": 232
+    },
+    "vortex": {
+      "url": "https://raw.githubusercontent.com/Nexus-Mods/Vortex/cb9b3231fe5219d16976f20fbd7f0c3e3bcccda2/src/main/nsis/icon.ico",
+      "credit": "Product artwork from Nexus-Mods/Vortex",
+      "sha256": "2467e69faf9ec2d25225dfb1df85d7f878b10074471362aab8468cdaa0feac90",
+      "tile": 233
+    },
+    "vscode": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/visual-studio-code.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "49440f0c00fc489de62e2e75d02b84cf92d57bbcb999b800c7310cb0d033347b",
+      "tile": 234
+    },
+    "vue-volar": {
+      "url": "https://Vue.gallery.vsassets.io/_apis/public/gallery/publisher/Vue/extension/volar/latest/assetbyname/Microsoft.VisualStudio.Services.Icons.Default",
+      "credit": "VS Code Marketplace product icon",
+      "sha256": "aa4312f4c8fb7c4bbd7185f452494bdd3decc4a8a7e29041eed9432e8ab6874a",
+      "tile": 235
+    },
+    "wemod": {
+      "url": "https://www.wemod.com/static/images/device-icons/favicon-192-ce0bc030f3.png",
+      "credit": "Product artwork from www.wemod.com",
+      "sha256": "8ec7fe4254111900dc74c341ef5e5a6691cafd0db1b1454380dc941a2d6ef9a3",
+      "tile": 236
+    },
+    "wincompose": {
+      "url": "https://raw.githubusercontent.com/samhocevar/wincompose/dabd52c19cf31b1a30d1a3b791f5cd13f6eb85df/web/icon.png",
+      "credit": "Product artwork from samhocevar/wincompose",
+      "sha256": "87b6343ff4d34bce28faa560f88b04d5b1e043ea6801d07a429b2a33a1c97c84",
+      "tile": 237
+    },
+    "windirstat": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/windirstat.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "a186562ec3191b093733e1974b5f97d98abae4a383882d7d2f117b1a016cf9e7",
+      "tile": 238
+    },
+    "windows-terminal": {
+      "url": "https://raw.githubusercontent.com/microsoft/terminal/HEAD/res/terminal.ico",
+      "credit": "Microsoft Terminal product artwork",
+      "sha256": "8486f9942964bfb6931519af2d3358a49364a56a8484530597908576561c581f",
+      "tile": 239
+    },
+    "windscribe": {
+      "url": "https://raw.githubusercontent.com/Windscribe/Desktop-App/a33b0ac4f0e1abd15df620c118e28f17928ab621/src/installer/gui/windows/installer/resources/windscribe.ico",
+      "credit": "Product artwork from Windscribe/Desktop-App",
+      "sha256": "34ed34bf17943bf45e8bdd5132e6a0024f1ce7b07835337ebf3dca3b5e583f33",
+      "tile": 240
+    },
+    "winmerge": {
+      "url": "https://winmerge.org/apple-touch-icon-precomposed.png",
+      "credit": "Product artwork from winmerge.org",
+      "sha256": "23615d4bcb29ed1db2b33e56eaa13dfcc52dd0d278f3138f74e71d351cfb8cc2",
+      "tile": 241
+    },
+    "winrar": {
+      "url": "https://www.rarlab.com/favicon.ico",
+      "credit": "Product artwork from www.rarlab.com",
+      "sha256": "7aec4a643d6846610958cd1796b6c8ed6c120bff4c3a507a8f2ed5a73e9ec6d7",
+      "tile": 242
+    },
+    "winscp": {
+      "url": "https://winscp.net/favicon.ico",
+      "credit": "Product artwork from winscp.net",
+      "sha256": "faab7ea7fdaec3eaead3fea26121e64a2c3f4bd041c44b3b1257702cd45aea33",
+      "tile": 243
+    },
+    "wireguard": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/wireguard.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "244253df97db0b3c6d3f128308b0630403cb25b676a1d67756cc825da03fdba7",
+      "tile": 244
+    },
+    "wireshark": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/wireshark.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "92addb1b3bf7d5d4f1881c2137ac05228f8b7be0e5dfca6bd324934666359bcc",
+      "tile": 245
+    },
+    "wizfile": {
+      "url": "https://antibody-software.com/wizfile/favicon-16x16.png",
+      "credit": "Product artwork from antibody-software.com",
+      "sha256": "ba34c0aa79752ad7ad799fe2ad3363d936f9a993c8f3122c09c19c05637b6a9e",
+      "tile": 246
+    },
+    "wiztree": {
+      "url": "https://diskanalyzer.com/favicon-16x16.png",
+      "credit": "Product artwork from diskanalyzer.com",
+      "sha256": "e207c32451bdb7c1cec39841aa15f740a2c9386f831145c0f36a29571b63f4de",
+      "tile": 247
+    },
+    "yazi": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/yazi.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "25743137732d27345f7eb81fc2d25cc012e08abddbff765c9c6f87d36101c829",
+      "tile": 248
+    },
+    "zapret": {
+      "symbol": "network",
+      "credit": "Original SoftDownloader interface symbol, MIT; not a product logo",
+      "tile": 115
+    },
+    "zig": {
+      "url": "https://ziglang.org/favicon.svg",
+      "credit": "Product artwork from ziglang.org",
+      "sha256": "236c91d7ef7af3bbe33a5579e6377e489bdba7d9c02e75f45e4a0e0c98aab194",
+      "tile": 249
+    },
+    "zoom": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/zoom.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "ad04fc14af3fecdcc8a76d7fb5c63c029ed26c795361b3ca5962f81a86ab3add",
+      "tile": 250
+    },
+    "zoomit": {
+      "url": "https://live.sysinternals.com/ZoomIt.exe",
+      "format": "exe",
+      "credit": "Microsoft Sysinternals product icon; resource extraction only",
+      "sha256": "7cd94ff8034852ab46bdacfe7462da08952508a77184fe88c20cbaea89b45f7a",
+      "tile": 251
+    },
+    "zotero": {
+      "url": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/2ade7af6c86f0bf7de0b29cd62af99b3458b7af1/png/zotero.png",
+      "credit": "Dashboard Icons · Apache-2.0",
+      "sha256": "30c76a7a6441884df75567287db08ee40be6b763af7309f452a434800e069cd4",
+      "tile": 252
+    },
+    "zoxide": {
+      "url": "https://raw.githubusercontent.com/ajeetdsouza/zoxide/86b443cffcd74d8dce0570792f1647491ffe5974/contrib/logo-dark.svg",
+      "credit": "Product artwork from ajeetdsouza/zoxide",
+      "sha256": "d3ec067e59cac98d7e2e176d7a72fffdb9309650cb2c7ca1a8effd53ca34bbf4",
+      "tile": 253
+    }
+  }
+}

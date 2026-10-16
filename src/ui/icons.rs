@@ -11,6 +11,7 @@ const ICON_SIZE: u32 = 64;
 const MAX_TEXTURES: usize = 512;
 
 pub struct IconLoader {
+    catalog: super::catalog_icons::CatalogIcons,
     loading: HashSet<PathBuf>,
     missing: HashSet<PathBuf>,
     textures: HashMap<PathBuf, (TextureHandle, u64)>,
@@ -21,6 +22,7 @@ pub struct IconLoader {
 
 impl IconLoader {
     pub fn new(ctx: Context) -> Result<Self> {
+        let catalog = super::catalog_icons::CatalogIcons::new(&ctx)?;
         let (requests, inbox) = sync_channel::<PathBuf>(64);
         let (done, finished) = channel();
         std::thread::Builder::new()
@@ -35,6 +37,7 @@ impl IconLoader {
                 }
             })?;
         Ok(Self {
+            catalog,
             loading: HashSet::new(),
             missing: HashSet::new(),
             textures: HashMap::new(),
@@ -46,6 +49,10 @@ impl IconLoader {
 
     pub fn refresh(&mut self) {
         self.missing.clear();
+    }
+
+    pub fn show_catalog(&self, ui: &mut egui::Ui, id: &str, size: f32) -> bool {
+        self.catalog.show(ui, id, size)
     }
 
     pub fn collect(&mut self, ctx: &Context) {
@@ -116,6 +123,7 @@ mod tests {
         let (requests, inbox) = sync_channel(2);
         let (done, finished) = channel();
         let mut loader = IconLoader {
+            catalog: super::super::catalog_icons::CatalogIcons::new(&ctx).unwrap(),
             loading: HashSet::new(),
             missing: HashSet::new(),
             textures: HashMap::new(),

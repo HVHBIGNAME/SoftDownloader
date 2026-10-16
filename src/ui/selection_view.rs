@@ -7,10 +7,12 @@ impl SoftDownloaderApp {
     pub(super) fn selection_bar(&mut self, ctx: &egui::Context) {
         let colors = theme::colors(ctx);
         let visible = self.queue_active
+            || self.pending_install.is_some()
             || matches!(self.page, Page::Catalog | Page::Sets) && !self.selected.is_empty()
             || self.page == Page::Installed && !self.selected_removals.is_empty();
+        let stacked = ctx.available_rect().width() < 950.0;
         egui::TopBottomPanel::bottom("selection-bar")
-            .exact_height(86.0)
+            .exact_height(if stacked { 132.0 } else { 90.0 })
             .frame(egui::Frame::new().inner_margin(Margin::symmetric(18, 10)))
             .show_animated(ctx, visible, |ui| {
                 colors
@@ -21,17 +23,51 @@ impl SoftDownloaderApp {
                     ))
                     .inner_margin(Margin::symmetric(14, 10))
                     .show(ui, |ui| {
-                        ui.horizontal_centered(|ui| {
-                            if self.queue_active {
-                                self.queue_progress(ui);
-                            } else if self.page == Page::Installed {
-                                self.removal_selection(ui);
+                        ui.spacing_mut().item_spacing.y = 6.0;
+                        ui.with_layout(
+                            if stacked {
+                                Layout::top_down(Align::Min)
                             } else {
-                                self.install_selection(ui);
-                            }
-                        });
+                                Layout::left_to_right(Align::Center)
+                            },
+                            |ui| {
+                                if self.pending_install.is_some() {
+                                    self.pending_selection(ui);
+                                } else if self.queue_active {
+                                    self.queue_progress(ui);
+                                } else if self.page == Page::Installed {
+                                    self.removal_selection(ui);
+                                } else {
+                                    self.install_selection(ui);
+                                }
+                            },
+                        );
                     });
             });
+    }
+
+    fn pending_selection(&mut self, ui: &mut egui::Ui) {
+        let count = self
+            .pending_install
+            .as_ref()
+            .map_or(0, |p| p.selected.len());
+        ui.horizontal(|ui| {
+            ui.spinner();
+            ui.vertical(|ui| {
+                ui.label(RichText::new(format!("Готовим установку · {count}")).strong());
+                ui.label(
+                    RichText::new(
+                        "Проверяем каталог и установленное ПО. Запуск продолжится автоматически.",
+                    )
+                    .size(12.0),
+                );
+            });
+        });
+        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            if ui.button("Отменить подготовку").clicked() {
+                self.pending_install = None;
+            }
+        });
     }
 
     fn queue_progress(&mut self, ui: &mut egui::Ui) {
@@ -77,14 +113,14 @@ impl SoftDownloaderApp {
             ui.label(RichText::new(format!("Выбрано: {}", self.selected.len())).strong());
             ui.label(
                 RichText::new("Зависимости добавятся автоматически")
-                    .size(11.0)
+                    .size(12.0)
                     .color(colors.muted),
             );
         });
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             if ui
                 .add_enabled(
-                    self.list_actions_enabled(),
+                    self.install_actions_enabled(),
                     colors.primary(format!("Установить · {}", self.selected.len())),
                 )
                 .on_hover_text("Запустить выбранные программы с текущим режимом установки")

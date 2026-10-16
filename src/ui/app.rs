@@ -8,7 +8,7 @@ use eframe::egui::{self, Align, Layout, Margin, RichText, Stroke, Vec2};
 use super::actions::Notification;
 use super::icons::IconLoader;
 use super::program_lists::{ImportPreview, ImportedSelection};
-use super::sounds::{Cue, SoundPlayer};
+use super::sounds::SoundPlayer;
 use super::theme::{self, Icon};
 use crate::catalog::{CatalogDocument, PackageKind};
 use crate::catalog_filter::CatalogFilter;
@@ -47,6 +47,13 @@ pub(super) struct InstallConfirmation {
     pub installation: InstallationSettings,
 }
 
+pub(super) struct PendingInstall {
+    pub selected: BTreeSet<String>,
+    review: bool,
+    installation: InstallationSettings,
+    source: String,
+}
+
 pub struct SoftDownloaderApp {
     pub(super) document: CatalogDocument,
     pub(super) store: Store,
@@ -62,6 +69,8 @@ pub struct SoftDownloaderApp {
     pub(super) package_icons: BTreeMap<String, std::path::PathBuf>,
     pub(super) programs_loading: bool,
     pub(super) installed_query: String,
+    pub(super) installed_search: super::installed_search::InstalledSearch,
+    pub(super) winget_status: Option<(std::time::Instant, bool)>,
     pub(super) selected_removals: BTreeSet<String>,
     pub(super) settings: Settings,
     pub(super) updater: super::update_view::UpdateUi,
@@ -91,6 +100,7 @@ pub struct SoftDownloaderApp {
     pub(super) loading: bool,
     pub(super) page: Page,
     pub(super) filter: CatalogFilter,
+    pub(super) catalog_search: super::catalog_search::CatalogSearch,
     pub(super) focus_search: bool,
     pub(super) selected: BTreeSet<String>,
     pub(super) details: Option<String>,
@@ -99,6 +109,7 @@ pub struct SoftDownloaderApp {
     pub(super) queue_already_installed: usize,
     pub(super) sets_ui: super::sets_view::SetsUi,
     pub(super) confirm_plan: Option<InstallConfirmation>,
+    pub(super) pending_install: Option<PendingInstall>,
     pub(super) confirm_removal: Option<Vec<InstalledProgram>>,
     pub(super) error: Option<String>,
     close_dialog: bool,
@@ -161,6 +172,8 @@ impl SoftDownloaderApp {
             package_icons: BTreeMap::new(),
             programs_loading: false,
             installed_query: String::new(),
+            installed_search: Default::default(),
+            winget_status: None,
             selected_removals: BTreeSet::new(),
             settings,
             updater,
@@ -190,6 +203,7 @@ impl SoftDownloaderApp {
             loading: false,
             page: Page::Catalog,
             filter: CatalogFilter::default(),
+            catalog_search: Default::default(),
             focus_search: false,
             selected,
             details: None,
@@ -198,6 +212,7 @@ impl SoftDownloaderApp {
             queue_already_installed: 0,
             sets_ui: Default::default(),
             confirm_plan: None,
+            pending_install: None,
             confirm_removal: None,
             error: None,
             close_dialog: false,
@@ -273,36 +288,12 @@ impl SoftDownloaderApp {
                 WorkerEvent::Programs { generation, result }
                     if generation == self.inventory_generation =>
                 {
-                    self.programs_loading = false;
-                    match result {
-                        Ok(inventory) => {
-                            self.programs = inventory.programs;
-                            self.package_icons.clear();
-                            for program in &self.programs {
-                                if let Some(path) = &program.icon_path {
-                                    for id in program.package_ids.iter().chain(&program.managed_ids)
-                                    {
-                                        self.package_icons
-                                            .entry(id.clone())
-                                            .or_insert_with(|| path.clone());
-                                    }
-                                }
-                            }
-                            self.icons.refresh();
-                            self.inventory_warnings = inventory.warnings;
-                            self.inventory_unverified = inventory.unverified;
-                            self.selected_removals
-                                .retain(|id| self.programs.iter().any(|p| &p.id == id));
-                        }
-                        Err(error) => {
-                            self.inventory_unverified = self.library.keys().cloned().collect();
-                            self.error = Some(error);
-                        }
-                    }
+                    self.receive_programs(result);
                 }
                 WorkerEvent::Programs { .. } => {}
                 WorkerEvent::Removed { id, managed_ids } => {
                     self.programs.retain(|program| program.id != id);
+                    self.installed_search.invalidate();
                     for id in managed_ids {
                         self.library.remove(&id);
                     }
@@ -324,16 +315,11 @@ impl SoftDownloaderApp {
                 WorkerEvent::AppUpdateProgress(progress) => self.updater.progress = Some(progress),
                 WorkerEvent::QueueFinished => {
                     self.queue_active = false;
-                    let cue = if self
-                        .queue
-                        .iter()
-                        .any(|item| matches!(item.status, JobStatus::Failed(_)))
+                    if let Some(cue) =
+                        super::queue_summary::QueueSummary::from_items(&self.queue).cue()
                     {
-                        Cue::Error
-                    } else {
-                        Cue::Success
-                    };
-                    self.sounds.play(self.settings.sound, cue);
+                        self.sounds.play(self.settings.sound, cue);
+                    }
                     self.refresh_programs();
                 }
             }
@@ -365,6 +351,8 @@ impl SoftDownloaderApp {
                 };
                 self.catalog_warnings = loaded.warnings;
                 self.document = loaded.document;
+                self.catalog_search.invalidate();
+                self.installed_search.invalidate();
                 self.active_source = self.pending_source.take().unwrap_or_default();
                 if let Some(source) = self.pending_setting.take() {
                     self.settings.catalog_source = source;
@@ -391,6 +379,43 @@ impl SoftDownloaderApp {
         self.refresh_programs();
     }
 
+    pub(super) fn receive_programs(&mut self, result: Result<crate::inventory::Inventory, String>) {
+        self.programs_loading = false;
+        self.installed_search.invalidate();
+        match result {
+            Ok(inventory) => {
+                if self
+                    .error
+                    .as_ref()
+                    .is_some_and(|error| self.inventory_warnings.contains(error))
+                {
+                    self.error = None;
+                }
+                self.programs = inventory.programs;
+                self.package_icons.clear();
+                for program in &self.programs {
+                    if let Some(path) = &program.icon_path {
+                        for id in program.package_ids.iter().chain(&program.managed_ids) {
+                            self.package_icons
+                                .entry(id.clone())
+                                .or_insert_with(|| path.clone());
+                        }
+                    }
+                }
+                self.icons.refresh();
+                self.inventory_warnings = inventory.warnings;
+                self.inventory_unverified = inventory.unverified;
+                self.selected_removals
+                    .retain(|id| self.programs.iter().any(|p| &p.id == id));
+            }
+            Err(error) => {
+                self.inventory_unverified = self.library.keys().cloned().collect();
+                self.inventory_warnings = vec![error.clone()];
+                self.error = Some(error);
+            }
+        }
+    }
+
     pub(super) fn prepare_install(&mut self, selected: BTreeSet<String>) {
         self.request_install(selected, false);
     }
@@ -405,7 +430,20 @@ impl SoftDownloaderApp {
         review: bool,
         installation: InstallationSettings,
     ) {
-        if !self.list_actions_enabled() || self.has_modal() {
+        if !self.install_actions_enabled() || self.has_modal() {
+            return;
+        }
+        if self.loading || self.programs_loading {
+            self.pending_install = Some(PendingInstall {
+                selected,
+                review,
+                installation,
+                source: self
+                    .pending_source
+                    .as_ref()
+                    .unwrap_or(&self.active_source)
+                    .clone(),
+            });
             return;
         }
         let batch = prepare_batch(&self.document.catalog, &selected, self.installation_state());
@@ -418,7 +456,7 @@ impl SoftDownloaderApp {
             requested: selected,
             installation,
         };
-        if review || plan.installation.confirm_before_install {
+        if review || plan.installation.confirm_before_install || self.inventory_needs_review() {
             self.confirm_plan = Some(plan);
         } else {
             self.start_plan(plan);
@@ -489,8 +527,42 @@ impl SoftDownloaderApp {
         }
     }
 
+    fn tick_pending_install(&mut self, ctx: &egui::Context) {
+        if self.pending_install.is_none() {
+            return;
+        }
+        if ctx.input(|i| i.viewport().close_requested()) {
+            self.pending_install = None;
+            return;
+        }
+        ctx.request_repaint_after(Duration::from_millis(100));
+        if self.loading
+            || self.programs_loading
+            || self.list_busy
+            || self.has_modal()
+            || egui::Popup::is_any_open(ctx)
+        {
+            return;
+        }
+        let Some(pending) = self.pending_install.take() else {
+            return;
+        };
+        if pending.source != self.active_source {
+            self.notify(
+                "Источник каталога изменился. Проверьте выбор и запустите установку снова.".into(),
+            );
+            return;
+        }
+        self.request_install_with_options(pending.selected, pending.review, pending.installation);
+        ctx.request_repaint();
+    }
+
     pub(super) fn installation_state(&self) -> &Library {
         &self.effective_state
+    }
+
+    pub(super) fn inventory_needs_review(&self) -> bool {
+        !self.inventory_unverified.is_empty() || !self.inventory_warnings.is_empty()
     }
 
     pub(super) fn refresh_programs(&mut self) {
@@ -586,9 +658,22 @@ impl SoftDownloaderApp {
                         );
                     });
                 });
-                ui.add_space(28.0);
+                ui.add_space(if ctx.content_rect().height() < 620.0 {
+                    12.0
+                } else {
+                    28.0
+                });
                 ui.label(RichText::new("Библиотека").size(12.0).color(colors.dim));
-                self.main_navigation(ui);
+                egui::ScrollArea::vertical()
+                    .id_salt("sidebar-navigation")
+                    .max_height((ui.available_height() - 156.0).max(72.0))
+                    .auto_shrink([false, true])
+                    .show(ui, |ui| {
+                        if ctx.content_rect().height() < 620.0 {
+                            ui.spacing_mut().item_spacing.y = 6.0;
+                        }
+                        self.main_navigation(ui);
+                    });
                 ui.with_layout(Layout::bottom_up(Align::Min), |ui| {
                     ui.label(
                         RichText::new(concat!("v", env!("CARGO_PKG_VERSION"), "  /  Windows"))
@@ -611,18 +696,21 @@ impl SoftDownloaderApp {
                     ui.add_space(10.0);
                     let warning =
                         !self.catalog_warnings.is_empty() || !self.document.diagnostics.is_empty();
-                    ui.label(
-                        RichText::new(if self.loading {
-                            "Обновление каталога…"
-                        } else {
-                            &self.catalog_status
-                        })
-                        .size(11.0)
-                        .color(if warning {
-                            colors.orange
-                        } else {
-                            colors.muted
-                        }),
+                    ui.add(
+                        egui::Label::new(
+                            RichText::new(if self.loading {
+                                "Обновление каталога…"
+                            } else {
+                                &self.catalog_status
+                            })
+                            .size(11.0)
+                            .color(if warning {
+                                colors.orange
+                            } else {
+                                colors.muted
+                            }),
+                        )
+                        .truncate(),
                     )
                     .on_hover_text(
                         "Каталог сохраняется на час. Кнопка «Обновить» запрашивает свежие данные.",
@@ -720,7 +808,11 @@ impl SoftDownloaderApp {
                                 ui.label(RichText::new(message).color(colors.red).size(12.0));
                             },
                         );
-                        if ui.small_button("×").clicked() {
+                        if ui
+                            .add(theme::compact("×"))
+                            .on_hover_text("Скрыть сообщение")
+                            .clicked()
+                        {
                             self.error = None;
                         }
                     });
@@ -772,7 +864,13 @@ impl SoftDownloaderApp {
         self.tick_weather(ctx);
         let (background_settings, weather_scene) = self.weather_background();
         self.background
-            .update(ctx, &background_settings, self.settings.reduced_motion);
+            .set_busy(self.queue_active || self.loading || self.programs_loading || self.list_busy);
+        self.background.update(
+            ctx,
+            &background_settings,
+            self.settings.reduced_motion,
+            weather_scene,
+        );
         self.appearance.update(
             ctx,
             self.settings.appearance,
@@ -832,6 +930,7 @@ impl SoftDownloaderApp {
         }
         self.import_dialog(ctx);
         self.handle_close(ctx);
+        self.tick_pending_install(ctx);
         self.tick_app_update(ctx);
         self.experience_dialogs(ctx);
         self.sounds
@@ -840,7 +939,8 @@ impl SoftDownloaderApp {
 }
 
 impl eframe::App for SoftDownloaderApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        self.background.observe_cpu(frame.info().cpu_usage);
         self.render(ctx);
     }
 

@@ -51,24 +51,24 @@ impl SoftDownloaderApp {
         colors.card_frame().show(ui, |ui| {
                 ui.set_width((ui.available_width() - 2.0).max(150.0));
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new("Дополнительный софт").size(17.0).strong());
-                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| { theme::pill(ui, "GOOGLE DRIVE", colors.accent); });
+                    ui.label(RichText::new("Дополнительные каталоги").size(17.0).strong());
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| { theme::pill(ui, if self.builtin_source.is_empty() { "JSON" } else { "GOOGLE DRIVE" }, colors.accent); });
                 });
                 ui.label(RichText::new(if self.builtin_source.is_empty() {
-                    "Встроенный источник для дополнительных пакетов. Коллекция появится в одном из следующих обновлений."
+                    "Подключите свою коллекцию программ и аддонов по HTTPS-ссылке или из локального JSON-файла. Основной каталог уже доступен без настройки."
                 } else {
                     "Дополнительные пакеты загружаются со встроенного Google Диска и дополняют основной каталог."
                 }).color(colors.muted).size(13.0));
                 ui.add_space(6.0);
                 ui.label(RichText::new("Основной каталог использует WinGet, GitHub и сайты разработчиков. Настраивать Google Диск для работы приложения не требуется.").color(colors.dim).size(12.0));
                 ui.add_space(8.0);
-                egui::CollapsingHeader::new("Другой источник · для владельца коллекции").show(ui, |ui| {
+                egui::CollapsingHeader::new("Подключить свою коллекцию").show(ui, |ui| {
                     ui.label(RichText::new("Дополнительный JSON-каталог: HTTPS-ссылка или локальный путь.").size(12.0).color(colors.muted));
                     ui.add_enabled_ui(!self.queue_active && !self.loading, |ui| {
                         ui.add(egui::TextEdit::singleline(&mut self.source_input).hint_text("catalog.public.json · ссылка или путь").desired_width(f32::INFINITY).margin(8.0));
                         ui.horizontal(|ui| {
                             if ui.button("Подключить").clicked() { self.load_source(self.source_input.trim().to_owned()); }
-                            if ui.button("Встроенный источник").clicked() {
+                            if ui.button(if self.builtin_source.is_empty() { "Основной каталог" } else { "Встроенный источник" }).clicked() {
                                 self.source_input = self.builtin_source.clone();
                                 self.load_source(self.builtin_source.clone());
                             }
@@ -106,7 +106,14 @@ impl SoftDownloaderApp {
                 ui.set_width((ui.available_width() - 2.0).max(150.0));
                 ui.label(RichText::new("Каталог и данные").size(17.0).strong());
                 ui.label(RichText::new(&self.catalog_status).color(colors.accent).size(12.0));
-                ui.label(RichText::new("Кэш метаданных — 1 час. «Обновить» в каталоге запрашивает свежие версии. Иконки читаются локально.").size(12.0).color(colors.muted));
+                ui.label(RichText::new("Кэш метаданных — 1 час. «Обновить» в каталоге запрашивает свежие версии. Иконки каталога встроены в приложение; значки установленного ПО читаются локально.").size(12.0).color(colors.muted));
+                egui::CollapsingHeader::new("Источники и лицензия иконок").show(ui, |ui| {
+                    ui.label("Значки разработчиков и VS Code Marketplace используются для обозначения продуктов. Несколько консольных инструментов представлены авторскими пиктограммами MIT. Dashboard Icons: Apache-2.0; изображения уменьшены и размещены на подложке. Товарные знаки принадлежат владельцам.");
+                    ui.hyperlink_to("Источники всех иконок", "https://github.com/HVHBIGNAME/SoftDownloader/blob/main/catalog/icons.json");
+                    egui::ScrollArea::vertical().id_salt("icon-license").max_height(220.0).show(ui, |ui| {
+                        ui.label(RichText::new(include_str!("../../assets/dashboard-icons-LICENSE.txt")).monospace().size(11.0));
+                    });
+                });
                 for warning in &self.catalog_warnings { ui.label(RichText::new(warning).color(colors.orange).size(12.0)); }
                 ui.add_space(8.0);
                 ui.horizontal_wrapped(|ui| {

@@ -52,7 +52,11 @@ pub(super) fn fixture(review: bool) -> (tempfile::TempDir, egui::Context, SoftDo
     (root, ctx, app)
 }
 
-fn frame(app: &mut SoftDownloaderApp, ctx: &egui::Context, events: Vec<Event>) -> egui::FullOutput {
+pub(super) fn frame(
+    app: &mut SoftDownloaderApp,
+    ctx: &egui::Context,
+    events: Vec<Event>,
+) -> egui::FullOutput {
     ctx.run(
         egui::RawInput {
             screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1024.0, 700.0))),
@@ -91,7 +95,7 @@ fn text_position(output: &egui::FullOutput, label: &str) -> Pos2 {
         .unwrap_or_else(|| panic!("Visible control not found: {label}"))
 }
 
-fn click(app: &mut SoftDownloaderApp, ctx: &egui::Context, label: &str) {
+pub(super) fn click(app: &mut SoftDownloaderApp, ctx: &egui::Context, label: &str) {
     frame(app, ctx, vec![]);
     let output = frame(app, ctx, vec![]);
     let position = text_position(&output, label);
@@ -173,6 +177,76 @@ fn settings_and_named_sets_are_operable_and_persist_at_minimum_window_size() {
 }
 
 #[test]
+fn early_install_click_waits_for_detection_then_continues_or_can_be_cancelled() {
+    let (root, ctx, mut app) = fixture(false);
+    app.programs_loading = true;
+    click(&mut app, &ctx, "Установить · 1");
+    assert!(app.pending_install.is_some() && !app.queue_active);
+    assert!(!root.path().join("installed").exists());
+    click(&mut app, &ctx, "Отменить подготовку");
+    app.programs_loading = false;
+    frame(&mut app, &ctx, vec![]);
+    assert!(app.pending_install.is_none() && !app.queue_active);
+    assert!(!root.path().join("installed").exists());
+    app.programs_loading = true;
+    click(&mut app, &ctx, "Установить · 1");
+    app.programs_loading = false;
+    frame(&mut app, &ctx, vec![]);
+    assert!(app.pending_install.is_none() && app.queue_active);
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while app.queue_active && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(10));
+        frame(&mut app, &ctx, vec![]);
+    }
+    assert!(app.library.contains_key("ui-fixture"), "{:?}", app.error);
+    assert_eq!(
+        std::fs::read(root.path().join("installed/fixture.exe")).unwrap(),
+        std::fs::read(root.path().join("fixture.exe")).unwrap()
+    );
+}
+
+#[test]
+fn deferred_install_preserves_review_choice_and_does_not_cross_catalog_sources() {
+    let (root, ctx, mut app) = fixture(true);
+    app.loading = true;
+    click(&mut app, &ctx, "Установить · 1");
+    app.settings.installation.confirm_before_install = false;
+    app.loading = false;
+    frame(&mut app, &ctx, vec![]);
+    assert!(app.confirm_plan.is_some() && !app.queue_active);
+    assert!(!root.path().join("installed").exists());
+    click(&mut app, &ctx, "Вернуться");
+    app.loading = true;
+    click(&mut app, &ctx, "Установить · 1");
+    app.active_source = "changed-source".into();
+    app.loading = false;
+    frame(&mut app, &ctx, vec![]);
+    assert!(app.pending_install.is_none() && !app.queue_active);
+    assert!(!root.path().join("installed").exists());
+}
+
+#[test]
+fn closing_window_during_preparation_never_starts_an_installer() {
+    let (root, ctx, mut app) = fixture(false);
+    app.programs_loading = true;
+    click(&mut app, &ctx, "Установить · 1");
+    app.programs_loading = false;
+    let mut input = egui::RawInput {
+        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1024.0, 700.0))),
+        ..Default::default()
+    };
+    input
+        .viewports
+        .get_mut(&egui::ViewportId::ROOT)
+        .unwrap()
+        .events
+        .push(egui::ViewportEvent::Close);
+    let _ = ctx.run(input, |ctx| app.render(ctx));
+    assert!(app.pending_install.is_none() && !app.queue_active);
+    assert!(!root.path().join("installed").exists());
+}
+
+#[test]
 fn first_run_guide_and_release_table_are_acknowledged_once_and_help_reopens() {
     let (_root, ctx, mut app) = fixture(false);
     app.settings.experience = Default::default();
@@ -199,6 +273,39 @@ fn first_run_guide_and_release_table_are_acknowledged_once_and_help_reopens() {
     assert!(app.experience.open());
     click(&mut app, &ctx, "Пропустить");
     assert!(!app.experience.open());
+}
+
+#[test]
+fn incomplete_detection_requires_review_and_deferred_request_keeps_its_selection_and_mode() {
+    use crate::installation::InstallMode;
+
+    for deferred in [false, true] {
+        let (root, ctx, mut app) = fixture(false);
+        app.inventory_warnings
+            .push("Test: detection was incomplete".into());
+        app.programs_loading = deferred;
+        app.settings.installation.mode = InstallMode::Interactive;
+        click(&mut app, &ctx, "Установить · 1");
+        if deferred {
+            let original = app.pending_install.as_ref().unwrap().selected.clone();
+            app.prepare_install(BTreeSet::from(["another-request".into()]));
+            assert_eq!(app.pending_install.as_ref().unwrap().selected, original);
+            app.selected.clear();
+            app.settings.installation.mode = InstallMode::Silent;
+            app.programs_loading = false;
+            frame(&mut app, &ctx, vec![]);
+        }
+        let plan = app
+            .confirm_plan
+            .as_ref()
+            .expect("Incomplete inventory must be reviewed");
+        assert_eq!(plan.requested, BTreeSet::from(["ui-fixture".into()]));
+        assert_eq!(plan.installation.mode, InstallMode::Interactive);
+        assert!(!app.queue_active);
+        assert!(!root.path().join("installed").exists());
+        click(&mut app, &ctx, "Вернуться");
+        assert!(app.confirm_plan.is_none() && app.pending_install.is_none());
+    }
 }
 
 #[test]
@@ -246,5 +353,40 @@ fn weather_demo_and_city_dropdown_work_without_starting_installers() {
     let saved = app.store.load_settings().unwrap();
     assert_eq!(saved.weather.city, Some(city));
     assert!(saved.weather.enabled);
+    assert!(!app.queue_active);
+}
+
+#[test]
+fn weather_lighting_and_motion_controls_persist_and_keep_demo_separate() {
+    let (_root, ctx, mut app) = fixture(false);
+    app.settings.weather.cinematic = false;
+    app.weather.preview = Some(crate::weather::Conditions::demo(
+        crate::weather::WeatherKind::Clear,
+    ));
+    click(&mut app, &ctx, "Погода");
+    click(&mut app, &ctx, "Ночь");
+    assert_eq!(
+        app.store.load_settings().unwrap().weather.lighting,
+        crate::weather::Lighting::Night
+    );
+    click(&mut app, &ctx, "Дождь");
+    assert_eq!(
+        app.weather.preview.unwrap().kind,
+        crate::weather::WeatherKind::Rain
+    );
+    assert!(!app.settings.weather.enabled && app.settings.weather.city.is_none());
+    click(&mut app, &ctx, "Включить анимацию");
+    let saved = app.store.load_settings().unwrap();
+    assert!(!saved.reduced_motion && !saved.background.paused);
+    click(&mut app, &ctx, "Пауза");
+    assert!(app.store.load_settings().unwrap().background.paused);
+    click(&mut app, &ctx, "Авто");
+    assert_eq!(
+        app.store.load_settings().unwrap().weather.lighting,
+        crate::weather::Lighting::Automatic
+    );
+    click(&mut app, &ctx, "Закрыть демо");
+    assert!(app.weather.preview.is_none());
+    assert!(!app.settings.weather.enabled);
     assert!(!app.queue_active);
 }

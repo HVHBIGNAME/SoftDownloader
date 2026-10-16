@@ -29,6 +29,18 @@ impl CatalogFilter {
         favorites: &BTreeSet<String>,
         selected: &BTreeSet<String>,
     ) -> bool {
+        self.matches_context(package, catalog, installed, favorites, selected)
+            && package.matches_search(&self.query)
+    }
+
+    pub fn matches_context(
+        &self,
+        package: &Package,
+        catalog: &Catalog,
+        installed: &Library,
+        favorites: &BTreeSet<String>,
+        selected: &BTreeSet<String>,
+    ) -> bool {
         let quick = match self.quick {
             QuickFilter::All => true,
             QuickFilter::Available => package.ready() && !is_installed(package, installed),
@@ -41,7 +53,6 @@ impl CatalogFilter {
                 .category
                 .as_ref()
                 .is_none_or(|id| catalog.category_contains(id, &package.category))
-            && package.matches_search(&self.query)
     }
 
     pub fn reset_constraints(&mut self) {

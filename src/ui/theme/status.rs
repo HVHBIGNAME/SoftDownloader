@@ -21,7 +21,7 @@ pub fn package_status(ui: &mut egui::Ui, status: PackageStatus, enabled: bool) -
     } else {
         Sense::hover()
     };
-    let (slot, response) = ui.allocate_exact_size(Vec2::splat(34.0), sense);
+    let (slot, response) = ui.allocate_exact_size(Vec2::splat(38.0), sense);
     let label = match status {
         PackageStatus::Available => "Добавить к установке",
         PackageStatus::Selected => "Выбрано для установки · нажмите, чтобы убрать",
@@ -115,6 +115,6 @@ mod tests {
             });
         }
         assert!(bounds.iter().all(|rect| *rect == bounds[0]));
-        assert_eq!(bounds[0].size(), Vec2::splat(34.0));
+        assert_eq!(bounds[0].size(), Vec2::splat(38.0));
     }
 }

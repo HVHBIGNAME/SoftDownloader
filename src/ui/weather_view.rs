@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-use eframe::egui::{self, RichText, Vec2};
+use eframe::egui::{self, RichText};
 
 use super::{app::SoftDownloaderApp, theme};
 use crate::weather::{
-    self, City, Conditions, Request, Response, Snapshot, WeatherKind, WeatherSettings,
+    self, City, Conditions, Lighting, Request, Response, Scene, Snapshot, Sunlight, WeatherSettings,
 };
 
 pub(super) struct WeatherUi {
@@ -14,6 +14,7 @@ pub(super) struct WeatherUi {
     search_at: Option<Instant>,
     pub snapshot: Option<Snapshot>,
     pub preview: Option<Conditions>,
+    pub reveal_scene: bool,
     tickets: [u64; 3],
     busy: [bool; 3],
     next_refresh: Instant,
@@ -37,6 +38,7 @@ impl WeatherUi {
             search_at: None,
             snapshot,
             preview: None,
+            reveal_scene: false,
             tickets: [0; 3],
             busy: [false; 3],
             next_refresh: Instant::now(),
@@ -59,6 +61,29 @@ impl WeatherUi {
                         && s.age() < Duration::from_secs(6 * 3600)
                 })
                 .map(|s| s.conditions)
+        })
+    }
+
+    pub fn sunlight(&self, settings: &WeatherSettings, timestamp: u64) -> Sunlight {
+        match &settings.city {
+            Some(city) => settings
+                .lighting
+                .resolve(city.latitude, city.longitude, timestamp),
+            None => match settings.lighting {
+                Lighting::Automatic => Lighting::Day.resolve(0.0, 0.0, timestamp),
+                mode => mode.resolve(0.0, 0.0, timestamp),
+            },
+        }
+    }
+
+    pub fn visual(&self, settings: &WeatherSettings) -> Option<Scene> {
+        self.scene(settings).map(|mut conditions| {
+            let sunlight = self.sunlight(settings, weather::now());
+            conditions.day = sunlight.elevation > -0.833;
+            Scene {
+                conditions,
+                sunlight,
+            }
         })
     }
 }
@@ -94,6 +119,7 @@ impl SoftDownloaderApp {
                 {
                     self.weather.errors[1] = Some(format!("Не удалось сохранить кэш: {e:#}"));
                 }
+                self.weather.reveal_scene |= self.weather.snapshot.is_none();
                 self.weather.snapshot = Some(snapshot);
                 self.weather.next_refresh = Instant::now() + weather::REFRESH;
             }
@@ -143,9 +169,9 @@ impl SoftDownloaderApp {
         }
         if enabled
             && self.settings.weather.cinematic
-            && let Some(scene) = self.weather.scene(&self.settings.weather)
+            && let Some(scene) = self.weather.visual(&self.settings.weather)
         {
-            let id = scene.kind.film(scene.day);
+            let id = scene.conditions.kind.film(scene.conditions.day);
             if (self.weather.film_id.as_deref() != Some(id)
                 || (!self.weather.busy[2]
                     && self.weather.ready_film.as_deref() != Some(id)
@@ -166,9 +192,9 @@ impl SoftDownloaderApp {
 
     pub(super) fn weather_background(
         &self,
-    ) -> (crate::preferences::BackgroundSettings, Option<Conditions>) {
+    ) -> (crate::preferences::BackgroundSettings, Option<Scene>) {
         let mut settings = self.settings.background.clone();
-        let scene = self.weather.scene(&self.settings.weather);
+        let scene = self.weather.visual(&self.settings.weather);
         if scene.is_some() {
             settings.video = if self.settings.weather.cinematic {
                 self.weather.video.clone()
@@ -207,7 +233,12 @@ impl SoftDownloaderApp {
         );
         let previous = self.settings.weather.clone();
         let colors = theme::colors(ui.ctx());
-        egui::ScrollArea::vertical().id_salt("weather-settings").show(ui, |ui| {
+        let mut scroll = egui::ScrollArea::vertical().id_salt("weather-settings");
+        if std::mem::take(&mut self.weather.reveal_scene) {
+            scroll = scroll.vertical_scroll_offset(0.0);
+        }
+        scroll.show(ui, |ui| {
+            self.weather_showcase(ui);
             colors.card_frame().show(ui, |ui| {
                 ui.set_width((ui.available_width() - 2.0).max(150.0));
                 if ui.checkbox(&mut self.settings.weather.enabled, "Включить тему «Погода»").changed() {
@@ -232,7 +263,11 @@ impl SoftDownloaderApp {
         colors.card_frame().show(ui, |ui| {
             ui.set_width((ui.available_width() - 2.0).max(150.0));
             ui.label(RichText::new("Атмосфера").size(18.0).strong());
-            if ui.checkbox(&mut self.settings.weather.cinematic, "Кинематографический фон · настоящие видеосцены").changed() && !self.settings.weather.cinematic {
+            if self.weather.scene(&self.settings.weather).is_none() {
+                self.weather_lighting_controls(ui);
+                self.weather_motion_controls(ui);
+            }
+            if ui.checkbox(&mut self.settings.weather.cinematic, "Добавить фактуру из видеосцен").changed() && !self.settings.weather.cinematic {
                 self.engine.cancel_weather_film();
                 self.weather.tickets[2] = self.weather.tickets[2].wrapping_add(1);
                 self.weather.busy[2] = false;
@@ -240,32 +275,15 @@ impl SoftDownloaderApp {
                 self.weather.ready_film = None;
                 self.weather.video = None;
             }
-            ui.label(RichText::new("Подходящий ролик скачивается по необходимости и кэшируется (до 10 МБ каждый). Это атмосферная сцена, а не камера вашего города.").size(12.0).color(colors.muted));
+            ui.label(RichText::new("Небо, облака и осадки анимируются без видео. Дополнительная видеосцена кэшируется (до 10 МБ). Это иллюстрация погоды, не камера города.").size(12.0).color(colors.muted));
             theme::percent_slider(ui, &mut self.settings.weather.dimming, 45..=95, "Приглушение");
-            ui.horizontal_wrapped(|ui| {
-                for kind in WeatherKind::ALL {
-                    if theme::filter_chip(ui, kind.label(), self.weather.preview.is_some_and(|p| p.kind == kind)).clicked() {
-                        self.weather.preview = Some(Conditions::demo(kind));
-                    }
-                }
-            });
-            if self.weather.preview.is_some() {
-                ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("ДЕМО · выбранный эффект, не текущая погода").color(colors.orange));
-                    if ui.button("Вернуть погоду города").clicked() { self.weather.preview = None; }
-                });
+            if self.weather.scene(&self.settings.weather).is_none() {
+                self.weather_demo_controls(ui);
             }
             if self.weather.busy[2] { ui.horizontal(|ui| { ui.spinner(); ui.label("Загружаем погодную сцену…"); }); }
             if let Some(error) = &self.weather.errors[2] { ui.label(RichText::new(error).color(colors.orange)); }
             if let Some(error) = &self.background.video.error { ui.label(RichText::new(error).color(colors.orange)); }
-            if self.weather.scene(&self.settings.weather).is_some() && self.background.video.texture.is_some() {
-                egui::CollapsingHeader::new("Сцена без приглушения").default_open(true).show(ui, |ui| {
-                    let width = ui.available_width().min(640.0);
-                    let (rect, _) = ui.allocate_exact_size(Vec2::new(width, width * 9.0 / 16.0), egui::Sense::hover());
-                    self.background.video.paint(ui.painter(), rect, egui::Color32::WHITE);
-                });
-            }
-            ui.label(RichText::new("Пауза и уменьшение анимации применяются ко всем фонам. Основная цветовая тема и ваш MP4 сохраняются.").size(12.0).color(colors.muted));
+            ui.label(RichText::new("Видимое окно продолжает анимацию даже без фокуса. Сворачивание, пауза и уменьшение движения останавливают фон.").size(12.0).color(colors.muted));
             ui.horizontal_wrapped(|ui| { ui.hyperlink_to("Погода: MET Norway · CC BY 4.0", "https://api.met.no/"); ui.hyperlink_to("Города: Open-Meteo / GeoNames", "https://open-meteo.com/en/docs/geocoding-api"); ui.hyperlink_to("Видео: Mixkit", "https://mixkit.co/license/#videoFree"); });
         });
     }
@@ -347,10 +365,16 @@ impl SoftDownloaderApp {
                         ui.label(format!(
                             "{} · {}",
                             c.kind.label(),
-                            if c.day { "День" } else { "Ночь" }
+                            weather::Sunlight::at(
+                                snapshot.city.latitude,
+                                snapshot.city.longitude,
+                                weather::now()
+                            )
+                            .phase
+                            .label()
                         ));
                         ui.label(format!(
-                            "Ветер {:.0} км/ч · осадки {:.1} мм",
+                            "Ветер {:.0} км/ч · осадки {:.1} мм/ч",
                             c.wind_kmh, c.precipitation
                         ));
                     });
@@ -402,6 +426,7 @@ impl SoftDownloaderApp {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::weather::WeatherKind;
 
     #[test]
     fn stale_requests_wrong_cities_and_disabled_weather_cannot_replace_the_scene() {

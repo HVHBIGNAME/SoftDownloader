@@ -21,80 +21,116 @@ impl SoftDownloaderApp {
             );
             return;
         }
-        ui.horizontal(|ui| {
-            let done = self
-                .queue
-                .iter()
-                .filter(|item| matches!(item.status, JobStatus::Done { .. }))
-                .count();
-            theme::pill(
-                ui,
-                &format!("{done} из {} выполнено", self.queue.len()),
-                colors.accent,
-            );
-            if self.queue_active {
+        let summary = super::queue_summary::QueueSummary::from_items(&self.queue);
+        let title = if self.queue_active && self.engine.is_cancelling() {
+            "Останавливаем очередь"
+        } else if self.queue_active && self.engine.is_paused() {
+            "Новые задачи на паузе"
+        } else {
+            summary.title()
+        };
+        ui.label(RichText::new(title).size(19.0).strong());
+        ui.horizontal_wrapped(|ui| {
+            theme::pill(ui, &format!("Готово: {}", summary.done), colors.accent);
+            if summary.failed > 0 {
+                theme::pill(ui, &format!("Ошибок: {}", summary.failed), colors.red);
+            }
+            if summary.skipped > 0 {
+                theme::pill(
+                    ui,
+                    &format!("Пропущено: {}", summary.skipped),
+                    colors.orange,
+                );
+            }
+            if summary.cancelled > 0 {
+                theme::pill(
+                    ui,
+                    &format!("Отменено: {}", summary.cancelled),
+                    colors.muted,
+                );
+            }
+            if self.queue_active && !self.engine.is_paused() {
                 ui.spinner();
             }
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if self.queue_active {
-                    if ui
-                        .add_enabled(
-                            !self.engine.is_cancelling(),
-                            egui::Button::new(if self.engine.is_cancelling() {
-                                "Останавливаем…"
-                            } else {
-                                "Остановить"
-                            }),
-                        )
-                        .clicked()
-                    {
-                        self.engine.cancel();
-                    }
-                } else {
-                    let failed: BTreeSet<_> = self
-                        .queue
-                        .iter()
-                        .filter(|item| {
-                            matches!(
-                                item.status,
-                                JobStatus::Failed(_) | JobStatus::Cancelled | JobStatus::Skipped(_)
-                            )
-                        })
-                        .map(|item| item.id.clone())
-                        .collect();
-                    if !failed.is_empty()
-                        && ui
+        });
+        ui.horizontal_wrapped(|ui| {
+            ui.with_layout(
+                Layout::right_to_left(Align::Center).with_main_wrap(true),
+                |ui| {
+                    if self.queue_active {
+                        if ui
                             .add_enabled(
-                                self.list_actions_enabled(),
-                                egui::Button::new("Повторить незавершённые"),
+                                !self.engine.is_cancelling(),
+                                egui::Button::new(if self.engine.is_cancelling() {
+                                    "Останавливаем…"
+                                } else {
+                                    "Остановить"
+                                }),
                             )
                             .clicked()
-                    {
-                        if self.queue.first().is_some_and(|item| item.removal) {
-                            self.remove_programs(&failed);
-                        } else {
-                            self.prepare_install(failed);
+                        {
+                            self.engine.cancel();
+                        }
+                    } else {
+                        let failed: BTreeSet<_> = self
+                            .queue
+                            .iter()
+                            .filter(|item| {
+                                matches!(
+                                    item.status,
+                                    JobStatus::Failed(_)
+                                        | JobStatus::Cancelled
+                                        | JobStatus::Skipped(_)
+                                )
+                            })
+                            .map(|item| item.id.clone())
+                            .collect();
+                        if !failed.is_empty()
+                            && ui
+                                .add_enabled(
+                                    if self.queue.first().is_some_and(|item| item.removal) {
+                                        self.list_actions_enabled()
+                                    } else {
+                                        self.install_actions_enabled()
+                                    },
+                                    colors.primary("Повторить незавершённые"),
+                                )
+                                .clicked()
+                        {
+                            if self.queue.first().is_some_and(|item| item.removal) {
+                                self.remove_programs(&failed);
+                            } else {
+                                self.prepare_install(failed);
+                            }
+                        }
+                        if ui
+                            .add_enabled(
+                                self.pending_install.is_none(),
+                                egui::Button::new("Очистить очередь"),
+                            )
+                            .clicked()
+                        {
+                            self.queue.clear();
                         }
                     }
-                    if ui.button("Очистить очередь").clicked() {
-                        self.queue.clear();
-                    }
-                }
-            });
+                },
+            );
         });
+        if self.queue.is_empty() {
+            return;
+        }
         if self.queue_active {
             ui.label(RichText::new("Остановка отменяет загрузки и следующие задачи. Запущенный мастер завершит работу.").size(11.0).color(colors.dim));
         }
-        let completed = self
-            .queue
-            .iter()
-            .filter(|item| item.status.is_terminal())
-            .count();
+        let completed = summary.completed();
         ui.add(
             egui::ProgressBar::new(completed as f32 / self.queue.len().max(1) as f32).text(
                 format!("Завершено задач: {completed} / {}", self.queue.len()),
             ),
         );
+        if summary.reboot {
+            ui.label(RichText::new("Для завершения изменений потребуется перезагрузка Windows. Перезагрузите ПК после завершения очереди, когда вам удобно.").size(12.0).color(colors.orange));
+        }
         if self.queue_already_installed > 0 {
             ui.label(
                 RichText::new(format!(
@@ -134,14 +170,24 @@ impl SoftDownloaderApp {
                                 .document
                                 .catalog
                                 .package(&item.id)
-                                .is_some_and(|package| package.ready())
+                                .is_some_and(|package| {
+                                    package.ready()
+                                        && matches!(
+                                            package.install,
+                                            Some(
+                                                crate::catalog::InstallSpec::Exe { .. }
+                                                    | crate::catalog::InstallSpec::Msi { .. }
+                                                    | crate::catalog::InstallSpec::Winget
+                                            )
+                                        )
+                                })
                     })
                     .map(|item| item.id.clone())
                     .collect();
                 if !failed.is_empty()
                     && ui
                         .add_enabled(
-                            self.list_actions_enabled(),
+                            self.install_actions_enabled(),
                             egui::Button::new("Повторить с мастером"),
                         )
                         .clicked()
@@ -166,7 +212,7 @@ impl SoftDownloaderApp {
         });
         if self.queue_active && self.engine.is_paused() {
             ui.label(
-                RichText::new("Текущая задача завершится. Следующие ждут нажатия «Продолжить».")
+                RichText::new("Новые задачи на паузе. Если установщик уже открыт, завершите его шаги. Затем нажмите «Продолжить».")
                     .color(colors.orange)
                     .size(12.0),
             );
@@ -177,14 +223,20 @@ impl SoftDownloaderApp {
                 colors.card_frame().show(ui, |ui| {
                     ui.set_width((ui.available_width()-2.0).max(150.0));
                     let color = match item.status { JobStatus::Done { .. } => colors.accent, JobStatus::Failed(_) => colors.red, JobStatus::Skipped(_) | JobStatus::Cancelled => colors.orange, _ => colors.muted };
-                    ui.horizontal(|ui| {
-                        theme::app_icon(ui, &item.id, 38.0);
+                    ui.horizontal_top(|ui| {
+                        if !self.icons.show_catalog(ui, &item.id, 38.0) {
+                            theme::app_icon(ui, &item.id, 38.0);
+                        }
                         ui.vertical(|ui| {
-                            ui.label(RichText::new(&item.name).strong());
-                            ui.label(RichText::new(format!("{} · {}", if item.removal { "Удаление" } else { "Установка" }, item.version)).color(colors.dim).size(11.0));
-                            if !item.mode_label.is_empty() { ui.label(RichText::new(&item.mode_label).color(colors.muted).size(11.0)); }
+                            ui.set_width(ui.available_width());
+                            ui.spacing_mut().item_spacing.y = 6.0;
+                            ui.add(egui::Label::new(RichText::new(&item.name).size(16.0).strong()).truncate()).on_hover_text(&item.name);
+                            ui.horizontal_wrapped(|ui| {
+                                theme::pill(ui, item.status.label(), color);
+                                ui.label(RichText::new(format!("{} · {}", if item.removal { "Удаление" } else { "Установка" }, item.version)).color(colors.dim).size(12.0));
+                                if !item.mode_label.is_empty() { ui.label(RichText::new(&item.mode_label).color(colors.muted).size(12.0)); }
+                            });
                         });
-                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| { theme::pill(ui, item.status.label(), color); });
                     });
                     let progress = match item.status {
                         JobStatus::Done { .. } | JobStatus::Installing | JobStatus::Removing | JobStatus::Verifying => 1.0,
@@ -199,7 +251,10 @@ impl SoftDownloaderApp {
                             let total = if item.size == 0 { "размер уточняется".into() } else { theme::bytes(item.size) };
                             ui.label(RichText::new(format!("{} / {total}    ·    {}/с", theme::bytes(item.downloaded), theme::bytes(item.bytes_per_second as u64))).color(colors.dim).size(11.0));
                         }
-                        JobStatus::Failed(message) | JobStatus::Skipped(message) => { ui.label(RichText::new(message).size(12.0).color(color)); }
+                        JobStatus::Failed(message) | JobStatus::Skipped(message) => {
+                            ui.label(RichText::new(message).size(13.0).color(color));
+                            if ui.add(theme::compact("Скопировать причину")).clicked() { ui.ctx().copy_text(message.clone()); }
+                        }
                         JobStatus::Installing | JobStatus::Removing => { ui.horizontal(|ui| { ui.spinner(); ui.label(RichText::new("Установщик работает. Если появилось окно UAC или мастер, завершите его шаги.").color(colors.dim).size(11.0)); }); }
                         JobStatus::Done { reboot_required: true } => { ui.label(RichText::new("Windows требуется перезагрузка. Выполни её в удобное время.").color(colors.orange).size(11.0)); }
                         _ => {}
@@ -283,22 +338,16 @@ impl SoftDownloaderApp {
                 }
             });
         }
-        let query = self.installed_query.to_lowercase();
+        self.installed_search.prepare(
+            &self.programs,
+            &self.document.catalog,
+            &self.installed_query,
+        );
         let programs: Vec<_> = self
             .programs
             .iter()
             .enumerate()
-            .filter(|(_, program)| {
-                format!("{} {}", program.name, program.publisher)
-                    .to_lowercase()
-                    .contains(&query)
-                    || program.package_ids.iter().any(|id| {
-                        self.document
-                            .catalog
-                            .package(id)
-                            .is_some_and(|p| p.matches_search(&query))
-                    })
-            })
+            .filter(|(index, _)| self.installed_search.matches(*index))
             .map(|(index, _)| index)
             .collect();
         ui.horizontal(|ui| {
@@ -310,7 +359,7 @@ impl SoftDownloaderApp {
             if ui
                 .add_enabled(
                     !self.queue_active && !self.programs_loading && !self.loading,
-                    egui::Button::new("Выбрать все найденные").small(),
+                    theme::compact("Выбрать все найденные"),
                 )
                 .clicked()
             {
@@ -322,7 +371,8 @@ impl SoftDownloaderApp {
                         .map(|p| p.id.clone()),
                 );
             }
-            if !self.selected_removals.is_empty() && ui.small_button("Сбросить").clicked() {
+            if !self.selected_removals.is_empty() && ui.add(theme::compact("Сбросить")).clicked()
+            {
                 self.selected_removals.clear();
             }
         });
@@ -384,7 +434,13 @@ impl SoftDownloaderApp {
                         self.selected_removals.remove(&program.id);
                     }
                 }
-                if !self.icons.show(ui, program.icon_path.as_deref(), 36.0) {
+                if !self.icons.show(ui, program.icon_path.as_deref(), 36.0)
+                    && !program
+                        .package_ids
+                        .iter()
+                        .chain(&program.managed_ids)
+                        .any(|id| self.icons.show_catalog(ui, id, 36.0))
+                {
                     theme::app_icon(ui, name, 36.0);
                 }
                 let text_width = (ui.available_width() - 48.0).max(160.0);

@@ -1,6 +1,4 @@
-use eframe::egui::{
-    self, Align2, Color32, FontId, Margin, Pos2, Rect, RichText, Sense, Stroke, Vec2,
-};
+use eframe::egui::{self, Align2, Color32, FontId, Pos2, Rect, RichText, Sense, Stroke, Vec2};
 
 mod palette;
 pub use palette::{Palette, ThemeTransition, colors, on_color};
@@ -14,12 +12,17 @@ pub fn initialize(ctx: &egui::Context) {
     system_fonts(ctx);
     let mut style = (*ctx.style()).clone();
     style.spacing.item_spacing = Vec2::new(12.0, 12.0);
-    style.spacing.button_padding = Vec2::new(12.0, 9.0);
-    style.spacing.interact_size.y = 34.0;
+    style.spacing.button_padding = Vec2::new(14.0, 9.0);
+    style.spacing.interact_size.y = 38.0;
+    style.spacing.scroll.bar_width = 8.0;
+    style.spacing.scroll.floating_width = 6.0;
+    style.spacing.scroll.floating_allocated_width = 10.0;
+    style.spacing.scroll.dormant_handle_opacity = 0.40;
+    style.spacing.scroll.active_handle_opacity = 0.65;
     style.animation_time = 0.16;
     style
         .text_styles
-        .insert(egui::TextStyle::Body, FontId::proportional(14.0));
+        .insert(egui::TextStyle::Body, FontId::proportional(15.0));
     style
         .text_styles
         .insert(egui::TextStyle::Button, FontId::proportional(14.0));
@@ -53,13 +56,24 @@ fn system_fonts(ctx: &egui::Context) {
 
 pub fn pill(ui: &mut egui::Ui, text: &str, color: Color32) {
     let colors = colors(ui.ctx());
-    egui::Frame::new()
-        .fill(colors.surface.lerp_to_gamma(color, 0.08))
-        .corner_radius(255)
-        .inner_margin(Margin::symmetric(7, 3))
-        .show(ui, |ui| {
-            ui.label(RichText::new(text).size(10.5).color(color));
-        });
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_owned(), FontId::proportional(12.0), color);
+    let size = Vec2::new(galley.size().x + 18.0, 26.0);
+    let (rect, response) = ui.allocate_exact_size(size, Sense::hover());
+    response
+        .widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Label, ui.is_enabled(), text));
+    ui.painter()
+        .rect_filled(rect, 7, colors.surface.lerp_to_gamma(color, 0.08));
+    ui.painter()
+        .galley(rect.center() - galley.size() * 0.5, galley, color);
+}
+
+pub fn compact(text: impl Into<String>) -> egui::Button<'static> {
+    egui::Button::new(RichText::new(text.into()).size(13.0))
+        .small()
+        .min_size(Vec2::new(32.0, 32.0))
+        .wrap_mode(egui::TextWrapMode::Extend)
 }
 
 pub fn heading(ui: &mut egui::Ui, title: &str, subtitle: &str) {
@@ -353,6 +367,7 @@ pub fn nav(
     }
     response
         .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text(text)
         .clicked()
 }
 
@@ -376,7 +391,7 @@ fn nav_count(ui: &egui::Ui, rect: Rect, count: usize, color: Color32) {
 
 pub fn favorite_button(ui: &mut egui::Ui, selected: bool, name: &str) -> egui::Response {
     let colors = colors(ui.ctx());
-    let (rect, response) = ui.allocate_exact_size(Vec2::splat(34.0), Sense::click());
+    let (rect, response) = ui.allocate_exact_size(Vec2::splat(38.0), Sense::click());
     let label = format!(
         "{} «{name}»",
         if selected {
@@ -415,7 +430,7 @@ pub fn favorite_button(ui: &mut egui::Ui, selected: bool, name: &str) -> egui::R
     }
     draw_icon(
         ui,
-        rect.shrink(8.0),
+        rect.shrink(10.0),
         Icon::Star,
         if selected {
             colors.accent
@@ -429,28 +444,31 @@ pub fn favorite_button(ui: &mut egui::Ui, selected: bool, name: &str) -> egui::R
 }
 
 pub fn filter_chip(ui: &mut egui::Ui, label: impl Into<String>, selected: bool) -> egui::Response {
-    let colors = colors(ui.ctx());
-    ui.add(
-        egui::Button::new(RichText::new(label.into()).size(12.0).color(if selected {
-            colors.text
-        } else {
-            colors.muted
-        }))
-        .fill(if selected {
-            colors.raised
+    ui.add(chip(label, selected, colors(ui.ctx())))
+}
+
+pub fn chip(label: impl Into<String>, selected: bool, colors: Palette) -> egui::Button<'static> {
+    egui::Button::new(RichText::new(label.into()).size(13.0).color(if selected {
+        colors.text
+    } else {
+        colors.muted
+    }))
+    .fill(if selected {
+        colors.raised
+    } else {
+        Color32::TRANSPARENT
+    })
+    .stroke(Stroke::new(
+        1.0_f32,
+        if selected {
+            colors.border
         } else {
             Color32::TRANSPARENT
-        })
-        .stroke(Stroke::new(
-            1.0_f32,
-            if selected {
-                colors.border
-            } else {
-                Color32::TRANSPARENT
-            },
-        ))
-        .corner_radius(255),
-    )
+        },
+    ))
+    .corner_radius(CONTROL_RADIUS)
+    .min_size(Vec2::new(0.0, 38.0))
+    .wrap_mode(egui::TextWrapMode::Extend)
 }
 
 pub fn window_icon() -> egui::IconData {

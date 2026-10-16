@@ -1,6 +1,6 @@
 [package]
 name = "softdownloader"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2024"
 rust-version = "1.88"
 description = "A native Windows software manager with portable program lists"
@@ -19,6 +19,16 @@ required-features = ["catalog-tools"]
 [[bin]]
 name = "weather-check"
 path = "src/bin/weather-check.rs"
+required-features = ["catalog-tools"]
+
+[[bin]]
+name = "weather-preview"
+path = "src/bin/weather-preview.rs"
+required-features = ["catalog-tools"]
+
+[[bin]]
+name = "client-preview"
+path = "src/bin/client-preview.rs"
 required-features = ["catalog-tools"]
 
 [build-dependencies]

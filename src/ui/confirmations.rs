@@ -16,7 +16,7 @@ pub(super) fn removal(
         .show(ctx, |ui| {
             ui.set_width(510.0);
             theme::heading(ui, "Удалить программы?", "Проверьте список. Зависимые пакеты удаляются первыми.");
-            egui::ScrollArea::vertical().max_height(270.0).show(ui, |ui| {
+            egui::ScrollArea::vertical().auto_shrink([false, true]).max_height((ctx.content_rect().height() - 310.0).clamp(100.0, 270.0)).show(ui, |ui| {
                 for program in programs {
                     ui.horizontal(|ui| {
                         ui.add(egui::Label::new(RichText::new(&program.name).strong()).truncate());
